@@ -1,0 +1,745 @@
+# Python Inheritance
+
+- [Python Inheritance](#python-inheritance)
+    - [两种父类初始化](#%E4%B8%A4%E7%A7%8D%E7%88%B6%E7%B1%BB%E5%88%9D%E5%A7%8B%E5%8C%96)
+    - [多继承](#%E5%A4%9A%E7%BB%A7%E6%89%BF)
+    - [private variable](#private-variable)
+    - [解决多次初始化](#%E8%A7%A3%E5%86%B3%E5%A4%9A%E6%AC%A1%E5%88%9D%E5%A7%8B%E5%8C%96)
+    - [`isinstance` vs `type`](#isinstance-vs-type)
+    - [多态](#%E5%A4%9A%E6%80%81)
+    - [`static` method](#static-method)
+        - [类属性vs实例属性](#%E7%B1%BB%E5%B1%9E%E6%80%A7vs%E5%AE%9E%E4%BE%8B%E5%B1%9E%E6%80%A7)
+        - [类方法vs实例方法vs静态方法](#%E7%B1%BB%E6%96%B9%E6%B3%95vs%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95vs%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95)
+    - [inheritance with GUI](#inheritance-with-gui)
+        - [DataSearch](#datasearch)
+    - [Some example](#some-example)
+        - [car store](#car-store)
+
+处理10亿级的数据，可能面试会问的问题：
+
+- 内存不够怎么解决的
+- 硬盘不够怎么解决的
+- 多线程，线程冲突
+- 多进程，进程通信
+- 一台机器不够，分布式，分布式的架构
+
+## 两种父类初始化
+
+```python
+class Mammal(object):
+    def __init__(self):
+        self.name="Mammal"
+        self.eyes=2
+    def Eat(self):
+        print("I can eat")
+    def Sleep(self):
+        print("I can sleep")
+
+class Person(Mammal):
+    def __init__(self):
+        # Mammal.__init__(self)#初始化父类，Mammal是一个class，所以需要self
+        super().__init__()#一般使用这个,super()是一个instance
+        self.name="Human"
+    def Eat(self):
+        print("I can eat KFC")
+
+#继承的意义：代码重用(数据、函数重用)；重名情况下发生覆盖
+person1=Person()
+print(person1.name,person1.eyes)
+person1.Eat()
+person1.Sleep()
+```
+
+## 多继承
+
+```python
+class BiologicalFather(object):
+    def __init__(self):
+        self.money=100000
+        self.vehicle="bike"
+        self.house="small house"
+    def buy(self):
+        print("I can buy cheap things")
+
+class GanDie(object):
+    def __init__(self):
+        self.money=2e8
+        self.vehicle="Lamborghini"
+        self.house="big house"
+    def buy(self):
+        print("I can buy expensive things")
+
+class BeautifulActress(BiologicalFather,GanDie):
+    def __init__(self):
+        BiologicalFather.__init__(self)
+        GanDie.__init__(self)
+
+#
+jingtian=BeautifulActress()
+print(jingtian.money,jingtian.vehicle,jingtian.house)#与两个初始化__init__()的顺序对应，后面的覆盖前面的,200000000.0 Lamborghini big house
+jingtian.buy()#与继承括号的继承顺序对应，前面的覆盖后面的
+```
+
+```python
+#尽量不要使用相同的函数名，如果不是多态的话
+class Base(object):
+    def test(self):
+        print("---base")
+
+class A(Base):
+    def test(self):
+        print("---A")
+
+class B(Base):
+    def test(self):
+        print("---B")
+
+class C(A,B):
+    pass
+
+myC=C()
+print(C.__mro__)#(<class '__main__.C'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.Base'>, <class 'object'>);决定了继承方法的顺序,一个挨着一个区搜索test方法，这个使用C3算法做的
+myC.test()#---A
+```
+
+## private variable
+
+```python
+class Father(object):
+    def __init__(self):
+        self.__wife="Mother"
+
+class Son(Father):
+    def __init__(self):
+        super().__init__()
+    def Show(self):
+        # print(self.__wife)#AttributeError: 'Son' object has no attribute '_Son__wife'#里面都不能访问，外部的更加不可能
+        pass
+#father
+father1=Father()
+# print(father1.__wife)#不能访问
+print(dir(father1))#可以查看private variable, private method
+print(father1._Father__wife)#强制访问,Mother
+#son
+son1=Son()
+son1.Show()
+print(dir(son1))
+print(son1._Father__wife)#强制访问,Mother
+```
+
+所有的类都是默认继承于`object`，可以不用写
+
+```python
+class ClassX(object):
+    pass
+
+class ClassY:
+    pass
+
+instance1=ClassX()
+print(dir(instance1))
+instance2=ClassY()
+print(dir(instance2))
+#前两个结果一样
+#比上面少了'__dict__', '__module__', '__weakref__'
+print(dir(object))
+```
+
+```python
+#一些继承自object的函数
+class ClassX(object):
+    '''
+    This is the document of ClassX
+    '''
+    def __init__(self):
+        self.name="ClassX"
+
+print(ClassX.__doc__)#This is the document of ClassX
+print(ClassX.__name__)#ClassX
+print(ClassX.__module__)#__main__，属于__main__模块
+print(__name__)#__main__,当前的东西的名称
+print(ClassX.__base__)#<class 'object'>
+print(ClassX.__bases__)#(<class 'object'>,)
+print(ClassX.__dict__)#所有属性,方法的key-values pair
+```
+
+## 解决多次初始化
+
+![](res/inheritance01.png)
+
+```python
+#浪费内存的情况
+class 爷:
+    def __init__(self):
+        print("爷构造了一次")
+
+class 大儿子(爷):
+    def __init__(self):
+        爷.__init__(self)
+        print("大儿子构造了1次")
+
+class 二儿子(爷):
+    def __init__(self):
+        爷.__init__(self)
+        print("二儿子构造了1次")
+
+class 小儿子(爷):
+    def __init__(self):
+        爷.__init__(self)
+        print("小儿子构造了1次")
+
+class  媳妇(大儿子,二儿子,小儿子):
+    def __init__(self):
+        大儿子.__init__(self)
+        二儿子.__init__(self)
+        小儿子.__init__(self)
+
+#
+xf=媳妇()
+```
+
+```bash
+#output
+爷构造了一次
+大儿子构造了1次
+爷构造了一次
+二儿子构造了1次
+爷构造了一次
+小儿子构造了1次
+```
+
+```python
+#super()解决该问题
+class 爷:
+    def __init__(self):
+        print("爷构造了一次")
+
+class 大儿子(爷):
+    def __init__(self):
+        super().__init__()
+        print("大儿子构造了1次")
+
+class 二儿子(爷):
+    def __init__(self):
+        super().__init__()
+        print("二儿子构造了1次")
+
+class 小儿子(爷):
+    def __init__(self):
+        super().__init__()
+        print("小儿子构造了1次")
+
+class  媳妇(大儿子,二儿子,小儿子):
+    def __init__(self):
+        super().__init__()
+
+xf=媳妇()
+```
+
+```bash
+#output
+爷构造了一次
+小儿子构造了1次
+二儿子构造了1次
+大儿子构造了1次
+```
+
+## `isinstance` vs `type`
+
+```python
+class ClassX(object):
+    pass
+
+class ClassXX(ClassX):
+    pass
+
+a=10
+b="10"
+c=ClassX()
+d=ClassXX()
+#
+print(isinstance(a,int))#True
+print(isinstance(a,(str,int)))#True
+print(isinstance(b,str))#True
+#检测一般
+print(isinstance(c,ClassX))#True
+print(isinstance(c,ClassXX))#False
+print(isinstance(d,ClassX))#True,子类属于父类
+print(isinstance(d,ClassXX))#True
+#检测严格
+#type()只能处理对象
+print(type(c)==ClassX)#True
+print(type(c)==ClassXX)#False
+print(type(d)==ClassX)#False
+print(type(d)==ClassXX)#True
+```
+
+## 多态
+
+解决软件可拓展性, 弄一个父类，然后后面拓展的功能继承这个父类，那么就可以用一个父类的对象进行功能拓展了(比如工厂拓展业务线)
+
+下面的例子比较的简单，并没有涉及Factory中不变的部分，所以即便是不继承Factory，也是可以得到结果；假如Factory中还有其他东西，三个process还是得继承
+
+```python
+class Factory(object):
+    pass
+
+class MakeOrange(Factory):
+    def make(self):
+        print("process orange")
+
+class MakeApple(Factory):
+    def make(self):
+        print("process apple")
+
+class MakeBanana(Factory):
+    def make(self):
+        print("process banana")
+
+print(isinstance(MakeOrange(),Factory))#True
+print(isinstance(MakeApple(),Factory))#True
+print(isinstance(MakeBanana(),Factory))#True
+#interface，鸭子类型的多态
+def makeInterface(obj):
+    obj.make()
+#
+process1=MakeOrange()
+process2=MakeApple()
+process3=MakeBanana()
+
+myList=[]
+myList.append(process1)
+myList.append(process2)
+myList.append(process3)
+#
+for i in range(3):
+    makeInterface(myList[i])
+```
+
+```bash
+#output
+True
+True
+True
+process orange
+process apple
+process banana
+```
+
+## `static` method 
+
+static method不常用, 对于一个类通用的东西，就弄成static
+
+```python
+class People(object):
+    def __init__(self,height,weight):
+        self.height=height
+        self.weight=weight
+    @staticmethod
+    def getEyes():#没有self
+        return 2
+    @classmethod#一般都省略了
+    def Eat(self):
+        print("I can eat")
+
+print(People.getEyes())#2
+p1=People(170,50)
+print(p1.height,p1.weight)#170 50
+```
+
+### 类属性vs实例属性
+
+```python
+#实例属性、实例方法实现多个对象数据共享
+class Base(object):
+    #类属性
+    num=0
+    #实例方法，因为有self
+    def __init__(self,name):
+        self.name=name#实例属性
+        Base.num+=1
+    
+obj1=Base("grey")
+obj2=Base("moris")
+print(Base.num)#2
+print(obj1.num)#2
+print(obj2.num)#2
+```
+
+### 类方法vs实例方法vs静态方法
+
+- 要操作类属性，就要用到类方法；
+- 要操作实例属性，就要用到实例方法；
+- 和实例属性、类属性关系不大，就用静态方法；
+
+```python
+class Base(object):
+    #类属性
+    num=0
+
+    #实例方法
+    def __init__(self,name):
+        self.name=name#实例属性
+        Base.num+=1
+    
+    #类方法,用于共享
+    @classmethod #装饰器
+    def add_num(cls):#用的是cls
+        cls.num+=1
+    
+    @staticmethod #不写self,cls
+    def printMenu():
+        print("base begin")
+    
+obj1=Base("grey")
+obj2=Base("moris")
+
+print(Base.num)#2
+print(obj1.num)#2
+
+#class method
+Base.add_num()
+obj1.add_num()
+print(Base.num)#4
+
+#static method
+Base.printMenu()
+obj1.printMenu()
+```
+
+## inheritance with GUI
+
+### DataSearch
+
+![](res/gui-example02.png)
+
+```bash
+#文件结构
+myDir/
+    ListboxView.py
+    TextView.py
+    TableView.py
+    DataSearch.py
+    SearchPanel.py
+    main.py
+```
+
+在DataSearch与3个view之间加入一个`WindowBase`，让3个view继承`WindowBase`，实现多态，节约代码
+
+```python
+#WindowBase.py
+import tkinter
+
+class WindowBase(object):
+    def __init__(self):
+        #set Window
+        self.viewWindow=tkinter.Tk()
+        self.viewWindow.geometry("800x600+800+50")
+    def Show(self):
+        self.viewWindow.mainloop()
+    def AddData(self, dataStr):
+        pass#留着重写
+```
+
+```python
+#ListboxView.py
+import WindowBase
+import tkinter
+
+class ListboxView(WindowBase.WindowBase):
+    def __init__(self):
+        super().__init__()
+        #set listbox
+        self.listbox1=tkinter.Listbox(self.viewWindow)
+        self.listbox1.pack(expand=True, fill='both')#完全填充viewWindow
+    def AddData(self, dataStr):
+        self.listbox1.insert(tkinter.END,dataStr)
+```
+
+```python
+#TextView.py
+import WindowBase
+import tkinter
+
+class TextView(WindowBase.WindowBase):
+    def __init__(self):
+        super().__init__()
+        #set text
+        self.text1=tkinter.Text(self.viewWindow)
+        self.text1.pack(expand=True, fill='both')#完全填充viewWindow
+    def AddData(self, dataStr):
+        self.text1.insert(tkinter.END,dataStr)
+```
+
+```python
+#TableView.py
+import WindowBase
+import tkinter
+from tkinter import ttk
+
+class TableView(WindowBase.WindowBase):
+    def __init__(self):
+        super().__init__()
+        #set table
+        self.table1=ttk.Treeview(self.viewWindow)
+        self.table1["columns"]=("Column1","Column2","Column3")#Column1是keyword
+        ## set table heading
+        self.table1.heading("Column1",text="Account")
+        self.table1.heading("Column2",text="Password")
+        self.table1.heading("Column3",text="Email")
+        self.table1["show"]="headings"
+        self.table1.pack(expand=True, fill='both')
+        # set the insert index
+        self.insertIndex=0
+    def AddData(self, dataStr):
+        lineTuple=tuple(dataStr.split(" # "))
+        self.table1.insert("",self.insertIndex,values=lineTuple)
+        self.insertIndex+=1
+```
+
+```python
+#DataSearch.py没变
+import ListboxView
+import TextView
+import TableView
+import codecs
+
+class DataSearch(object):
+    def __init__(self, path, viewerStyle):
+        #open file
+        self.file=codecs.open(path,"rb","utf-8","ignore")
+        #instantiate a shower
+        if viewerStyle==0:
+            self.viewer=ListboxView.ListboxView()
+        elif viewerStyle==1:
+            self.viewer=TextView.TextView()
+        else:
+            self.viewer=TableView.TableView()
+    def Search(self, searchStr):
+        while True:
+            line=self.file.readline()
+            if line.find(searchStr)!=-1:
+                self.viewer.AddData(line)
+            if not line:
+                break
+    def ResultShow(self):
+        self.viewer.Show()
+    def __del__(self):
+        self.file.close()
+```
+
+```python
+#SearchPanel.py没变
+import tkinter
+from tkinter import ttk
+import DataSearch
+
+class SearchPanel(object):
+    def __init__(self):
+        #set mainwindow
+        self.win=tkinter.Tk()
+        self.win.geometry("400x50+300+50")
+        
+        #set entry
+        self.entry1=tkinter.Entry(self.win,width=40)
+        self.entry1.place(x=50,y=10)
+
+        #set button
+        self.button1=tkinter.Button(self.win,text="Search",command=self.Search)
+        self.button1.place(x=300,y=5)
+
+        #set style combobox
+        self.combobox1=ttk.Combobox(self.win,width=2)
+        self.combobox1["values"]=(0,1,2)
+        self.combobox1.current(0)
+        self.combobox1.place(x=0,y=10)
+    def Show(self):
+        self.win.mainloop()
+    def Search(self):
+        datasearcher=DataSearch.DataSearch("simpleCSDN.txt",self.combobox1.current())
+        datasearcher.Search(self.entry1.get())
+        datasearcher.ResultShow()
+
+#for test
+searchpanel=SearchPanel()
+searchpanel.Show()
+```
+
+对于爆破密码的例子，将其中的Crack独立出去，也继承自`CrackBase`,然后写上其他的Crack Oracle, Crack mariaDB,....
+
+## Some example
+
+### car store
+
+每次添加一辆车，需要在CarStore添加elif，耦合太强
+
+```python
+class CarStore(object):
+	def order(self, car_type):
+		if car_type=="索纳塔":
+			return Suonata()
+		elif car_type=="名图":
+			return Mingtu()
+
+class Car(object):
+	def move(self):
+		print("车在移动....")
+	def music(self):
+		print("正在播放音乐....")
+	def stop(self):
+		print("车在停止....")
+
+class Suonata(Car):
+	pass
+
+class Mingtu(Car):
+	pass
+
+car_store = CarStore()
+car = car_store.order("索纳塔")
+car.move()
+car.music()
+car.stop()
+```
+
+使用函数完成解开耦合
+
+```python
+class CarStore(object):
+	def order(self, car_type):
+		return select_car_by_type(car_type)
+
+def select_car_by_type(car_type):
+	if car_type=="索纳塔":
+		return Suonata()
+	elif car_type=="名图":
+		return Mingtu()
+	elif car_type=="ix35":
+		return Ix35()
+
+class Car(object):
+	def move(self):
+		print("车在移动....")
+	def music(self):
+		print("正在播放音乐....")
+	def stop(self):
+		print("车在停止....")
+
+class Suonata(Car):
+	pass
+
+class Mingtu(Car):
+	pass
+
+class Ix35(Car):
+	pass
+
+car_store = CarStore()
+car = car_store.order("索纳塔")
+car.move()
+car.music()
+car.stop()
+```
+
+使用class解开耦合,简单工厂模式
+
+```python
+class CarStore(object):
+	def __init__(self):
+		self.factory = Factory()
+
+	def order(self, car_type):
+		return self.factory.select_car_by_type(car_type)
+
+class Factory(object):
+	def select_car_by_type(self, car_type):
+		if car_type=="索纳塔":
+			return Suonata()
+		elif car_type=="名图":
+			return Mingtu()
+		elif car_type=="ix35":
+			return Ix35()
+
+class Car(object):
+	def move(self):
+		print("车在移动....")
+	def music(self):
+		print("正在播放音乐....")
+	def stop(self):
+		print("车在停止....")
+
+class Suonata(Car):
+	pass
+
+class Mingtu(Car):
+	pass
+
+class Ix35(Car):
+	pass
+
+car_store = CarStore()
+car = car_store.order("索纳塔")
+car.move()
+car.music()
+car.stop()
+```
+
+多种类型的店铺，用到继承; 实现多态；
+
+父类定义方法，多个子类去实现该方法，也就是**工厂方法模式**
+
+```python
+class Store(object):
+	def select_car(self):
+		pass
+	def order(self, car_type):
+		return self.select_car(car_type)
+
+#BMW
+class BMWCarStore(Store):
+	def select_car(self, car_type):
+		return BMWFactory().select_car_by_type(car_type)
+
+class BMWFactory(object):
+	def select_car_by_type(self, car_type):
+		pass
+
+#Another CarStore
+class CarStore(Store):
+	def select_car(self, car_type):
+		return Factory().select_car_by_type(car_type)
+
+class Factory(object):
+	def select_car_by_type(self, car_type):
+		if car_type=="索纳塔":
+			return Suonata()
+		elif car_type=="名图":
+			return Mingtu()
+		elif car_type=="ix35":
+			return Ix35()
+
+class Car(object):
+	def move(self):
+		print("车在移动....")
+	def music(self):
+		print("正在播放音乐....")
+	def stop(self):
+		print("车在停止....")
+
+class Suonata(Car):
+	pass
+
+class Mingtu(Car):
+	pass
+
+class Ix35(Car):
+	pass
+
+car_store = CarStore()
+car = car_store.order("索纳塔")
+bmw_store = BMWCarStore()
+bmw = bmw_store.order("720li")
+car.move()
+car.music()
+car.stop()
+```
