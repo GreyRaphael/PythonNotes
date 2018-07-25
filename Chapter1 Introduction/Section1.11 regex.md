@@ -241,6 +241,19 @@ print(matchobj.group(2))
 同上
 ```
 
+batch rename files example:
+
+```python
+import os, re
+
+regex=re.compile(r'\w+ (.*)')
+for filename in os.listdir('.'):
+    matchobj=regex.match(filename)
+    if matchobj:
+        newfilename=matchobj.group(1)
+        os.rename(filename, filename)
+```
+
 ### search 搜索
 
 ```python
