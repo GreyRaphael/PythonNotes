@@ -157,6 +157,8 @@ destructor
 
 两个方法合起来相当于**ctor**
 
+python不会主动的调用父类的ctor(对应于`__init__()`), 所以主动调用父类的ctor对应的需要`super()`; c++会主动调用父类的ctor;
+
 ```python
 class Dog(object):
     def __init__(self):
