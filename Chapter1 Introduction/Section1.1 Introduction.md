@@ -859,3 +859,5 @@ import os
 for i in range(5):
     os.system("start notepad")
 ```
+
+for ... else语句中, for中的语句和普通的没有区别，else中的语句会在循环**正常执行完**(即for不是通过`break`跳出而中断的)的情况下执行，while ... else 也是一样
