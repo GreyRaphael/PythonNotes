@@ -532,6 +532,17 @@ print(num,id(num))#200 1508935360
 ```
 
 ```python
+num=100
+
+def go():
+    print(num) # 这里会报错，因为python会自动扫描一遍，认为num是局部变量,而num屏蔽全局的num, 然而并没有给num的数值，所以会报错
+    num=200
+    print(num)
+
+go()
+```
+
+```python
 # 引用全局变量
 num=100
 
