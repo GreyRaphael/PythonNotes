@@ -927,6 +927,10 @@ set,dict能够快速找到元素：利用了hash原理
 
 set和dict都不能嵌套set,dict,list可以tuple,因为不能hash处理(hash要求唯一性，不允许重复)
 
+dict:
+- 不允许同一个键出现两次。创建时如果同一个键被赋值两次，前一个被覆盖
+- 键必须不可变，所以可以用数，字符串或元组充当，所以用列表就不行
+
 ## iterator & generator
 
 iteraotor可以用与list,tuple,set,dict
