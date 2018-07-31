@@ -217,6 +217,30 @@ myFile=open(r"C:\Users\Administrator\Documents\number.txt","rb")
 b'1234567890\r\n'
 ```
 
+```python
+file=open('test.txt', 'w')
+file.write('hello, world')
+file.close()
+
+# open again
+file=open('test.txt', 'r+')
+buf=file.read() # 文件指针已经到了末尾
+print(buf) # hello, world
+
+file.write('hello, grey')
+file.flush()
+file.seek(0)
+buf=file.read()
+print(buf) # hello, worldhello, grey
+
+file.seek(0)
+file.write('1234')
+file.flush()
+file.seek(0)
+print(file.read()) # 1234o, worldhello, grey
+file.close()
+```
+
 ## pickle模块
 
 将list保存到file
