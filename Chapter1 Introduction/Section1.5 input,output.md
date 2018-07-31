@@ -241,6 +241,47 @@ print(file.read()) # 1234o, worldhello, grey
 file.close()
 ```
 
+C语言中的`FILE`结构体包含了: mode(`r`, `w`, `r+`..), 读写指针的位置, 缓存区地址指针, 文件描述符; python只是对于C的二次封装;
+
+```c
+#include <stdio.h>
+
+int main(){
+    printf("hello");
+    // 如果没有fflush, 什么都不会打印出来
+    // stdout就是显示器，也是一个文件
+    fflush(stdout);
+    while(1){
+        ;
+    }
+    print("world");
+    return 0;
+}
+```
+
+刷新缓冲区的情况:
+- 手动`fflush()`
+- 缓冲区满，自动刷新, 一般是8192Bytes(8M)
+- 文件关闭时候，自动刷新
+
+```c
+# include <stdio.h>
+# include <stdlib.h>
+
+int main(){
+    print("hello");
+    // 文件关闭自动刷新
+    // exit(0)
+    fclose(stdout);
+    
+    while(1){
+        ;
+    }
+    print("world");
+    return 0;
+}
+```
+
 ## pickle模块
 
 将list保存到file
