@@ -743,6 +743,11 @@ uwsgi --reload uwsgi.pid
 
 ![](res/fullstack01.png)
 
+全栈本质:
+- 数据收集
+- 数据分析、挖掘: Hadoop(java), mapreduce(c/c++)
+- 数据存储: 数据库, 分布式文件存储系统(TDFS, FASTDFS, GDFS)
+
 nginx的作用
 - 负载均衡：多台服务器轮流处理请求
 - 反射代理：不直接请求真实服务器,而是请求nginx服务器,然后nginx转向真实服务器; 隐藏真实服务器; 
