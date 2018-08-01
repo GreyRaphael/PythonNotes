@@ -4,17 +4,17 @@
 
 - [Django 3rd Extends](#django-3rd-extends)
     - [RichText Editor](#richtext-editor)
-        - [自定义Form使用上面的Richtext Editor](#%E8%87%AA%E5%AE%9A%E4%B9%89form%E4%BD%BF%E7%94%A8%E4%B8%8A%E9%9D%A2%E7%9A%84richtext-editor)
+        - [自定义Form使用上面的Richtext Editor](#自定义form使用上面的richtext-editor)
     - [cache](#cache)
         - [cache setting](#cache-setting)
         - [cache to redis](#cache-to-redis)
-            - [缓存view](#%E7%BC%93%E5%AD%98view)
-            - [缓存template或者template的block](#%E7%BC%93%E5%AD%98template%E6%88%96%E8%80%85template%E7%9A%84block)
-            - [缓存数据](#%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE)
-    - [full search(全文检索)](#full-search%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2)
+            - [缓存view](#缓存view)
+            - [缓存template或者template的block](#缓存template或者template的block)
+            - [缓存数据](#缓存数据)
+    - [full search(全文检索)](#full-search全文检索)
     - [celery](#celery)
-    - [deployment(部署)](#deployment%E9%83%A8%E7%BD%B2)
-        - [备份安装的package:](#%E5%A4%87%E4%BB%BD%E5%AE%89%E8%A3%85%E7%9A%84package)
+    - [deployment(部署)](#deployment部署)
+        - [备份安装的package:](#备份安装的package)
         - [WSGI](#wsgi)
         - [uWSGI](#uwsgi)
         - [nginx](#nginx)
@@ -744,6 +744,7 @@ uwsgi --reload uwsgi.pid
 nginx的作用
 - 负载均衡：多台服务器轮流处理请求
 - 反射代理：不直接请求真实服务器,而是请求nginx服务器,然后nginx转向真实服务器; 隐藏真实服务器; 
+- 静态资源服务器
 
 实现构架：浏览器发请求给nginx，再由nginx请求uwsgi，运行django框架下的python代码
 
