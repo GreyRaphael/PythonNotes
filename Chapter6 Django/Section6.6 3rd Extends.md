@@ -741,6 +741,8 @@ uwsgi --reload uwsgi.pid
 
 ### nginx
 
+![](res/fullstack01.png)
+
 nginx的作用
 - 负载均衡：多台服务器轮流处理请求
 - 反射代理：不直接请求真实服务器,而是请求nginx服务器,然后nginx转向真实服务器; 隐藏真实服务器; 
