@@ -1,15 +1,38 @@
 # Python Input & output
 
-- [Python Input & output](#python-input-output)
+<!-- TOC -->
+
+- [Python Input & output](#python-input--output)
+    - [encode, decode](#encode-decode)
     - [`repr()` vs `str()`](#repr-vs-str)
     - [file operation](#file-operation)
-    - [文件缓存区](#%E6%96%87%E4%BB%B6%E7%BC%93%E5%AD%98%E5%8C%BA)
-    - [文件指针](#%E6%96%87%E4%BB%B6%E6%8C%87%E9%92%88)
-    - [pickle模块](#pickle%E6%A8%A1%E5%9D%97)
-    - [数据清洗](#%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97)
+    - [文件缓存区](#文件缓存区)
+    - [文件指针](#文件指针)
+    - [pickle模块](#pickle模块)
+    - [数据清洗](#数据清洗)
         - [QQ Example](#qq-example)
         - [kaifang Example](#kaifang-example)
         - [csdn examples](#csdn-examples)
+
+<!-- /TOC -->
+
+## encode, decode
+
+![](res/unicode01.png)
+
+python3的文件编码默认是unicode, 可以直接encode到gbk, utf8的二进制;
+
+```python
+# unicode_str=u'你好' # 默认是u''
+unicode_str='你好'
+print(unicode_str)
+
+utf8_str=unicode_str.encode('utf8')
+print(utf8_str)
+
+gbk_str=unicode_str.encode('gbk')
+print(gbk_str)
+```
 
 ## `repr()` vs `str()`
 
