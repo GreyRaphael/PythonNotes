@@ -1,5 +1,7 @@
 # Python Introduction
 
+Tutorial: [Alex](https://www.cnblogs.com/alex3714/articles/5465198.html)
+
 学习Tips:
 
 - 用到才会印象深刻
