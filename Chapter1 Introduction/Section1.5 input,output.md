@@ -20,7 +20,9 @@
 
 ![](res/unicode01.png)
 
-python3的文件编码默认是unicode, 可以直接encode到gbk, utf8的二进制;
+python3的字符串编码始终是unicode, 可以直接encode到gbk, utf8的二进制;
+
+如果该py文件编码为utf8, 那么开头就要`#-*-coding:utf8-*-`; 如果文件编码是gbk, 那么文件开头就要`#-*-coding:gbk-*-`; 不论文件编码是啥，字符串的编码都是`unicode`
 
 ```python
 # unicode_str=u'你好' # 默认是u''
