@@ -1,15 +1,20 @@
 # python string
 
+<!-- TOC -->
+
 - [python string](#python-string)
     - [`eval`](#eval)
     - [`exec`](#exec)
-    - [编码问题](#%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98)
-    - [常用的函数：](#%E5%B8%B8%E7%94%A8%E7%9A%84%E5%87%BD%E6%95%B0%EF%BC%9A)
+    - [编码问题](#编码问题)
+    - [常用的函数：](#常用的函数)
         - [center](#center)
         - [count](#count)
         - [some funcions](#some-funcions)
         - [replace,strip](#replacestrip)
         - [split,splitlines](#splitsplitlines)
+    - [string format](#string-format)
+
+<!-- /TOC -->
 
 ## `eval`
 
@@ -365,19 +370,14 @@ myTable=myStr.maketrans("abcde我","12345X")
 print(myStr.translate(myTable))#h5llo,python,X
 ```
 
-```python
-#字符串模板
-from string import Template
-print(type(Template))#<class 'string._TemplateMetaclass'>
-myStr=Template("Hi,$name, this is $other")
-print(myStr.substitute(name="grey",other=11))#Hi,grey, this is 11
-```
+## string format
 
-字符串格式化的三种方式(string format):
+不到万不得已不要使用`+`连接字符串，因为每次使用都要开辟新内存
 
 - %
 - format
 - f
+- Template: not recommended
 
 ```python
 item='apple'
