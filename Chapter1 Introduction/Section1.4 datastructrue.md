@@ -230,6 +230,58 @@ print(myList2)#[81, 64, 'google', 49, 36, 25, 16, 9, 8]
 
 本质上，list的每一个元素都是一个指针，指针指向不同的不同常量的地址
 
+list的`copy()`只copy第一层: list中的list保存的是指针;
+
+浅copy的4种是实现方法:
+- `list2=list1.copy()`
+- `list2=copy.copy(list1)`
+- `list2=list1[:]`, view
+- `list2=list(list1)`
+
+```python
+list1=[i for i in range(6)]
+list1.append(['grey', 'alpha'])
+list2=list1.copy()
+print(list1, list2)
+
+list1[0]=111
+print(list1, list2)
+
+list1[6][1]='beta'
+print(list1, list2)
+```
+
+```bash
+# result
+[0, 1, 2, 3, 4, 5, ['grey', 'alpha']] [0, 1, 2, 3, 4, 5, ['grey', 'alpha']]
+[111, 1, 2, 3, 4, 5, ['grey', 'alpha']] [0, 1, 2, 3, 4, 5, ['grey', 'alpha']]
+[111, 1, 2, 3, 4, 5, ['grey', 'beta']] [0, 1, 2, 3, 4, 5, ['grey', 'beta']]
+```
+
+```python
+# 真正的深复制
+import copy
+
+list1=[i for i in range(6)]
+list1.append(['grey', 'alpha'])
+# list2=copy.copy(list1)# 相当于list1.copy()
+list2=copy.deepcopy(list1)
+print(list1, list2)
+
+list1[0]=111
+print(list1, list2)
+
+list1[6][1]='beta'
+print(list1, list2)
+```
+
+```bash
+# res
+[0, 1, 2, 3, 4, 5, ['grey', 'alpha']] [0, 1, 2, 3, 4, 5, ['grey', 'alpha']]
+[111, 1, 2, 3, 4, 5, ['grey', 'alpha']] [0, 1, 2, 3, 4, 5, ['grey', 'alpha']]
+[111, 1, 2, 3, 4, 5, ['grey', 'beta']] [0, 1, 2, 3, 4, 5, ['grey', 'alpha']]
+```
+
 ```python
 #深浅复制
 myList=[x for x in range(10)]
