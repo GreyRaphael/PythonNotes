@@ -1007,6 +1007,73 @@ for key, value in myDict1.items():
     print(key, value)
 ```
 
+```python
+# 层级菜单
+menu = {
+    '北京':{
+        '海淀':{
+            '五道口':{
+                'soho':{},
+                '网易':{},
+                'google':{}
+            },
+            '中关村':{
+                '爱奇艺':{},
+                '汽车之家':{},
+                'youku':{},
+            },
+            '上地':{
+                '百度':{},
+            },
+        },
+        '昌平':{
+            '沙河':{
+                '老男孩':{},
+                '北航':{},
+            },
+            '天通苑':{},
+            '回龙观':{},
+        },
+        '朝阳':{},
+        '东城':{},
+    },
+    '上海':{
+        '闵行':{
+            "人民广场":{
+                '炸鸡店':{}
+            }
+        },
+        '闸北':{
+            '火车战':{
+                '携程':{}
+            }
+        },
+        '浦东':{},
+    },
+    '山东':{},
+}
+
+
+exit_flag = False
+current_layer = menu
+layers = []
+
+while not exit_flag:
+    for k in current_layer:
+        print(k)
+    choice = input(">>:")
+    if choice == 'b' and len(layers)>0:
+        current_layer = layers[-1]
+        layers.pop()
+    elif choice == 'q':
+        exit_flag=True
+    elif choice not in current_layer:
+        continue
+    else:
+        layers.append(current_layer)
+        current_layer = current_layer[choice]
+```
+
 set,dict能够快速找到元素：利用了hash原理
 
 set和dict都不能嵌套set,dict,list可以tuple,因为不能hash处理(hash要求唯一性，不允许重复)
