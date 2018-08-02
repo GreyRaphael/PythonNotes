@@ -398,6 +398,14 @@ tuple与list的内存结构对比
 
 ![](res/list04.png)
 
+```python
+# python3神奇的用法
+a, *b, c=range(6)
+print(a) # 0
+print(b) # [1, 2, 3, 4]
+print(c) # 5
+```
+
 ## 语音识别，语音对话
 
 ### text to speech
