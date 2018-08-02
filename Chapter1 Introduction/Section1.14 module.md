@@ -1,20 +1,34 @@
 # Python Module
 
+<!-- TOC -->
+
 - [Python Module](#python-module)
+    - [`getpass` module](#getpass-module)
     - [module storage](#module-storage)
         - [diy module](#diy-module)
-    - [`__all__`](#all)
+    - [`__all__`](#__all__)
     - [package](#package)
-        - [标准格式](#%E6%A0%87%E5%87%86%E6%A0%BC%E5%BC%8F)
-    - [制作package并发布](#%E5%88%B6%E4%BD%9Cpackage%E5%B9%B6%E5%8F%91%E5%B8%83)
-        - [method 1：手动](#method-1%EF%BC%9A%E6%89%8B%E5%8A%A8)
-        - [method2: pycharm 制作](#method2-pycharm-%E5%88%B6%E4%BD%9C)
-    - [给程序传参数](#%E7%BB%99%E7%A8%8B%E5%BA%8F%E4%BC%A0%E5%8F%82%E6%95%B0)
-    - [循环导入](#%E5%BE%AA%E7%8E%AF%E5%AF%BC%E5%85%A5)
+        - [标准格式](#标准格式)
+    - [制作package并发布](#制作package并发布)
+        - [method 1：手动](#method-1手动)
+        - [method2: pycharm 制作](#method2-pycharm-制作)
+    - [给程序传参数](#给程序传参数)
+    - [循环导入](#循环导入)
     - [standard library](#standard-library)
         - [`hashlib`](#hashlib)
     - [extend library](#extend-library)
     - [pdb](#pdb)
+
+<!-- /TOC -->
+
+## `getpass` module
+
+```python
+import getpass
+
+upwd = getpass.getpass('enter your password:')
+print(upwd)
+```
 
 ## module storage
 
