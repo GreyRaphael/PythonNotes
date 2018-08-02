@@ -983,6 +983,30 @@ myDict1.setdefault("ab",56)
 print(myDict1)#{'a': 1, 'ab': 2, 'abc': 3, 'grey': None}
 ```
 
+```python
+myDict1=dict.fromkeys([4,5,6], 'grey')
+# 正常用法
+print(myDict1)
+
+# 类似深浅复制的坑， 全部更改
+myDict2=dict.fromkeys([7, 8, 9], [1, {'key1':'value1', }, 22])
+print(myDict2)
+myDict2[8][1]['key1']='hello'
+print(myDict2)
+```
+
+```python
+myDict1={1:'grey', 2:'alpha', 3:'beta'}
+# dict loop
+
+for key in myDict1:
+    print(key, myDict1[key])
+
+# items()会转换成list, 所以效率低
+for key, value in myDict1.items():
+    print(key, value)
+```
+
 set,dict能够快速找到元素：利用了hash原理
 
 set和dict都不能嵌套set,dict,list可以tuple,因为不能hash处理(hash要求唯一性，不允许重复)
