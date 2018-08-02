@@ -75,6 +75,15 @@ for x in range(5):
 
 ## file operation
 
+注意: `tty`文件就是设备文件可以用`isatty(), readable(), seekable()`来判断, 
+
+```python
+# read line by line
+with open(r"C:\Users\Administrator\Documents\new.txt","r") as file:
+    for line in file:
+        print(line, end='')
+```
+
 ```python
 #write english,r是为了避免转义字符
 myFile=open(r"C:\Users\Administrator\Documents\new.txt","w")
@@ -125,6 +134,22 @@ print(myStr)#你好abc
 myFile.close()
 ```
 
+```python
+# 修改文件
+# method1: 全部读入内存，然后查找、修改
+# method2: 逐行边读边查找，修改;
+import sys
+
+find_str=sys.argv[1]
+replace_str=sys.argv[2]
+
+with open('untitled1.txt', 'r') as file_old, open('untitled2.txt','w'): as file_new:
+    for line in file_old:
+        if find_str in line:
+            line=line.replace(find_str, replace_str)
+        file_new.write(line)
+```
+
 其实用文本程序(notepad,vscode,atom)打开文件，该程序看到的也是二进制；但是这些程序支持多种decode的方式(根据文件头来decode)。只有像上面那种强行用一种decode的方式打开不同encode的文件，才会乱码
 
 - encode,decode采用的方式不同，会出错
@@ -132,6 +157,16 @@ myFile.close()
 - 强行解码也是可以的(要用`ignore`)，一般都是乱码(除了英文，english一般在任何方式中都是1byte来表示)
 
 ## 文件缓存区
+
+```python
+# 进度条
+import sys, time
+
+for i in range(50):
+    sys.stdout.write('#')
+    sys.stdout.flush()
+    time.sleep(0.1)
+```
 
 ```python
 import time
@@ -166,6 +201,22 @@ myFile=open(r"C:\Users\Administrator\Documents\codeRain.txt","r")
 for binary_line in myFile:
     print(binary_line)#每一行都是二进制的
 myFile.close()
+```
+
+```python
+with open('untitled.txt','r+', encoding='utf8') as file:
+    file.readline()
+    file.readline()
+    file.readline()
+    # 坑: 下面的内容不是从文件指针的地方覆盖地写, 与c/c++不同; 而是直接在末尾写
+    file.write("="*20)
+```
+
+```python
+with open('untitled.txt','r+', encoding='utf8') as file:
+    file.seek(10)
+    # 下面的内容写诗正常的
+    file.write("="*20)
 ```
 
 ## 文件指针
