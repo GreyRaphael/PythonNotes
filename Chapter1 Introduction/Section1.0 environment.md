@@ -37,6 +37,9 @@ conda update ipykernel
 conda update --all
 ```
 
+- `D:\ProgrammingTools\Anaconda3\Lib`里面一般是系统lib
+- `D:\ProgrammingTools\Anaconda3\Lib\site-packages`里面一般是安装的lib
+
 ## Jython
 
 - CPython是Python语言在C中的完全实现(官方版本);
