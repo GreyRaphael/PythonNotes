@@ -375,6 +375,21 @@ print(myStr.substitute(name="grey",other=11))#Hi,grey, this is 11
 
 字符串格式化的三种方式(string format):
 
-- format
 - %
-- Template
+- format
+- f
+
+```python
+item='apple'
+price=16
+
+# method1
+print("%s's price is %d"%(item, price))
+
+# method2
+print("{_item}'s price is {_price}".format(_item=item, _price=price))
+print("{0}'s price is {1}".format(item, price)) # recommended
+
+# method3, >=python3.6, recommended
+print(f"{item}'s price is {price}")
+```
