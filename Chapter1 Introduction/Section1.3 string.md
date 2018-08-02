@@ -371,6 +371,13 @@ myTable=myStr.maketrans("abcde我","12345X")
 print(myStr.translate(myTable))#h5llo,python,X
 ```
 
+```python
+# maktrans
+to_encrypt_str='hell, allen'
+pwd_book=str.maketrans('abcdefghi', '123456789')
+print(to_encrypt_str.translate(pwd_book)) # 85ll, 1ll5n
+```
+
 ## string format
 
 不到万不得已不要使用`+`连接字符串，因为每次使用都要开辟新内存
