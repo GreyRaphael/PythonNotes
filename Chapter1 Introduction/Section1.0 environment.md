@@ -101,3 +101,14 @@ download like
 
 ## 深度学习
 
+## python like shell
+
+```python
+#! /usr/bin/env python
+
+print('hello, world')
+```
+
+将上面保存为`sample.py`, `chmod 755 sample.py`, `./sample.py`就可以运行了;
+
+推荐使用`#! /usr/bin/env python`, 不推荐`#! /usr/bin/python`写死了
