@@ -3,6 +3,7 @@
 <!-- TOC -->
 
 - [Python Module](#python-module)
+    - [`sys` & `os` module](#sys--os-module)
     - [`getpass` module](#getpass-module)
     - [module storage](#module-storage)
         - [diy module](#diy-module)
@@ -20,6 +21,25 @@
     - [pdb](#pdb)
 
 <!-- /TOC -->
+
+## `sys` & `os` module
+
+```python
+import sys
+# python env
+print(sys.path)
+print(sys.argv)
+```
+
+```python
+import os
+
+res=os.system('dir') # 执行命令不保存结果
+print(res) # 0, 表示成功执行
+
+# 显示结果
+os.popen('dir').read()
+```
 
 ## `getpass` module
 
