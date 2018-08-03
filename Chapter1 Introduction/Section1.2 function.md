@@ -1,9 +1,13 @@
 # Python function
 
+<!-- TOC -->
+
 - [Python function](#python-function)
+    - [what is function](#what-is-function)
     - [Function introduction](#function-introduction)
-        - [性能比较](#%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83)
-    - [函数变量](#%E5%87%BD%E6%95%B0%E5%8F%98%E9%87%8F)
+        - [性能比较](#性能比较)
+    - [variables](#variables)
+    - [`*args` and `**kwargs`](#args-and-kwargs)
     - [Lambda expression](#lambda-expression)
     - [Variable length function](#variable-length-function)
     - [string of python](#string-of-python)
@@ -14,7 +18,30 @@
     - [Dictionary](#dictionary)
     - [summary](#summary)
     - [Convert](#convert)
-    - [作用域](#%E4%BD%9C%E7%94%A8%E5%9F%9F)
+    - [作用域](#作用域)
+
+<!-- /TOC -->
+
+## what is function
+
+三种编程范式:
+- OOP,Object Oriented Programming: `class`
+- POP,Procedure Oriented Programming: `def`, 没有返回值, 连None也没有
+- FP, Functional Programming: `def`, 有返回值, 但不仅限`return`
+
+```python
+def func1():
+    print('func1')
+    return 0
+
+def func2():
+    print('func2')
+
+res1=func1()
+res2=func2()
+print(res1, res2) # 0 None
+# python中看起来是面向过程，其实是函数式，因为有返回值None
+```
 
 ## Function introduction
 
@@ -424,7 +451,7 @@ for i in range(100,110):
     SumOfThreePrime(i)
 ```
 
-## 函数变量
+## variables
 
 ```python
 def MyAdd(a,b):
@@ -542,7 +569,7 @@ def go():
 go()
 ```
 
-函数内要修改全局变量，要使用`global`
+函数内要修改全局变量，要使用`global`, 谨慎使用`global`
 
 ```python
 # 引用全局变量
@@ -556,6 +583,18 @@ def go(data):
 go(200)
 print(num,id(num))#200 1508935360
 ```
+
+```python
+def func1():
+    global name
+    name='grey'
+
+# 不规范的做法
+func1()
+print(name)
+```
+
+一般都是将mutable的类型(list, dict, set)作为函数参数，然后再函数内修改; 而immutable类型(number, str, tuple)只能借助`global`修改, 然而并不推荐
 
 ```python
 #函数的定义可以嵌套,怀孕函数
@@ -710,6 +749,56 @@ show(10,num2=10)
 show(10,num3=30))#混合填充，位置参数可以不从左往右，而且没有分配的必须放在左边
 #错误情况，混合填充不能相间隔
 # show(10,num2=10,10)
+```
+
+## `*args` and `**kwargs`
+
+```python
+# args
+def func1(*args):
+    print(args)
+
+myList=[1, 2, 3, 4]
+func1(1, 2, 3, 4)
+
+func1(myList) # 这里传入的是一个list, ([1, 2, 3, 4])
+func1(*myList) # 这里传入的是一个4个变量, (1, 2, 3, 4)
+
+# kwargs
+def func2(**kwargs):
+    print(kwargs)
+
+myDict={'name':'grey', 'age':23}
+func2(name='grey', age=23)
+
+# func2(myDict) # error
+func2(**myDict) # {'name': 'grey', 'age': 23}
+
+# args, kwargs
+def func3(*args, **kwargs):
+    print(f'args: {args}')
+    print(f'kwargs: {kwargs}')
+
+func3(1, 2, name='grey', age=23)
+
+myList=[11, 22, 33]
+myDict={'sex':'male', 'weight':50}
+func3(*myList, **myDict)
+
+# 形参顺序
+def func4(x, y, a=100, b=200, *args, **kwargs):
+    print(f'args: {args}')
+    print(f'kwargs: {kwargs}')
+
+# 注意
+def func5(x, a=100, **kwargs):
+    print(f'kwargs: {kwargs}', f'a={a}')
+
+func5(10, name='grey', age=10)
+func5(10, a=200, name='grey', age=10)
+# 不规范写法，虽然可以运行
+func5(10, name='grey', age=10, a=111)
+func5(10, name='grey', a=222, age=10)
 ```
 
 ## Lambda expression
