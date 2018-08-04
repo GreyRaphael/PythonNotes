@@ -7,6 +7,7 @@
     - [decorator](#decorator)
     - [decorator with parameters](#decorator-with-parameters)
         - [`property`](#property)
+        - [decorator with `help`](#decorator-with-help)
     - [静态语言vs动态语言](#静态语言vs动态语言)
     - [`__slots__`](#__slots__)
     - [元类(metaclass)](#元类metaclass)
@@ -888,6 +889,29 @@ stu1.Age=20
 print(stu1.Age)#20
 ```
 
+### decorator with `help`
+
+装饰后的函数, help信息为`wrapper()`的信息; 将元信息复制给装饰后的函数
+
+```python
+import functools
+
+def outer(func):
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        print(inner.__doc__)  # None
+        return func()
+    return inner
+
+@outer
+def function():
+    """
+    Hello, It is function document:)
+    """
+    print('func')
+
+help(function) # Hello, It is function document:)
+```
 
 ## 静态语言vs动态语言
 
