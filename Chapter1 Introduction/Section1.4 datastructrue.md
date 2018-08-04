@@ -16,6 +16,7 @@
         - [generator](#generator)
             - [`next()` vs `send()`](#next-vs-send)
         - [iterator](#iterator)
+        - [Iterable](#iterable)
     - [语音](#语音)
     - [Stack & Queue](#stack--queue)
     - [about list](#about-list)
@@ -1088,6 +1089,10 @@ dict:
 
 ## iterator & generator
 
+![](res/iterator01.png)
+
+generator是一个特殊的iterator;
+
 iteraotor可以用与list,tuple,set,dict
 
 ```python
@@ -1129,9 +1134,9 @@ print(myGenerator,type(myGenerator))#<generator object <genexpr> at 0x00000196BC
 for i in range(10):
     print(next(myGenerator),end=' ')#0 1 4 9 16 25 36 49 64 81 
 print()
-##下面这个疯狂占用cpu,内存
-# for i in myGenerator:
-#     print(i,end=' ')
+# generator is iterable
+for i in myGenerator:
+    print(i,end=' ')
 ```
 
 如果是`[]`那么就是一次性跑完，加入内存；如果是generator那么就是跑一步等一步；
@@ -1249,6 +1254,38 @@ print(next(generator1))#1
 print(generator1.__next())#1
 ```
 
+generator其实一直处于循环中，所以只有到`StopIteration`的时候才能退出循环，拿到`return`
+
+```python
+def fibnacci(times):
+    n=0
+    a,b=0,1
+    while n<times:
+        yield b
+        a,b=b,a+b
+        n+=1
+    return 'finished'
+
+gen1=fibnacci(6)
+while True:
+    try:
+        print(gen1.__next__())
+    except StopIteration as e:
+        print('return valuse is:', e.value)
+        break
+```
+
+```bash
+# res
+1
+1
+2
+3
+5
+8
+return valuse is: finished
+```
+
 #### `next()` vs `send()`
 
 都可以让generator动起来，一个不传参数，一个传参数
@@ -1342,6 +1379,32 @@ hello
 hello
 27
 ```
+
+```python
+# 单线程并发，不是并行; 这种就是异步IO的雏形
+import time
+def consumer(name):
+    print(f"{name}准备吃包子啦!")
+    while True:
+       baozi = yield
+       print(f"包子[{baozi}]来了,被[{name}]吃了!")
+ 
+def producer(name):
+    c1 = consumer('A')
+    c2 = consumer('B')
+    c1.__next__()
+    c2.__next__()
+    print("老子开始准备做包子啦!")
+    for i in range(5):
+        time.sleep(1)
+        print("做了1个包子， 分两半!")
+        c1.send(i)
+        c2.send(i)
+ 
+producer("alex")
+```
+
+nginx采用epoll效率高, 底层原理和上面的例子类似, 单线程的并发量比多线程还要高, 也就是采用了携程;
 
 三种多任务的实现方式：
 
@@ -1467,6 +1530,34 @@ print(isinstance(iterator1,Iterable))
 22
 33
 True
+```
+
+### Iterable
+
+![](res/iterator01.png)
+
+可以放在`for ... in`后面的都是`Iterable`; 凡是有`__next__()`的都是`Iterator`; `Generator`是特殊的`Iterator`
+
+Iterator可以表示无限大的数据流, 而list是有限制的;
+
+```python
+from collections import Iterable, Iterator, Generator
+
+gen1=(x for x in range(10))
+print(isinstance(gen1, Iterable))# True
+print(isinstance(gen1, Iterator))# True
+print(isinstance(gen1, Generator))# True
+
+list1=[x for x in range(10)]
+print(isinstance(list1, Iterable))# True
+print(isinstance(list1, Iterator))# False
+print(isinstance(list1, Generator))# False
+
+# for range
+file=open('temp.txt', 'w')
+print(isinstance(file, Iterable))# True
+print(isinstance(file, Iterator))# True
+print(isinstance(file, Generator))# False
 ```
 
 ## 语音
