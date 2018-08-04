@@ -1,22 +1,26 @@
 # python data structrue
 
+<!-- TOC -->
+
 - [python data structrue](#python-data-structrue)
     - [list](#list)
-        - [深浅复制](#%E6%B7%B1%E6%B5%85%E5%A4%8D%E5%88%B6)
+        - [深浅复制](#深浅复制)
         - [`copy()` vs `copy.deepcopy()`](#copy-vs-copydeepcopy)
     - [tuple](#tuple)
-    - [语音识别，语音对话](#%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB%EF%BC%8C%E8%AF%AD%E9%9F%B3%E5%AF%B9%E8%AF%9D)
+    - [语音识别，语音对话](#语音识别语音对话)
         - [text to speech](#text-to-speech)
         - [speech to text](#speech-to-text)
     - [set](#set)
     - [Dictionary](#dictionary)
-    - [iterator & generator](#iterator-generator)
+    - [iterator & generator](#iterator--generator)
         - [generator](#generator)
             - [`next()` vs `send()`](#next-vs-send)
         - [iterator](#iterator)
-    - [语音](#%E8%AF%AD%E9%9F%B3)
-    - [Stack & Queue](#stack-queue)
+    - [语音](#语音)
+    - [Stack & Queue](#stack--queue)
     - [about list](#about-list)
+
+<!-- /TOC -->
 
 python可以无限嵌套(如果能嵌套的话)
 
