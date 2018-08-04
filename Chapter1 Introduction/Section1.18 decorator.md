@@ -1,15 +1,19 @@
 # Python Decorator
 
+<!-- TOC -->
+
 - [Python Decorator](#python-decorator)
-    - [Closures(闭包)](#closures%E9%97%AD%E5%8C%85)
+    - [Closures(闭包)](#closures闭包)
     - [decorator](#decorator)
     - [decorator with parameters](#decorator-with-parameters)
         - [`property`](#property)
-    - [静态语言vs动态语言](#%E9%9D%99%E6%80%81%E8%AF%AD%E8%A8%80vs%E5%8A%A8%E6%80%81%E8%AF%AD%E8%A8%80)
-    - [`__slots__`](#slots)
-    - [元类(metaclass)](#%E5%85%83%E7%B1%BBmetaclass)
-        - [`__metaclass__`属性](#metaclass%E5%B1%9E%E6%80%A7)
+    - [静态语言vs动态语言](#静态语言vs动态语言)
+    - [`__slots__`](#__slots__)
+    - [元类(metaclass)](#元类metaclass)
+        - [`__metaclass__`属性](#__metaclass__属性)
         - [customize metaclass](#customize-metaclass)
+
+<!-- /TOC -->
 
 ## Closures(闭包)
 
@@ -121,12 +125,34 @@ print(line1(5))#6
 print(line2(5))#25
 ```
 
+```python
+x=0
+def grandpa():
+    x=1
+    def dad():
+        x=2
+        def son():
+            x=3
+            print(x)
+        son()
+    dad()
+
+# 使用的局部变量3
+grandpa() # 3
+```
+
 Closure summary:
 
 1. 闭包似优化了变量，原来需要类对象完成的工作，闭包也可以完成
 2. 由于闭包引用了外部函数的局部变量，则外部函数的局部变量没有及时释放，消耗内存
 
 ## decorator
+
+decorator本质是函数, 装饰其他函数(为其他函数添加附加功能). 对使用者而言, decorator相当于是透明的(使用者不知道是否加入了装饰器)
+
+decorator原则: 
+- 不能修改被修改函数的源码
+- 不能修改函数的调用方式
 
 python解释器执行的时候，认为函数就是一个变量名指向了函数体；相当于新建了一个变量，没有用；可以中途换指向
 
@@ -348,7 +374,7 @@ print(test3())
 
 ## decorator with parameters
 
-1.无参数的函数
+1.1无参数的函数
 
 ```python
 from time import ctime, sleep
@@ -368,8 +394,6 @@ sleep(2)
 foo()
 ```
 
-2.带参数的函数
-
 ```bash
 #output
 foo called at Mon Mar 12 17:28:27 2018
@@ -377,6 +401,32 @@ I am foo
 foo called at Mon Mar 12 17:28:29 2018
 I am foo
 ```
+
+```python
+import time
+
+def decorator(func):
+    def wrapper(*args,**kwargs):
+        start=time.time()
+        func(*args,**kwargs)
+        stop=time.time()
+        print(f'run time is {stop-start}')
+    return wrapper
+ 
+@decorator
+def test(list_test):
+    for i in list_test:
+        time.sleep(0.1)
+        print(f'---{i}---')
+  
+ 
+# test这个时候本质是在执行wrapper()
+# decorator(test)(range(10)) 
+test(range(10))
+print(test(range(10)))# None
+```
+
+2.带参数的函数
 
 ```python
 from time import ctime, sleep
@@ -436,6 +486,53 @@ foo called at Mon Mar 12 17:39:00 2018
 ```
 
 4.带return函数的装饰
+
+```python
+# method1:
+import time
+
+def decorator(func):
+    def wrapper(*args,**kwargs):
+        start=time.time()
+        func(*args,**kwargs)
+        stop=time.time()
+        print(f'run time is {stop-start}')
+        return sum(*args)
+    return wrapper
+ 
+@decorator
+def test(list_test):
+    for i in list_test:
+        time.sleep(0.1)
+        print(f'---{i}---')
+  
+# test(range(10))
+print(test(range(10)))# 45
+```
+
+```python
+# method2:
+import time
+
+def decorator(func):
+    def wrapper(*args,**kwargs):
+        start=time.time()
+        res=func(*args,**kwargs)
+        stop=time.time()
+        print(f'run time is {stop-start}')
+        return res
+    return wrapper
+ 
+@decorator
+def test(list_test):
+    for i in list_test:
+        time.sleep(0.1)
+        print(f'---{i}---')
+    return sum(list_test)
+  
+# test(range(10))
+print(test(range(10)))
+```
 
 ```python
 from time import ctime, sleep
@@ -507,6 +604,8 @@ def func(functionName):
 ```
 
 5.装饰器带参数,在原有装饰器的基础上，设置外部变量
+
+无参数的decorator需要两层嵌套, 带参数的decorator需要三层嵌套;
 
 ```python
 from time import ctime, sleep
