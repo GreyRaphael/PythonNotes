@@ -19,6 +19,13 @@
     - [summary](#summary)
     - [Convert](#convert)
     - [作用域](#作用域)
+    - [built-in function](#built-in-function)
+        - [`bytearray`](#bytearray)
+        - [`compile`](#compile)
+        - [`filter`](#filter)
+        - [`sorted`](#sorted)
+        - [`zip`](#zip)
+        - [`__import__`](#__import__)
 
 <!-- /TOC -->
 
@@ -1138,3 +1145,170 @@ import builtins
 
 print(dir(builtins))
 ```
+
+## built-in function
+
+[built-ins](https://docs.python.org/3/library/functions.html)
+
+### `bytearray`
+
+字符串不可修改，然而bytearray是修改的
+
+```python
+arr1=bytearray('abc', encoding='utf8')
+print(arr1[0])#97
+arr1[0]=98
+print(arr1)# bytearray(b'bbc')
+```
+
+### `compile`
+
+简单表达式用`eval`, 复杂表达式(循环、判断)用`exec`
+
+```python
+code='1+2**10'
+code_obj=compile(code, '', 'eval')
+eval(code_obj)
+```
+
+```python
+code="""
+for i in range(10):
+    print(f'---{i}---')
+    print(f'***{i}***')"""
+code_obj=compile(code, '', 'exec')
+exec(code_obj)
+```
+
+也可以直接执行: 用于网络传递代码, 并动态执行代码, 不用`import`, `import`需要是在本地
+
+```python
+eval('1+2**10)
+
+code="""
+for i in range(10):
+    print(f'---{i}---')
+    print(f'***{i}***')"""
+exec(code)
+```
+
+### `filter`
+
+python的lambda只能处理简单的语句， 循环和判断都不行，判断只能用三元运算符;
+
+```python
+myList1=[x for x in range(10)]
+filter1=filter(lambda x: x**2>9, myList1)
+print(type(filter1))
+
+for item in filter1:
+    print(item, item**2)
+```
+
+```python
+myList1=[x for x in range(5)]
+myMap=map(lambda x:x**2, myList1) # type(myMap, map)==True
+
+print(myList1)# [0, 1, 2, 3, 4]
+print([i for i in myMap])# [0, 1, 4, 9, 16]
+```
+
+```python
+import functools
+
+myList1=[1, 2, 3, 4, 5]
+res=functools.reduce(lambda x, y:x*y, myList1)
+print(res)# 120
+```
+
+### `sorted`
+
+dict默认是无序的，如果要排序，先要变成list
+
+```python
+dict1={4:'grey', 11:'alpha', 6:'beta', 1:'gamma'}
+
+print(sorted(dict1.items()))
+print(sorted(dict1.items(), reverse=True))
+print(sorted(dict1.items(), key=lambda x: x[1] , reverse=True))
+print(dict1)
+```
+
+```bash
+# res
+[(1, 'gamma'), (4, 'grey'), (6, 'beta'), (11, 'alpha')]
+[(11, 'alpha'), (6, 'beta'), (4, 'grey'), (1, 'gamma')]
+[(4, 'grey'), (1, 'gamma'), (6, 'beta'), (11, 'alpha')]
+{4: 'grey', 11: 'alpha', 6: 'beta', 1: 'gamma'}
+```
+
+### `zip`
+
+zip的两个参数，长度可以不一致
+
+```python
+def func1(*args):
+    print(args)
+
+x=[1, 2, 3]
+y=[4, 5, 6]
+print(*zip(x, y))# (1, 4) (2, 5) (3, 6)
+func1(*zip(x, y))# ((1, 4),(2, 5),(3, 6))
+
+for item in zip(x, y):
+    print(item)
+```
+
+```python
+myList1=[1, 2, 3]
+myList2=[4, 5, 6]
+# 使用map实现zip
+map1=map(lambda x, y:(x, y), myList1, myList2)
+for item in map1:
+    print(item)
+
+print(*map(lambda x, y:(x, y), myList1, myList2))
+```
+
+```bash
+# res
+(1, 4)
+(2, 5)
+(3, 6)
+
+(1, 4) (2, 5) (3, 6)
+```
+​
+```python
+l1 = [1, 2, 3, 4]
+l2 = ['a', 'b', 'c', 'd']
+# zip只能用一次
+for i in zip(l1, l2):
+    print(i)
+
+# zip得到原序列
+print('='*20)
+zip1 = zip(l1,l2)
+for item in zip(*zip1):
+    print(item)
+
+# zip构造字典
+print(dict(l1, l2))
+```
+
+```bash
+# res
+(1, 'a')
+(2, 'b')
+(3, 'c')
+(4, 'd')
+====================
+(1, 2, 3, 4)
+('a', 'b', 'c', 'd')
+
+{1: 'a', 2: 'b', 3: 'c', 4: 'd'}
+```
+
+### `__import__`
+
+通常在动态加载时可以使用到这个函数，比如你希望加载某个文件夹下的所用模块，但是其下的模块名称又会经常变化时，就可以使用这个函数动态加载所有模块了
