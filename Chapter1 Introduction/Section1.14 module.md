@@ -3,6 +3,11 @@
 <!-- TOC -->
 
 - [Python Module](#python-module)
+    - [`import`](#import)
+        - [`import` module](#import-module)
+        - [`import` package](#import-package)
+        - [module classification](#module-classification)
+    - [`time` & `datetime`](#time--datetime)
     - [`sys` & `os` module](#sys--os-module)
     - [`getpass` module](#getpass-module)
     - [module storage](#module-storage)
@@ -21,6 +26,135 @@
     - [pdb](#pdb)
 
 <!-- /TOC -->
+
+## `import`
+
+`import`导入顺序是按照`sys.path`的list顺序导入
+
+```bash
+# import sys
+# print(sys.path)
+['.', 
+'D:\\ProgrammingTools\\empty_py3\\Scripts\\python36.zip', 'D:\\ProgrammingTools\\Anaconda3\\DLLs'
+'D:\\ProgrammingTools\\Anaconda3\\lib', 
+'D:\\ProgrammingTools\\Anaconda3',
+'D:\\ProgrammingTools\\empty_py3',
+'D:\\ProgrammingTools\\empty_py3\\lib\\site-packages',
+'D:\\ProgrammingTools\\empty_py3\\lib\\site-packages\\setuptools-39.1.0-py3.6.egg']
+```
+
+可以通过如下方法添加其他目录
+
+```python
+import os, sys
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(BASE_DIR)
+# 下面这种，从BASE_DIR开始搜索
+sys.path.insert(0, BASE_DiR)
+```
+
+### `import` module
+
+moudle本质是实现一定功能的`.py`
+
+vscode下测试, pycharm需要**Mark as Sysroot**
+
+```bash
+./
+    moduleA.py
+    main.py
+```
+
+```python
+# moduleA.py
+num=100
+
+def say_hello():
+    print("hello, I'm moduleA")
+```
+
+```python
+# main.py
+# import method1:
+import moduleA
+
+print(moduleA.num)
+moduleA.say_hello()
+```
+
+```python
+# import method2:
+from moduleA import *
+```
+
+```python
+# import method3:
+from moduleA import num, say_hello
+```
+
+```python
+# import xxx as yyy
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+```
+
+> `import` **模块(.py)** 本质是将`moduleA.py`中的代码全部解释了一遍, 然后赋值给变量`moduleA`, 然后利用这个变量来进行调用; 
+>
+> `from xxx import yyy`是直接将`moduleA`中的变量拿过来执行, 不用中间的变量来进行调用
+
+`import`优化
+
+```python
+# main.py
+import moduleA
+
+def func1():
+    # 如果有大量的moduleA.say_hello(), 就会重复查找，效率低
+    # 换用from moduleA import say_hello即可
+    moduleA.say_hello()
+    print("func1")
+
+def func2():
+    moduleA.say_hello()
+    print("func2")
+```
+
+### `import` package 
+
+package: 一个包含空`__init__.py`文件的目录, 用来组织一堆`.py`
+
+> `import` **Package** 的本质是执行`__init__.py`
+
+```bash
+main.py
+PackageA/
+    __init__.py
+    moduleA.py
+```
+
+```python
+# __init__.py
+from . import moduleA
+```
+
+```python
+# main.py
+import PackageA
+
+PackageA.moduleA.say_hello()
+```
+
+### module classification
+
+- [standard library](https://docs.python.org/3/py-modindex.html)
+- open source library: [Pypi](https://pypi.org/), github
+- custom library
+
+## `time` & `datetime`
+
+[time & datetime](http://blog.51cto.com/egon09/1840425)
 
 ## `sys` & `os` module
 
@@ -51,29 +185,6 @@ print(upwd)
 ```
 
 ## module storage
-
-```python
-#import的顺序按照sys.path的顺序来搜索module，也可以自己添加
-import sys
-
-print(sys.path)#是一个list
-sys.path.append('/home')
-```
-
-```bash
-#output
-['',#表示当前路径
- 'D:\\ProgrammingTools\\Anaconda3\\python36.zip',
- 'D:\\ProgrammingTools\\Anaconda3\\DLLs',
- 'D:\\ProgrammingTools\\Anaconda3\\lib',
- 'D:\\ProgrammingTools\\Anaconda3',
- 'D:\\ProgrammingTools\\Anaconda3\\lib\\site-packages',
- 'D:\\ProgrammingTools\\Anaconda3\\lib\\site-packages\\win32',
- 'D:\\ProgrammingTools\\Anaconda3\\lib\\site-packages\\win32\\lib',
- 'D:\\ProgrammingTools\\Anaconda3\\lib\\site-packages\\Pythonwin',
- 'D:\\ProgrammingTools\\Anaconda3\\lib\\site-packages\\IPython\\extensions',
- 'C:\\Users\\Administrator\\.ipython']
-```
 
 重新导入，如果已经import了一个module，程序没有退出，又去修改了这个module，那么如果要用修改后的东西
 
