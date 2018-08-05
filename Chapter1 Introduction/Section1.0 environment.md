@@ -115,3 +115,94 @@ print('hello, world')
 将上面保存为`sample.py`, `chmod 755 sample.py`, `./sample.py`就可以运行了;
 
 推荐使用`#! /usr/bin/env python`, 不推荐`#! /usr/bin/python`写死了
+
+## python project directory structure
+
+[stackoverflow suggestion](https://stackoverflow.com/questions/193161/what-is-the-best-project-structure-for-a-python-application)
+
+```bash
+Foo/
+|-- bin/
+|   |-- foo
+|
+|-- foo/
+|   |-- tests/
+|   |   |-- __init__.py
+|   |   |-- test_main.py
+|   |
+|   |-- __init__.py
+|   |-- main.py
+|
+|-- docs/
+|   |-- conf.py
+|   |-- abc.rst
+|
+|-- setup.py
+|-- requirements.txt
+|-- README
+```
+
+从bin/foo调用main.py; 主入口是`main.py`
+
+### examples
+
+```bash
+Atm/
+    atm/
+        __init__.py
+        main.py
+    bin/
+        __init__.py
+        atm.py
+    conf/
+        __init__.py
+        settings.py
+    logs/
+```
+
+```python
+# atm/main.py
+def main():
+    print('This is main() from main.py')
+
+
+if __name__ == '__main__':
+    main()
+```
+
+```python
+# bin/atm.py, 这个要调用主入口main.py
+import os, sys
+
+# print(__file__)  # Atm/bin/atm.py, PyCharm里面显示的是绝对路径
+# print(os.path.abspath(__file__))
+# print(os.path.dirname(os.path.abspath(__file__)))
+# print(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+
+from atm import main
+
+main.main()
+```
+
+### another examples
+
+模拟实现一个ATM + 购物商城程序
+
+1. 额度 15000或自定义
+1. 实现购物商城，买东西加入 购物车，调用信用卡接口结账
+1. 可以提现，手续费5%
+1. 每月22号出账单，每月10号为还款日，过期未还，按欠款总额 万分之5 每日计息
+1. 支持多账户登录
+1. 支持账户间转账
+1. 记录每月日常消费流水
+1. 提供还款接口
+1. ATM记录操作日志 
+1. 提供管理接口，包括添加账户、用户额度，冻结账户等。。。
+1. 用户认证用装饰器
+
+[Hint](https://github.com/triaquae/py3_training/tree/master/atm)
+
+![](res/diagram01.png)
