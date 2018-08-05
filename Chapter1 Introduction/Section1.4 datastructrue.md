@@ -20,6 +20,7 @@
     - [语音](#语音)
     - [Stack & Queue](#stack--queue)
     - [about list](#about-list)
+    - [hash](#hash)
 
 <!-- /TOC -->
 
@@ -2106,3 +2107,7 @@ for item in myList:
 [4, 5, 6, 7]
 [8, 9, 10, 11]
 ```
+
+## hash
+
+[Hash Algorithm]](http://www.cnblogs.com/yangecnu/p/Introduce-Hashtable.html)
