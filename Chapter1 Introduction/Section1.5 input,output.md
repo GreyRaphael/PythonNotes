@@ -8,7 +8,7 @@
     - [file operation](#file-operation)
     - [文件缓存区](#文件缓存区)
     - [文件指针](#文件指针)
-    - [pickle模块](#pickle模块)
+    - [pickle & json](#pickle--json)
     - [数据清洗](#数据清洗)
         - [QQ Example](#qq-example)
         - [kaifang Example](#kaifang-example)
@@ -358,30 +358,70 @@ int main(){
 }
 ```
 
-## pickle模块
+## pickle & json
 
-将list保存到file
+pickle vs json:
+- pickle: bytes与python类型直接转换: `dumps`, `dump`, `loads`, `load`
+- json: 字符串与python类型之间转换: `dumps`, `dump`, `loads`, `load`
+
+上面的python类型只能是数据类型，不能是类似`<function>`这种类型
+
+`json`只能处理str, list, tuple, set, dict这中简单的; `json`主要是不同语言中的交换数据, 主要用的是dictionary; `xml`被`json`淘汰;`pickle`是python专用的;
 
 ```python
-#list to file
+# pickle
 import pickle
-myList=[]
-for i in range(3):
-    myList.append([4*i+j for j in range(4)])
 
-myFile=open(r"C:\Users\Administrator\Documents\list.txt","wb")
-pickle.dump(myList,myFile)
-myFile.close()#notepad打开时乱码的
+data1=[1, 2, 3, 4, 5]
+data2='grey'
+
+# dumps
+pickle1_repr=pickle.dumps(data1)
+pickle2_repr=pickle.dumps(data2)
+print(pickle1_repr, pickle2_repr)
+
+# loads
+data1_frompickle1=pickle.loads(pickle1_repr)
+data2_frompickle2=pickle.loads(pickle2_repr)
+print(data1_frompickle1, data2_frompickle2)
+
+# dump: 二进制文件
+with open('temp1.dat', 'wb') as file1, open('temp2.dat', 'wb') as file2:
+    pickle.dump(data1, file1)
+    pickle.dump(data2, file2)
+# load
+with open('temp1.dat', 'rb') as file1, open('temp2.dat', 'rb') as file2:
+    data3=pickle.load(file1)
+    data4=pickle.load(file2)
+print(data3, data4)
 ```
 
 ```python
-#file to list
-import pickle
-myNewList=[]
-myNewFile=open(r"C:\Users\Administrator\Documents\list.txt","rb")
-myNewList=pickle.load(myNewFile)
-myNewFile.close()
-print(myNewList)#[[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]]
+# json
+import json
+
+data1=[1, 2, 3, 4, 5]
+data2='grey'
+
+# dumps: 返回值是str
+json1_repr=json.dumps(data1)
+json2_repr=json.dumps(data2)
+print(json1_repr, json2_repr) 
+
+# loads： 返回值是原类型
+data1_fromjson1=json.loads(json1_repr)
+data2_fromjson2=json.loads(json2_repr)
+print(data1_fromjson1, data2_fromjson2)
+
+# dump: 文本文件
+with open('temp1.dat', 'w') as file1, open('temp2.dat', 'w') as file2:
+    json.dump(data1, file1)
+    json.dump(data2, file2)
+# load： 返回值是原类型
+with open('temp1.dat', 'r') as file1, open('temp2.dat', 'r') as file2:
+    data3=json.load(file1)
+    data4=json.load(file2)
+print(data3, data4) 
 ```
 
 ```python
