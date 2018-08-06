@@ -3,6 +3,8 @@
 <!-- TOC -->
 
 - [Python Regular Expression](#python-regular-expression)
+    - [regex table](#regex-table)
+    - [about escaping `\\`](#about-escaping-\\)
     - [QQ or phone-number](#qq-or-phone-number)
     - [match, search, findall](#match-search-findall)
         - [match 搜索(bad)](#match-搜索bad)
@@ -29,36 +31,56 @@
 
 <!-- /TOC -->
 
-可以实现**搜索、匹配、切割、截取、替换**
+regex可以实现**搜索、匹配、切割、截取、替换**
 
-元字符|说明
----|---
-.|匹配除`\n`的任意字符, 若`flags=re.DOTALL`, 也会匹配`\n`
-*|匹配前面的字符或者子表达式 $0\leqslant times$
-*?|惰性匹配上一个
-+|匹配前一个字符或子表达式 $1\leqslant times$
-+?|惰性匹配上一个
-?|匹配前一个字符或子表达式 $times=0, 1$
-{n}|匹配前一个字符或子表达式 $times = n$
-{m,n}|匹配前一个字符或子表达式 $m\leqslant times\leqslant n$
-{n,}|匹配前一个字符或者子表达式 $n\leqslant times$
-{n,}?|前一个的惰性匹配
-^|匹配字符串的开头
-$|匹配字符串结束
-[ ]|匹配内部的任一字符或子表达式
-[^]|对字符集和取非 
--|定义一个区间
-\d|匹配任意数字`[0-9]`
-\D|匹配数字以外的字符`[^0-9]`or`[^\d]`
-\t|匹配tab
-\s|匹配空白字符`[<space>\t\r\n\f\v]`
-\S|匹配非空白字符
-\w|匹配任意数字字母下划线`[a-zA-Z0-9_]`
-\W|不匹配数字字母下划线
-\b|将\w与\W分开
-\B|\b取反
+## regex table
 
 [Official Table](https://docs.python.org/3/library/re.html)
+
+symbols|details
+---|---
+`.`|匹配除`\n`的任意字符, 若`flags=re.DOTALL`, 也会匹配`\n`
+`*`|匹配前面的字符或者子表达式 $0\leqslant times$
+`*?`|惰性匹配上一个
+`+`|匹配前一个字符或子表达式 $1\leqslant times$
+`+?`|惰性匹配上一个
+`?`|匹配前一个字符或子表达式 $times=0, 1$
+`{n}`|匹配前一个字符或子表达式 $times = n$
+`{m,n}`|匹配前一个字符或子表达式 $m\leqslant times\leqslant n$
+`{n,}`|匹配前一个字符或者子表达式 $n\leqslant times$
+`{n,}?`|前一个的惰性匹配
+`^`|匹配字符串的开头
+`$`|匹配字符串结束
+`|`| or
+`()`| group
+`[ ]`|匹配内部的任一字符或子表达式
+`[^]`|对字符集和取非 
+`-`|定义一个区间
+`\d`|匹配任意数字`[0-9]`
+`\D`|匹配数字以外的字符`[^0-9]`or`[^\d]`
+`\t`|匹配tab
+`\s`|匹配空白字符`[<space>\t\r\n\f\v]`
+`\S`|匹配非空白字符
+`\w`|匹配任意数字字母下划线`[a-zA-Z0-9_]`
+`\W`|不匹配数字字母下划线
+`\b`|将\w与\W分开
+`\B`|\b取反
+
+## about escaping `\\`
+
+```python
+import re
+
+print(re.match('\d+', '123grey'))# <_sre.SRE_Match object; span=(0, 3), match='123'>
+# 标准写法
+print(re.match('\\d+', '123grey')) 
+print(re.match(r'\d+', '123grey'))
+
+# 表示字符串中的\需要\\\\
+# print(re.match('\d+\\', '123\grey')) # error
+print(re.match('\\d+\\\\', '123\grey')) # <_sre.SRE_Match object; span=(0, 4), match='123\\'>
+print(re.match(r'\d+\\', '123\grey'))
+```
 
 ## QQ or phone-number
 
@@ -78,10 +100,6 @@ def   checkQQ(QQstr):
 
 print(checkQQ("1892"))
 print(checkQQ("112321321321892"))
-print(checkQQ("112321a"))
-print(checkQQ("112a321"))
-print(checkQQ("213213213"))
-print(checkQQ("112321"))
 ```
 
 ```python
@@ -91,7 +109,12 @@ import re
 print(re.match("[1-9][0-9]{4,}","12341"))#<_sre.SRE_Match object; span=(0, 5), match='12341'>
 print(re.match("[1-9][0-9]{4,}","1234"))#None
 print(re.match("[1-9][0-9]{4,}","1234a"))#None
-print(re.match("[1-9][0-9]{4,}","123456asdf"))#<_sre.SRE_Match object; span=(0, 6), match='123456'>
+
+reg1=re.compile('[1-9][0-9]{4,}')
+print(reg1.match('12341')) # #<_sre.SRE_Match object; span=(0, 5), match='12341'>
+match_obj=reg1.match('123789a')
+if match_obj:
+    print(match_obj.group())
 ```
 
 ```python
@@ -484,6 +507,14 @@ Ac,b,C,D,E,F,
 ## `re.split`
 
 ```python
+import re
+
+reg1=re.compile(r"\d+")
+res=reg1.split("grey12alpha45beta3james")
+print(res)# ['grey', 'alpha', 'beta', 'james']
+```
+
+```python
 #通常的split
 line="127740	1小姐	女	22	166	本科	未婚	合肥	山羊座	编辑	普通话	安徽,浙江,江苏,上海	面议元/天	初次接触	商务伴游,私人伴游,交友伴游,景点伴游	本人今年22岁，半年前大学毕业，平时在上海工作，放假时回安徽。有意可以联系我哦。另外我是大叔控。。。	0:00—23:00	15755106787	1718560307@qq.com	http://www.banyou.com/	1718560307"
 
@@ -524,6 +555,14 @@ print(lineList)#['a', 'b', 'c', 'd']
 ```
 
 ## re.subn(), re.sub()
+
+```python
+import re
+
+reg1=re.compile(r"\d+")
+res=reg1.sub('|',"grey12alpha45beta3james")
+print(res) # grey|alpha|beta|james
+```
 
 ```python
 import  re
@@ -748,6 +787,14 @@ import re
 ```
 
 ### 标签
+
+```python
+import re
+
+reg1=re.compile(r"(?P<name>\w*?) is (?P<gender>.*?), age is (?P<age>\d+)")
+res=reg1.match("grey is male, age is 23")
+res.groupdict() # {'name': 'grey', 'gender': 'male', 'age': '23'}
+```
 
 ```python
 import  re
