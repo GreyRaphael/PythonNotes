@@ -1,56 +1,56 @@
 # Python Regular Expression
 
+<!-- TOC -->
+
 - [Python Regular Expression](#python-regular-expression)
     - [QQ or phone-number](#qq-or-phone-number)
     - [match, search, findall](#match-search-findall)
-        - [match 搜索(bad)](#match-%E6%90%9C%E7%B4%A2bad)
-        - [match 挖掘，分割](#match-%E6%8C%96%E6%8E%98%EF%BC%8C%E5%88%86%E5%89%B2)
-        - [search 搜索](#search-%E6%90%9C%E7%B4%A2)
-        - [search 挖掘](#search-%E6%8C%96%E6%8E%98)
+        - [match 搜索(bad)](#match-搜索bad)
+        - [match 挖掘，分割](#match-挖掘分割)
+        - [search 搜索](#search-搜索)
+        - [search 挖掘](#search-挖掘)
         - [match, search summary](#match-search-summary)
         - [findall](#findall)
         - [finditer](#finditer)
     - [`re.split`](#resplit)
     - [re.subn(), re.sub()](#resubn-resub)
     - [Detail](#detail)
-        - [多次](#%E5%A4%9A%E6%AC%A1)
-            - [`*`,>=0次](#0%E6%AC%A1)
-            - [`+`,>=1次](#1%E6%AC%A1)
-            - [`?`,0 or 1次](#0-or-1%E6%AC%A1)
+        - [[]](#)
+        - [多次](#多次)
+            - [`*`,>=0次](#0次)
+            - [`+`,>=1次](#1次)
+            - [`?`,0 or 1次](#0-or-1次)
             - [`{m}`,`{m,n}`, `{m,}`, `{m}`](#mmn-m-m)
-        - [开头和结尾](#%E5%BC%80%E5%A4%B4%E5%92%8C%E7%BB%93%E5%B0%BE)
-        - [逻辑与分组](#%E9%80%BB%E8%BE%91%E4%B8%8E%E5%88%86%E7%BB%84)
+        - [开头和结尾](#开头和结尾)
+        - [逻辑与分组](#逻辑与分组)
         - [others](#others)
-        - [标签](#%E6%A0%87%E7%AD%BE)
-    - [GUI 提取qq,email,phone](#gui-%E6%8F%90%E5%8F%96qqemailphone)
+        - [标签](#标签)
+    - [GUI 提取qq,email,phone](#gui-提取qqemailphone)
 
-可以实现**搜索、匹配、截取、挖掘、切割、截取、替换**
+<!-- /TOC -->
+
+可以实现**搜索、匹配、切割、截取、替换**
 
 元字符|说明
 ---|---
-.|代表任意字符(除了`\n`),`\r`是匹配的
-\ | 
+.|匹配除`\n`的任意字符, 若`flags=re.DOTALL`, 也会匹配`\n`
+*|匹配前面的字符或者子表达式 $0\leqslant times$
+*?|惰性匹配上一个
++|匹配前一个字符或子表达式 $1\leqslant times$
++?|惰性匹配上一个
+?|匹配前一个字符或子表达式 $times=0, 1$
+{n}|匹配前一个字符或子表达式 $times = n$
+{m,n}|匹配前一个字符或子表达式 $m\leqslant times\leqslant n$
+{n,}|匹配前一个字符或者子表达式 $n\leqslant times$
+{n,}?|前一个的惰性匹配
+^|匹配字符串的开头
+$|匹配字符串结束
 [ ]|匹配内部的任一字符或子表达式
 [^]|对字符集和取非 
 -|定义一个区间
-\ |对下一字符取非（通常是普通变特殊，特殊变普通）
-*|匹配前面的字符或者子表达式0次或多次
-*?|惰性匹配上一个
-+|匹配前一个字符或子表达式一次或多次
-+?|惰性匹配上一个
-?|匹配前一个字符或子表达式0次或1次重复
-{n}|匹配前一个字符或子表达式
-{m,n}|匹配前一个字符或子表达式至少m次至多n次
-{n,}|匹配前一个字符或者子表达式至少n次
-{n,}?|前一个的惰性匹配
-^|匹配字符串的开头
-\A|匹配字符串开头
-$|匹配字符串结束
-[\b]|退格字符
-\c|匹配一个控制字符
 \d|匹配任意数字`[0-9]`
 \D|匹配数字以外的字符`[^0-9]`or`[^\d]`
-\t|匹配制表符
+\t|匹配tab
 \s|匹配空白字符`[<space>\t\r\n\f\v]`
 \S|匹配非空白字符
 \w|匹配任意数字字母下划线`[a-zA-Z0-9_]`
@@ -58,7 +58,7 @@ $|匹配字符串结束
 \b|将\w与\W分开
 \B|\b取反
 
-[Complete](https://www.cnblogs.com/cp-miao/p/5567115.html)
+[Official Table](https://docs.python.org/3/library/re.html)
 
 ## QQ or phone-number
 
