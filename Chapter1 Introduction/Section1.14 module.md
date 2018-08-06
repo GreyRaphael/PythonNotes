@@ -7,9 +7,14 @@
         - [`import` module](#import-module)
         - [`import` package](#import-package)
         - [module classification](#module-classification)
+    - [`getpass` module](#getpass-module)
     - [`time` & `datetime`](#time--datetime)
     - [`sys` & `os` module](#sys--os-module)
-    - [`getpass` module](#getpass-module)
+    - [`shutil` module](#shutil-module)
+    - [`pickle` , `json`, `shelve`](#pickle--json-shelve)
+    - [`xml` module](#xml-module)
+    - [`pyyaml` & `configparser` module](#pyyaml--configparser-module)
+    - [`hashlib` &`hmac` module](#hashlib-hmac-module)
     - [module storage](#module-storage)
         - [diy module](#diy-module)
     - [`__all__`](#__all__)
@@ -21,7 +26,6 @@
     - [给程序传参数](#给程序传参数)
     - [循环导入](#循环导入)
     - [standard library](#standard-library)
-        - [`hashlib`](#hashlib)
     - [extend library](#extend-library)
     - [pdb](#pdb)
 
@@ -152,6 +156,15 @@ PackageA.moduleA.say_hello()
 - open source library: [Pypi](https://pypi.org/), github
 - custom library
 
+## `getpass` module
+
+```python
+import getpass
+
+upwd = getpass.getpass('enter your password:')
+print(upwd)
+```
+
 ## `time` & `datetime`
 
 [time & datetime](http://blog.51cto.com/egon09/1840425)
@@ -175,13 +188,347 @@ print(res) # 0, 表示成功执行
 os.popen('dir').read()
 ```
 
-## `getpass` module
+## `shutil` module
+
+可以查看源码了解功能, [simple source](http://www.cnblogs.com/wupeiqi/articles/4963027.html)
 
 ```python
-import getpass
+import shutil
 
-upwd = getpass.getpass('enter your password:')
-print(upwd)
+# copyfile
+shutil.copyfile('test.txt', 'newnew.txt')
+
+# copy directory and files
+shutil.copytree('testDir', 'newDir')
+
+# remove directory and files
+shutil.rmtree('testDir')
+
+# move file
+shutil.move('outer.txt', 'newDir')
+
+# archive dir
+shutil.make_archive('newZip','zip','newDir/')
+```
+
+## `pickle` , `json`, `shelve`
+
+pickle vs json:
+- pickle: bytes与python类型直接转换: `dumps`, `dump`, `loads`, `load`
+- json: 字符串与python类型之间转换: `dumps`, `dump`, `loads`, `load`
+- shelve: 对pickle的高级封装，可以进行key-value访问
+
+上面的python类型只能是数据类型，不能是类似`<function>`这种类型
+
+`json`只能处理str, list, tuple, set, dict这中简单的; `json`主要是不同语言中的交换数据, 主要用的是dictionary; `xml`被`json`淘汰;`pickle`是python专用的;
+
+```python
+# pickle
+import pickle
+
+data1=[1, 2, 3, 4, 5]
+data2='grey'
+
+# dumps
+pickle1_repr=pickle.dumps(data1)
+pickle2_repr=pickle.dumps(data2)
+print(pickle1_repr, pickle2_repr)
+
+# loads
+data1_frompickle1=pickle.loads(pickle1_repr)
+data2_frompickle2=pickle.loads(pickle2_repr)
+print(data1_frompickle1, data2_frompickle2)
+
+# dump: 二进制文件
+with open('temp1.dat', 'wb') as file1, open('temp2.dat', 'wb') as file2:
+    pickle.dump(data1, file1)
+    pickle.dump(data2, file2)
+# load
+with open('temp1.dat', 'rb') as file1, open('temp2.dat', 'rb') as file2:
+    data3=pickle.load(file1)
+    data4=pickle.load(file2)
+print(data3, data4)
+```
+
+```python
+# json
+import json
+
+data1=[1, 2, 3, 4, 5]
+data2='grey'
+
+# dumps: 返回值是str
+json1_repr=json.dumps(data1)
+json2_repr=json.dumps(data2)
+print(json1_repr, json2_repr) 
+
+# loads： 返回值是原类型
+data1_fromjson1=json.loads(json1_repr)
+data2_fromjson2=json.loads(json2_repr)
+print(data1_fromjson1, data2_fromjson2)
+
+# dump: 文本文件
+with open('temp1.dat', 'w') as file1, open('temp2.dat', 'w') as file2:
+    json.dump(data1, file1)
+    json.dump(data2, file2)
+# load： 返回值是原类型
+with open('temp1.dat', 'r') as file1, open('temp2.dat', 'r') as file2:
+    data3=json.load(file1)
+    data4=json.load(file2)
+print(data3, data4) 
+```
+
+```python
+#查询dangdang的数据，并简单统计
+import codecs
+
+def  loaddata():
+    filepath = r"C:\dangdang.txt"
+    file = codecs.open(filepath, "rb", encoding="gbk", errors="ignore")
+    global datalist #引用全局
+    datalist=file.readlines() #读取文件到list,疯狂占用内存
+    file.close()
+def  search(namestr):
+    savefilepath="C:\\data\\"+namestr+".txt"
+    savefile=open(savefilepath,"wb")
+    numbers=0#统计查询的人的记录数
+    for  line  in datalist:
+        if line.find(namestr)!=-1:
+            print(line,end="") #显示数据
+            numbers +=1
+            savefile.write(line.encode("utf-8"))#写入
+    savefile.write(("数量"+str(numbers)).encode("utf-8"))
+    savefile.close()
+
+#program begin
+datalist=[]
+print("load  file start")
+loaddata()
+print("load  file end")
+while True:
+    searchname=input("要查询的数据")
+    search(searchname)
+```
+
+```python
+# shelve
+import shelve
+
+name='grey'
+info={'age':23, 'job':'student'}
+
+# write to file
+with shelve.open('shelve_test') as db:
+    db['name']=name
+    db['info']=info
+
+# read from file
+with shelve.open('shelve_test') as db:
+    print(db.get('name'))
+    print(db.get('info'))
+    print(db.get('date'))# None
+```
+
+## `xml` module
+
+```bash
+./
+    test.xml
+    main.py
+```
+
+```xml
+<?xml version="1.0"?>
+<data>
+    <country name="Singapore">
+        <rank updated="yes">5</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+    </country>
+    <country name="Panama">
+        <rank updated="yes">69</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+    </country>
+</data>
+```
+
+```python
+# main.py
+# read xml
+import xml.etree.ElementTree as ET
+ 
+tree = ET.parse("test.xml")
+root = tree.getroot()
+print(root.tag)
+ 
+#遍历xml文档
+for child in root:
+    print(child.tag, child.attrib)
+    for i in child:
+        print(i.tag,i.text, i.attrib)
+ 
+#只遍历year节点
+print('*'*20)
+for node in root.iter('year'):
+    print(node.tag,node.text)
+```
+
+```python
+# modify xml
+import xml.etree.ElementTree as ET
+ 
+tree = ET.parse("test.xml")
+root = tree.getroot()
+ 
+#修改
+for node in root.iter('year'):
+    new_year = int(node.text) + 1
+    node.text = str(new_year)
+    node.set("updated","yes")
+ 
+tree.write("test.xml")
+ 
+ 
+#删除node
+for country in root.findall('country'):
+   rank = int(country.find('rank').text)
+   if rank > 50:
+     root.remove(country)
+ 
+tree.write('output.xml')
+```
+
+```python
+# create xml
+import xml.etree.ElementTree as ET
+ 
+ 
+new_xml = ET.Element("namelist")
+
+name = ET.SubElement(new_xml,"personinfo",attrib={"enrolled":"yes"})
+age = ET.SubElement(name,"age",attrib={"checked":"no"})
+sex = ET.SubElement(name,"sex")
+sex.text = '33'
+
+name2 = ET.SubElement(new_xml,"personinfo",attrib={"enrolled":"no"})
+age = ET.SubElement(name2,"age")
+age.text = '19'
+ 
+et = ET.ElementTree(new_xml) #生成文档对象
+et.write("test.xml", encoding="utf-8",xml_declaration=True)
+ 
+ET.dump(new_xml)
+```
+
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<namelist>
+    <personinfo enrolled="yes">
+        <age checked="no" />
+        <sex>33</sex>
+    </personinfo>
+    <personinfo enrolled="no">
+        <age>19</age>
+    </personinfo>
+</namelist>
+```
+
+## `pyyaml` & `configparser` module
+
+`pip install pyyaml`, then ...
+
+yaml是做配置文件的;现在常用config, nginx, MySQL就是这种格式的配置文件;
+
+```python
+import configparser
+ 
+# write to file
+config = configparser.ConfigParser()
+config["DEFAULT"] = {'ServerAliveInterval': '45',
+                      'Compression': 'yes',
+                     'CompressionLevel': '9'}
+ 
+config['bitbucket.org'] = {}
+config['bitbucket.org']['User'] = 'hg'
+
+config['topsecret.server.com'] = {}
+topsecret = config['topsecret.server.com']
+topsecret['Host Port'] = '50022'     # mutates the parser
+topsecret['ForwardX11'] = 'no'  # same here
+
+# add one to "DEFAULT"
+config['DEFAULT']['ForwardX11'] = 'yes'
+
+with open('example.ini', 'w') as configfile:
+   config.write(configfile)
+
+# read file
+config2=configparser.ConfigParser()
+config2.read('example.ini')
+print(config2.sections) # ['bitbucket.org', 'topsecret.server.com']
+print(congig2.defaults) # ...
+
+# get value
+config['DEFAULT']['forwardx11']
+config['DEFAULT'].get('forwardx11')
+config2['bitbucket.org']['user']
+config2['bitbucket.org'].get('user')
+
+# remove section
+config2.remove_section('bitbucket.org')
+with open('new_config.conf', 'w') as file:
+    config2.write(file)
+```
+
+## `hashlib` &`hmac` module
+
+md5被破解的原理：用已经存在的密码去生成32位的md5串，然后用生成的md5串去和你的比较，也就是彩虹表；
+
+hashlib用途:
+- 网页防篡改
+- 加密
+
+```python
+import hashlib
+
+m1=hashlib.sha1()
+print(m1.digest_size) # 20, so length=40
+m1.update(b'hello')
+print(m1.hexdigest()) # aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+m1.update(b'it is me')
+print(m1.hexdigest()) # d728c718b8c58cc2da072753abc2103f6d2b8705
+m1.update(b'it has been a long time')
+
+m2=hashlib.sha1()
+m2.update(b'helloit is me') # 结果与上面第二个相同
+print(m2.hexdigest())# d728c718b8c58cc2da072753abc2103f6d2b8705
+```
+
+```python
+import hmac
+
+h1=hmac.new(b'this is key', b'this is msg')
+print(h1.digest_size) # length=32
+print(h1.hexdigest())
+
+h2=hmac.new(b'this is key')
+h2.update(b'this is msg')
+print(h2.hexdigest())
+```
+
+```python
+import hashlib
+import datetime
+
+KEY_VALUE = 'grey'
+now = datetime.datetime.now()
+m = hashlib.md5()
+str1 = f'{KEY_VALUE}{now.strftime("%Y%m%d")}'
+print(str1) # grey20180316
+m.update(str1.encode('utf-8'))#必须是二进制
+value = m.hexdigest()
+print(value) # 44257a6f9e0761caa1884507dae5841e
 ```
 
 ## module storage
@@ -645,50 +992,6 @@ Python有一套很有用的标准库(standard library)
 | socket          | 标准的 BSD Sockets API         |
 | shutil          | 文件和目录管理                 |
 | glob            | 基于文件通配符搜索(没有re好用) |
-
-### `hashlib`
-
-```python
-import hashlib
-
-# m=hashlib.md5()
-m=hashlib.sha256()
-print(m)
-#待加密文本
-m.update(b'grey')
-print(m.hexdigest())
-m.update(b'james')
-print(m.hexdigest())
-```
-
-```bash
-#output
-<sha256 HASH object @ 0x0000022F9D91BF08>
-67fc36385bb47db091a4d850d450021a8b7ba3b58615fc918808d4e636d8ad46
-c78b897e41ae4a3d8b0630e248d74c4673f030a9f6a37456ff4fc8f64a0e3965
-```
-
-md5被破解的原理：用已经存在的密码去生成32位的md5串，然后用生成的md5串去和你的比较，也就是彩虹表；
-
-```python
-import hashlib
-import datetime
-
-KEY_VALUE = 'grey'
-now = datetime.datetime.now()
-m = hashlib.md5()
-str1 = f'{KEY_VALUE}{now.strftime("%Y%m%d")}'
-print(str1)
-m.update(str1.encode('utf-8'))#必须是二进制
-value = m.hexdigest()
-print(value)
-```
-
-```bash
-#output
-grey20180316
-44257a6f9e0761caa1884507dae5841e
-```
 
 ## extend library
 
