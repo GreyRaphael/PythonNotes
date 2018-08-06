@@ -17,6 +17,7 @@
         - [python extending with .so file](#python-extending-with-so-file)
         - [python extending with c++](#python-extending-with-c)
         - [python extending with cython](#python-extending-with-cython)
+    - [rename mulitiple files](#rename-mulitiple-files)
 
 <!-- /TOC -->
 
@@ -839,4 +840,22 @@ reversing,get 'kkk diemanym'
 # cython严格区分string, bytes;
 In []: kkk.rever_fn(b'hello')
 Out[]: b'olleh'
+```
+
+## rename mulitiple files
+
+```python
+import os, re
+
+# # method1
+# regex=re.compile(r'wlm\d{4} ')
+
+# for filename in os.listdir('.'):
+#     if regex.match(filename):
+#         os.rename(filename, filename[8:])
+
+# method2:
+for filename in os.listdir('.'):
+    if filename.startswith('wlm'):
+        os.rename(filename, filename[8:])
 ```
