@@ -483,8 +483,6 @@ with open('new_config.conf', 'w') as file:
 
 ## `hashlib` &`hmac` module
 
-md5被破解的原理：用已经存在的密码去生成32位的md5串，然后用生成的md5串去和你的比较，也就是彩虹表；
-
 hashlib用途:
 - 网页防篡改
 - 加密
@@ -506,18 +504,7 @@ print(m2.hexdigest())# d728c718b8c58cc2da072753abc2103f6d2b8705
 ```
 
 ```python
-import hmac
-
-h1=hmac.new(b'this is key', b'this is msg')
-print(h1.digest_size) # length=32
-print(h1.hexdigest())
-
-h2=hmac.new(b'this is key')
-h2.update(b'this is msg')
-print(h2.hexdigest())
-```
-
-```python
+# with date
 import hashlib
 import datetime
 
@@ -530,6 +517,31 @@ m.update(str1.encode('utf-8'))#必须是二进制
 value = m.hexdigest()
 print(value) # 44257a6f9e0761caa1884507dae5841e
 ```
+
+md5被破解的原理：用已经存在的密码去生成32位的md5串，然后用生成的md5串去和你的比较，也就是彩虹表，即**撞库**
+
+为了防止撞库，二次加密，引入key, 或者用`hmac`
+
+```python
+import hashlib
+
+m1=hashlib.sha1(b'this is key')
+m1.update(b'this is content')
+print(m1.hexdigest())
+```
+
+```python
+import hmac
+
+h1=hmac.new(b'this is key', b'this is msg')
+print(h1.digest_size) # length=32
+print(h1.hexdigest())
+
+h2=hmac.new(b'this is key')
+h2.update(b'this is msg')
+print(h2.hexdigest())
+```
+
 
 ## module storage
 
