@@ -3,6 +3,7 @@
 <!-- TOC -->
 
 - [python data structrue](#python-data-structrue)
+    - [python3 6 types](#python3-6-types)
     - [list](#list)
         - [深浅复制](#深浅复制)
         - [`copy()` vs `copy.deepcopy()`](#copy-vs-copydeepcopy)
@@ -24,7 +25,49 @@
 
 <!-- /TOC -->
 
-python可以无限嵌套(如果能嵌套的话)
+## python3 6 types
+
+在 Python 中，变量就是变量，它没有类型，我们所说的"类型"是变量所指的内存中对象的类型。
+
+$$
+\left\{ \begin{array}{l}
+	number\left\{ \begin{array}{l}
+	int\\
+	float\\
+	bool\\
+	complex\\
+\end{array} \right.\\
+	str\\
+	list\\
+	tuple\\
+	set\\
+	dict\\
+\end{array} \right. 
+$$
+
+可以使用`type`, `isinstance`来判断类型
+
+```python
+a, b, c, d=10, 100.0, True, 3+4j
+
+print(type(a), type(b), type(c), type(d))
+# <class 'int'> <class 'float'> <class 'bool'> <class 'complex'>
+print(isinstance(a, int), isinstance(b, float), isinstance(c, bool), isinstance(d, complex))
+# True, True, True, True
+```
+
+`type` vs `instance`
+
+```python
+class A:
+    pass
+class B(A):
+    pass
+
+a, b=A(), B()
+print(type(a)==A, type(b)==A, type(b)==B)# True False True
+print(isinstance(a, A), isinstance(b, A), isinstance(b, B)) # True True True
+```
 
 ## list
 
