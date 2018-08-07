@@ -52,6 +52,8 @@ print(res1, res2) # 0 None
 
 ## Function introduction
 
+python可以无限嵌套(如果能嵌套的话)
+
 ```python
 #get the max by for
 import random
