@@ -862,4 +862,43 @@ for i in range(5):
     os.system("start notepad")
 ```
 
-for ... else语句中, for中的语句和普通的没有区别，else中的语句会在循环**正常执行完**(即for不是通过`break`跳出而中断的)的情况下执行，while ... else 也是一样
+`for ... else`语句中, for中的语句和普通的没有区别，else中的语句会在循环**正常执行完**(即for不是通过`break`跳出而中断的)的情况下执行，`while ... else` 也是一样
+
+## python operator
+
+[python operators](https://www.w3schools.com/python/python_operators.asp)
+
+```python
+# is 判断是否是同一个object
+l1=[1, 2, 3, 4]
+l2=l1
+l3=l1.copy()
+
+print(id(l1)==id(l2), id(l1)==id(l3)) # True False
+print(l2 is l1, l3 is l1) # True False
+```
+
+[python operators precedence](http://www.mathcs.emory.edu/~valerie/courses/fall10/155/resources/op_precedence.html)
+
+| Operator                                | Description                         |
+|-----------------------------------------|-------------------------------------|
+| ()                                      | Parentheses (grouping)              |
+| f(args...)                              | Function call                       |
+| x[index:index]                          | Slicing                             |
+| x[index]                                | Subscription                        |
+| x.attribute                             | Attribute reference                 |
+| **                                      | Exponentiation                      |
+| ~x                                      | Bitwise not                         |
+| +x, -x                                  | Positive, negative                  |
+| *, /, %                                 | Multiplication, division, remainder |
+| +, -                                    | Addition, subtraction               |
+| <<, >>                                  | Bitwise shifts                      |
+| &                                       | Bitwise AND                         |
+| ^                                       | Bitwise XOR                         |
+| `|`                                     | Bitwise OR                          |
+| in, not in, is, is not, <, <=,  >,  >=, | Comparisons, membership, identity   |
+| <>, !=, ==                              |                                     |
+| not x                                   | Boolean NOT                         |
+| and                                     | Boolean AND                         |
+| or                                      | Boolean OR                          |
+| lambda                                  | Lambda expression                   |
