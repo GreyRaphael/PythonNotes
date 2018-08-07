@@ -50,6 +50,15 @@ print(res1, res2) # 0 None
 # python中看起来是面向过程，其实是函数式，因为有返回值None
 ```
 
+```python
+# python2 cmp(x, y) deprecated
+def my_cmp(x, y):
+    return (x>y)-(x<y)
+
+print(my_cmp(1, 2)) # -1
+print(my_cmp(2, 1)) # 1
+```
+
 ## Function introduction
 
 ```python
