@@ -29,6 +29,8 @@
 
 在 Python 中，变量就是变量，它没有类型，我们所说的"类型"是变量所指的内存中对象的类型。
 
+在Python中，下列对象都相当于`Fals`e: `[]`, `()`, `{}`, `0`, `None`, `0.0`, `''`
+
 $$
 \left\{ \begin{array}{l}
 	number\left\{ \begin{array}{l}
