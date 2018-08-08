@@ -22,6 +22,7 @@
         - [windows wifi crack](#windows-wifi-crack)
         - [linux wifi crack](#linux-wifi-crack)
         - [another examples](#another-examples)
+    - [print example](#print-example)
 
 <!-- /TOC -->
 
@@ -1169,3 +1170,53 @@ main()
 [Hint](https://github.com/triaquae/py3_training/tree/master/atm)
 
 ![](res/diagram01.png)
+
+## print example
+
+```python
+def printStar(n):
+    i=0
+    while i<n:
+        j=0
+        while j<i:
+            print("*",end='')
+            j+=1
+        print("")
+        i+=1
+    return
+
+printStar(6)
+```
+
+```bash
+# output
+*
+**
+***
+****
+*****
+```
+
+```python
+# 猜拳游戏
+import random
+
+while True:
+    #player is a string
+    str = input('请输入：剪刀(0)  石头(1)  布(2):')
+
+    # or
+    # num=int(player)
+    player=eval(str)
+
+    computerPlayer=random.randint(0,2)
+    # for test
+    # print("player=%d,computer=%d"%(player,computerPlayer))
+    if ((player==0) and (computerPlayer==2)) or ((player==1) and (computerPlayer==0)) or ((player==2) and (computerPlayer==1)):
+        print("you win")
+        break
+    elif player==computerPlayer:
+        print("平局")
+    else:
+        print("failed")
+```
