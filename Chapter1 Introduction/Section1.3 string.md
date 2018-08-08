@@ -21,6 +21,11 @@
 
 ## `eval`
 
+```bash
+python2, raw_input() return string, input() return number;
+python3 ,input() retern return string, eval(input()) return number
+```
+
 eval可以处理字符串中的**数值与表达式**
 
 ```python

@@ -469,6 +469,28 @@ for i in range(100,110):
 ## variables
 
 ```python
+# exchange variables
+a=10
+b=20
+
+#method1
+c=a
+a=b
+b=c
+print(a,b)#20 10
+
+#method2
+a,b=b,a
+print(a,b)#10 20
+
+#method3
+a=a+b
+b=a-b
+a=a-b
+print(a,b)#20 10
+```
+
+```python
 def MyAdd(a,b):
     return a+b
 

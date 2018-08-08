@@ -29,6 +29,8 @@
 
 在 Python 中，变量就是变量，它没有类型，我们所说的"类型"是变量所指的内存中对象的类型。
 
+python中的变量保存的是数值的地址，C/C++才保存变量的值；python中的赋值`=`统统是引用;
+
 在Python中，下列对象都相当于`Fals`e: `[]`, `()`, `{}`, `0`, `None`, `0.0`, `''`
 
 $$
@@ -69,6 +71,12 @@ class B(A):
 a, b=A(), B()
 print(type(a)==A, type(b)==A, type(b)==B)# True False True
 print(isinstance(a, A), isinstance(b, A), isinstance(b, B)) # True True True
+```
+
+```python
+# type convert example
+# to binary
+print(int('100', 2)) # 4
 ```
 
 ## list
