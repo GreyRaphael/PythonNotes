@@ -14,6 +14,8 @@
         - [split,splitlines](#splitsplitlines)
     - [string format](#string-format)
         - [string with color](#string-with-color)
+    - [string format attention](#string-format-attention)
+        - [`f'{}'`](#f)
 
 <!-- /TOC -->
 
@@ -446,4 +448,138 @@ if salary.isdigit():
             exit()
         else:
             print("invalid option")
+```
+
+## string format attention
+
+[formatspec](https://docs.python.org/3/library/string.html#formatspec)
+
+```python
+str1='hello\tWorld\n'
+
+print('%s'%str1) # s means str()
+print('%r'%str1) # r means repr()
+```
+
+```bash
+# output
+hello	World
+
+'hello\tWorld\n'
+```
+
+### `f'{}'`
+
+```python
+num0=1234567890
+str1='hi\tGrey'
+print(len(str1)) # 7
+print(num0)
+# !
+print(f'{str1!s}')# str()
+print(f'{str1!r}')# repr()
+print(f'{str1!a}')# ascii()
+```
+
+```bash
+# output
+7
+1234567890
+hi	Grey
+'hi\tGrey'
+'hi\tGrey'
+```
+
+```python
+num0=1234567890
+print('='*12)
+num1=123456
+print(num0)
+# alignment: <,>,^
+print(f'{num1:10}')
+print(f'{num1:<10}')
+print(f'{num1:>10}')
+print(f'{num1:^10}')
+# padding filling
+print(f'{num1:*^10}')
+print(f'{num1:->10}')
+```
+
+```bash
+# output
+============
+1234567890
+    123456
+123456    
+    123456
+  123456  
+**123456**
+----123456
+```
+
+```python
+num0=1234567890
+print('='*12)
+str2='hello, world'
+print(num0)
+# truncating
+print(f'{str2:.4}')
+# truncating & padding
+print(f'{str2:>10.4}')
+```
+
+```bash
+# output
+============
+1234567890
+hell
+      hell
+```
+
+```python
+num0=1234567890
+print('='*12)
+print(num0)
+# integer
+print(f'{num1}')
+print(f'{num1:d}')
+print(f'{num1:>10}')
+print(f'{num1:>10d}')
+print(f'{num1:010d}')
+print(f'{num1:+d}')
+print(f'{num1:+10d}')
+print(f'{-num1:10d}')
+print(f'{num1:=+10d}')
+print(f'{-num1:=10d}')
+
+# float
+pi=3.1415926535
+print(f'{pi}')
+print(f'{pi:f}')
+print(f'{pi:.2f}')
+print(f'{pi:>10.2f}')
+print(f'{pi:0>10.2f}')
+print(f'{pi:>10.2%}')
+```
+
+```bash
+# output
+============
+1234567890
+123456
+123456
+    123456
+    123456
+0000123456
++123456
+   +123456
+   -123456
++   123456
+-   123456
+3.1415926535
+3.141593
+3.14
+      3.14
+0000003.14
+   314.16%
 ```
