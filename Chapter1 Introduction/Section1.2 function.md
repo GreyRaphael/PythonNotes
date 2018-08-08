@@ -11,14 +11,13 @@
     - [Lambda expression](#lambda-expression)
     - [Variable length function](#variable-length-function)
     - [string of python](#string-of-python)
-    - [List](#list)
-    - [tuple](#tuple)
-    - [python set](#python-set)
-        - [set operation](#set-operation)
-    - [Dictionary](#dictionary)
+    - [`list`](#list)
+    - [`tuple`](#tuple)
+    - [`set`](#set)
+    - [`dict`](#dict)
     - [summary](#summary)
     - [Convert](#convert)
-    - [作用域](#作用域)
+    - [variables scope](#variables-scope)
     - [built-in function](#built-in-function)
         - [`bytearray`](#bytearray)
         - [`compile`](#compile)
@@ -561,57 +560,6 @@ a,b,c=Example(10,20)
 print(a,b,c)#30 -10 200
 ```
 
-全局变量与局部变量
-
-```python
-num=100
-
-def go(data):
-    num=data
-    print(num,id(num))#100 1508932160
-
-go(200)
-print(num,id(num))#200 1508935360
-```
-
-```python
-num=100
-
-def go():
-    print(num) # 这里会报错，因为python会自动扫描一遍，认为num是局部变量,而num屏蔽全局的num, 然而并没有给num的数值，所以会报错
-    num=200
-    print(num)
-
-go()
-```
-
-函数内要修改全局变量，要使用`global`, 谨慎使用`global`
-
-```python
-# 引用全局变量
-num=100
-
-def go(data):
-    global num
-    num=data
-    print(num,id(num))#200 1508935360
-
-go(200)
-print(num,id(num))#200 1508935360
-```
-
-```python
-def func1():
-    global name
-    name='grey'
-
-# 不规范的做法
-func1()
-print(name)
-```
-
-一般都是将mutable的类型(list, dict, set)作为函数参数，然后再函数内修改; 而immutable类型(number, str, tuple)只能借助`global`修改, 然而并不推荐
-
 ```python
 #函数的定义可以嵌套,怀孕函数
 
@@ -878,7 +826,7 @@ print("grey"[1:3]*3)#rerere
 print("grey"+"hello")
 ```
 
-## List
+## `list`
 
 很多操作类似字符串
 
@@ -922,7 +870,7 @@ while True:
     print("一共"+str(i)+"条")
 ```
 
-## tuple
+## `tuple`
 
 tuple几乎具备List所有功能，就是不能修改内部的值，但是可以跳到新的tuple;
 
@@ -955,7 +903,7 @@ myTuple=(1,)
 print(type(myTuple))#<class 'tuple'>
 ```
 
-## python set
+## `set`
 
 采用的是hashtable
 
@@ -968,9 +916,7 @@ print(myTuple)#(1, 1, 2, 3)
 print(mySet,type(mySet))#数据没有重复的.{1, 2, 3} <class 'set'>
 ```
 
-### set operation
-
-交集、并集、差集、并集-差集(`& | - ^`)
+set operation:交集、并集、差集、并集-差集(`& | - ^`)
 
 用于数据的串联，比如kaifang数据和dangdang数据进行串联
 
@@ -995,7 +941,7 @@ print(mySet1^mySet2)
 {1, 2, 6, 7}
 ```
 
-## Dictionary
+## `dict`
 
 key-value
 
@@ -1112,47 +1058,105 @@ print(type(myList2),myList2)
 
 内存1s可以检索1G的数据，SSD也可以500M/s
 
-## 作用域
+## variables scope
+
+Python 中只有`module`, `class`, `def`, `lambda`才会引入新的作用域，其它的代码块(`if...elif...else`、`try...except..`、`for`, `while`, `with`, etc)是不会引入新的作用域的，也就是说这这些语句内定义的变量，外部也可以访问
+
+```python
+if True:
+    msg='inner message'
+print(msg)# inner message
+
+def func1():
+    num=100
+print(num) # error
+```
 
 Python 使用 LEGB 的顺序来查找一个符号对应的对象：
 
 `locals -> enclosing function -> globals -> builtins`
 
-其中`print`没有import也可以使用，因为就是builtins
+```python
+x=int(2.9)# built-ins: int
+
+g_count=0 # global
+def outer():
+    e_count=1 # enclosing
+    def inner():
+        l_count=2 # local
+```
+
+要修改全局变量要用`global`;要修改闭包外部的非全局的变量要用`nonlocal`; **谨慎使用**
+
+一般都是将mutable的类型(list, dict, set)作为函数参数，然后再函数内修改; 而immutable类型(number, str, tuple)只能借助`global`修改, 然而并不推荐
 
 ```python
-num = 11
+# local vs global
+num=100
 
+def go(data):
+    num=data
+    print(num,id(num))#200 1508935360 
+
+go(200)
+print(num,id(num))#100 1508932160
+```
+
+```python
+# attention
+num=100
+
+def go():
+    print(num) # error，python会自动扫描一遍，认为num是局部变量,而num屏蔽全局的num, 然而并没有给num的数值，所以会报错
+    num=200
+    print(num)
+
+go()
+```
+
+```python
+# 修改全局变量
+num=100
+
+def go():
+    global num
+    num=200
+    print(num,id(num))#200 1508935360
+
+go()
+print(num,id(num))#200 1508935360
+```
+
+```python
+# 不规范的做法
 def func1():
-    a = 100
-    b = 200
-    print(locals())#打印局部变量,dict类型返回值
-    print(globals())#打印全局变量，很多很多
+    global name
+    name='grey'
 
 func1()
-```
-
-要修改全局变量要用`global`;要修改闭包外部的非全局的变量要用`nonlocal`
-
-```python
-num = 100
-def test1():
-    num = 200
-    def test2():
-        num = 300
-        print(num)
-    return test2
-
-
-ret = test1()
-ret()
+print(name)
 ```
 
 ```python
-#get builtins
-import builtins
+# 修改enclosing
+def outer():
+    num=10
+    def inner():
+        nonlocal num
+        num=100
+    inner()
+    print(num)
 
-print(dir(builtins))
+outer() # 100
+```
+
+```python
+# global is readonly
+a = 10
+def test():
+    a = a + 1 # error, 将左边换成b就不会报错
+    print(a)
+test()
 ```
 
 ## built-in function
