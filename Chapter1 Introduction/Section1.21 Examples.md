@@ -21,6 +21,7 @@
     - [wifi example](#wifi-example)
         - [windows wifi crack](#windows-wifi-crack)
         - [linux wifi crack](#linux-wifi-crack)
+        - [another examples](#another-examples)
 
 <!-- /TOC -->
 
@@ -1148,3 +1149,23 @@ def main():
 
 main()
 ```
+
+### another examples
+
+模拟实现一个ATM + 购物商城程序
+
+1. 额度 15000或自定义
+1. 实现购物商城，买东西加入 购物车，调用信用卡接口结账
+1. 可以提现，手续费5%
+1. 每月22号出账单，每月10号为还款日，过期未还，按欠款总额 万分之5 每日计息
+1. 支持多账户登录
+1. 支持账户间转账
+1. 记录每月日常消费流水
+1. 提供还款接口
+1. ATM记录操作日志 
+1. 提供管理接口，包括添加账户、用户额度，冻结账户等。。。
+1. 用户认证用装饰器
+
+[Hint](https://github.com/triaquae/py3_training/tree/master/atm)
+
+![](res/diagram01.png)
