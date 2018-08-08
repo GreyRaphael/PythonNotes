@@ -559,7 +559,6 @@ print(f'{pi:f}')
 print(f'{pi:.2f}')
 print(f'{pi:>10.2f}')
 print(f'{pi:0>10.2f}')
-print(f'{pi:>10.2%}')
 ```
 
 ```bash
@@ -581,5 +580,48 @@ print(f'{pi:>10.2%}')
 3.14
       3.14
 0000003.14
+```
+
+```python
+num0=1234567890
+pi=3.1415926535
+num3=1234567890
+
+print(num0)
+print(f'{pi:>10.2%}')
+print(f'{num3:,}')
+```
+
+```bash
+# output
+1234567890
    314.16%
+1,234,567,890
+```
+
+```python
+num=16
+
+print(f'{num:b}')
+print(f'{num:o}')
+print(f'{num:d}')
+print(f'{num:x}')
+
+print(f'{num:#b}')
+print(f'{num:#o}')
+print(f'{num:#d}')
+print(f'{num:#x}')
+```
+
+```bash
+# ouput
+10000
+20
+16
+10
+
+0b10000
+0o20
+16
+0x10
 ```
