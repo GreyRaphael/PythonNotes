@@ -20,6 +20,7 @@
         - [bootstrap dropmenu](#bootstrap-dropmenu)
         - [bootstrap hidden](#bootstrap-hidden)
         - [bootstrap slide](#bootstrap-slide)
+    - [JQuery easyUI](#jquery-easyui)
 
 <!-- /TOC -->
 
@@ -1594,3 +1595,7 @@ Example: better ![](res/bootstrap02.gif)
 ### bootstrap slide
 
 bootstrap [slide](https://v3.bootcss.com/javascript/#carousel)比较差，不好用；
+
+## JQuery easyUI
+
+[easyUI](http://www.jeasyui.com/documentation/)
