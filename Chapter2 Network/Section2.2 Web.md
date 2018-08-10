@@ -1,11 +1,15 @@
 # Python Web
 
+<!-- TOC -->
+
 - [Python Web](#python-web)
-    - [web server | browser](#web-server-browser)
+    - [web server | browser](#web-server--browser)
     - [HTTP](#http)
-    - [web静态服务器-显示固定的页面(多进程)](#web%E9%9D%99%E6%80%81%E6%9C%8D%E5%8A%A1%E5%99%A8-%E6%98%BE%E7%A4%BA%E5%9B%BA%E5%AE%9A%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%A4%9A%E8%BF%9B%E7%A8%8B)
-    - [web动态服务器](#web%E5%8A%A8%E6%80%81%E6%9C%8D%E5%8A%A1%E5%99%A8)
+    - [web静态服务器-显示固定的页面(多进程)](#web静态服务器-显示固定的页面多进程)
+    - [web动态服务器](#web动态服务器)
         - [oop-dynamic-webserver with framework](#oop-dynamic-webserver-with-framework)
+
+<!-- /TOC -->
 
 ##  web server | browser
 
