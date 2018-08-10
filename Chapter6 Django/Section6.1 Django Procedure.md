@@ -24,13 +24,18 @@
     - [Template](#template)
         - [template without data](#template-without-data)
         - [template with data](#template-with-data)
-            - [将数据传递给template](#%E5%B0%86%E6%95%B0%E6%8D%AE%E4%BC%A0%E9%80%92%E7%BB%99template)
-            - [用model拿数据](#%E7%94%A8model%E6%8B%BF%E6%95%B0%E6%8D%AE)
-        - [带有`<a></a>`的project](#%E5%B8%A6%E6%9C%89aa%E7%9A%84project)
+            - [将数据传递给template](#将数据传递给template)
+            - [用model拿数据](#用model拿数据)
+        - [带有`<a></a>`的project](#带有aa的project)
 
 <!-- /TOC -->
 
 ## Introduction
+
+python的web框架有:
+- flask:小型应用
+- django: 大型应用
+- tornado
 
 ### MVC
 
