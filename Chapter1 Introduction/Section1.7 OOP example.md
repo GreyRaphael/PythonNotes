@@ -510,6 +510,8 @@ grey's HP=100, gun=AK47, clip=7/20|Zoombie is dead!
 
 ## 飞机大战
 
+[Project code](https://github.com/Kill-Console/PythonShootGame)
+
 其中的Resource是在虚拟机中安装Android,再安装一个**飞机大战**的app，最后获取root权限，在目录中直接拷贝它的Resource
 
 ```python

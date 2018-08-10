@@ -23,6 +23,7 @@
         - [linux wifi crack](#linux-wifi-crack)
         - [another examples](#another-examples)
     - [print example](#print-example)
+    - [progress bar](#progress-bar)
 
 <!-- /TOC -->
 
@@ -1219,4 +1220,37 @@ while True:
         print("平局")
     else:
         print("failed")
+```
+
+## progress bar
+
+
+```python
+# tqdm module
+from time import sleep
+from tqdm import tqdm
+for i in tqdm(range(10)):
+    sleep(0.1)
+
+# 100%|██████████████████████| 10/10 [00:01<00:00,  9.77it/s]
+```
+
+```python
+import time, sys
+N=10
+for i in range(N):
+    sys.stdout.write(f'\r{(i+1)/N:.2%}')
+    time.sleep(0.1)
+
+# 85.00%
+```
+
+```python
+import time, sys
+N=10
+for i in range(N):
+    sys.stdout.write(f'\r{i+1}/{N}')
+    time.sleep(0.1)
+
+# 7/10
 ```
