@@ -1,15 +1,22 @@
 # Python Environment
 
+<!-- TOC -->
+
 - [Python Environment](#python-environment)
-    - [window环境变量](#window%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F)
+    - [window环境变量](#window环境变量)
+    - [`.py` file format](#py-file-format)
     - [Anaconda](#anaconda)
-    - [Jython](#jython)
-    - [winpython](#winpython)
     - [py2exe](#py2exe)
     - [pywin32](#pywin32)
     - [wmi(Windows Management Instrumentation)](#wmiwindows-management-instrumentation)
     - [CGI](#cgi)
-    - [深度学习](#%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0)
+    - [python like shell](#python-like-shell)
+    - [python project directory structure](#python-project-directory-structure)
+        - [examples](#examples)
+    - [python AI](#python-ai)
+    - [python big data](#python-big-data)
+
+<!-- /TOC -->
 
 ## window环境变量
 
@@ -146,3 +153,21 @@ from atm import main
 
 main.main()
 ```
+
+## python AI
+
+- scikit-learn
+- knn算法, 线性回归, logistic回归
+- 决策树
+- 朴素贝叶斯
+- 验证码识别
+- k-means
+- tensorflow
+- .cnn, .rnn
+- python alphago
+
+## python big data
+
+- python hadoop
+- python spark
+- python storm
