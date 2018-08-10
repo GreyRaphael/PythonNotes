@@ -37,6 +37,8 @@ python的web框架有:
 - django: 大型应用
 - tornado
 
+[the Django book](http://djangobook.py3k.cn/)
+
 ### MVC
 
 MVC框架的核心思想是：**解耦**; 降低各功能模块之间的耦合性，方便变更，更容易重构代码，最大程度上实现代码的重用；根本目的是实现高可扩展性，向后兼容；
