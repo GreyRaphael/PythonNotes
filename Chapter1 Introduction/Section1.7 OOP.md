@@ -1,25 +1,32 @@
 # Python OOP
 
+<!-- TOC -->
+
 - [Python OOP](#python-oop)
-    - [OOP的意义](#oop%E7%9A%84%E6%84%8F%E4%B9%89)
-        - [`==` vs `is`](#vs-is)
-    - [ctor & destructor](#ctor-destructor)
-        - [`__init__` vs `__new__`](#init-vs-new)
+    - [OOP的意义](#oop的意义)
+        - [`==` vs `is`](#-vs-is)
+    - [ctor & destructor](#ctor--destructor)
+        - [class property vs instance property](#class-property-vs-instance-property)
+        - [`super()`](#super)
+        - [multiple inherit](#multiple-inherit)
+        - [`__init__` vs `__new__`](#__init__-vs-__new__)
     - [python GUI](#python-gui)
-    - [动态增加属性、方法](#%E5%8A%A8%E6%80%81%E5%A2%9E%E5%8A%A0%E5%B1%9E%E6%80%A7%E3%80%81%E6%96%B9%E6%B3%95)
+    - [动态增加属性、方法](#动态增加属性方法)
     - [overload](#overload)
-    - [副本机制](#%E5%89%AF%E6%9C%AC%E6%9C%BA%E5%88%B6)
-    - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6)
+    - [副本机制](#副本机制)
+    - [访问控制](#访问控制)
     - [send SMS](#send-sms)
     - [send Email](#send-email)
     - [`import` local .py file](#import-local-py-file)
         - [import method 1](#import-method-1)
         - [import method 2](#import-method-2)
-    - [组合多种功能(send email,send sms)](#%E7%BB%84%E5%90%88%E5%A4%9A%E7%A7%8D%E5%8A%9F%E8%83%BDsend-emailsend-sms)
-    - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6)
+    - [组合多种功能(send email,send sms)](#组合多种功能send-emailsend-sms)
+    - [访问控制](#访问控制-1)
     - [property](#property)
-        - [getter, setter对](#getter-setter%E5%AF%B9)
+        - [getter, setter对](#getter-setter对)
         - [`property`](#property)
+
+<!-- /TOC -->
 
 ## OOP的意义
 
@@ -144,6 +151,285 @@ destructor
 destructor
 destructor
 destructor
+```
+
+### class property vs instance property
+
+```python
+class Person:
+    name='class name'
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+# 同名变量: 实例变量先于类变量
+print(p1.name) # grey
+```
+
+```python
+class Person:
+    name='class name'
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+# del a property
+del p1.age
+# add a property
+p1.weapon='ak47'
+print(p1.name, p1.age, p1.weapon) # has no attribut 'age'
+```
+
+```python
+class Person:
+    Count=0
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+p2=Person('james', 23)
+
+# 这里并没有修改类变量，只是造了一个实例变量与类变量同名而已
+p1.Count=100
+print(p1.Count, p2.Count) # 100, 0
+```
+
+```python
+class Person:
+    Count=0
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+p2=Person('james', 23)
+
+p1.Count=100
+
+Person.Count=999
+print(p1.Count, p2.Count) # 100 999
+```
+
+```python
+class Person:
+    list1=[]
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+p2=Person('james', 23)
+
+p1.list1.append('p1')
+
+Person.list1.append('Person')
+print(p1.list1, p2.list1) # ['p1', 'Person'] ['p1', 'Person']
+```
+
+```python
+class Person:
+    _Count=0
+    def __init__(self, name, age):
+        Person._Count+=1
+        self.name=name
+        self.age=age
+
+p1=Person('grey', 26)
+p2=Person('james', 23)
+
+print(p1._Count, p2._Count)# 2 2
+```
+
+### `super()`
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+    def eat(self):
+        print('I can eat!')
+
+class Man(Person):
+    def eat(self):
+        print('man is eating...')
+
+# 默认继承父类的__init__
+m1=Man('grey', 28)
+m1.eat()# man is eating
+```
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+    def eat(self):
+        print('I can eat!')
+
+class Man(Person):
+    def eat(self):
+        # 先调用父类方法，然后调用子类的方法;
+        # super() is recommended
+        super().eat()
+        # Person.eat(self)
+        print('man is eating...')
+
+# 默认继承父类的__init__
+m1=Man('grey', 28)
+m1.eat()
+# I can eat!
+# man is eating...
+```
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+    def eat(self):
+        print('I can eat!')
+
+class Man(Person):
+    def __init__(self, name, age, weight):
+        super().__init__(name, age)
+        self.weight=weight
+    def eat(self):
+        super().eat()
+        print('man is eating...')
+
+m1=Man('grey', 28, 50)
+```
+
+### multiple inherit
+
+继承自object的是新式类，不继承自object的是经典类;
+- python3中两者没有区别: 都采用广度优先继承
+- python2中才有区别: 新式类采用广度优先继承, 经典类采用深度优先继承
+
+以下图的4个class的`__init__(self, ...)`来分析
+
+![](res/multi_inherit01.png)
+
+深度优先继承 vs 广度优先继承:
+- 广度优先: 比如`class D(B, C)`, 如果D有`__init__`那么使用自己的`__init__`; 如果没有那么寻找`__init__`的顺序是**B→C→A**, 只要找到了`__init__`那么就不再寻找; 而且继承的前后顺序很重要, 如果是`class D(C, B)`, 那么寻找父类同名函数的顺序是**C→B→A**
+- 深度优先: 比如`class D(B, C)`, 那么顺序是**B→A→C**
+
+```python
+# class A: # 经典类
+class A(object): # 新式类
+    def __init__(self):
+        print('initialize class A')
+
+class B(A):
+    def __init__(self):
+        print('initialize class B')
+
+class C(A):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        print('initialize class D')
+
+d1=D() # 根据打印信息自行检验
+```
+
+`super()`继承顺序, 也是按照广度优先来查找
+
+```python
+class B(object):
+    def __init__(self):
+        print('initialize class B')
+
+class C(object):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        super().__init__()
+        print('initialize class D')
+
+d1=D()
+# initialize class B
+# initialize class D
+```
+
+```python
+class B(object):
+    pass
+
+class C(object):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        super().__init__()
+        print('initialize class D')
+
+d1=D()
+# initialize class C
+# initialize class D
+```
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+class Relation(object):
+    # 因为没有单独给name属性，Relation这个类不能单独使用，需要被有name属性的class所继承才不会报错
+    def make_friends(self, other):
+        print(f'{self.name} make friend with {other.name}')
+        
+class Man(Person, Relation):
+    def __init__(self, name, age, weight):
+        super().__init__(name, age)
+        self.weight=weight
+
+class Woman(Person, Relation):
+    def __init__(self, name, age, height):
+        super().__init__(name, age)
+        self.height=height
+
+m1=Man('grey', 26, 50)
+w1=Woman('jane', 25, 160)
+m1.make_friends(w1)# grey make friend with jane
+```
+
+```python
+# 按照之前的思路理解改变Person, Relation的顺序
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+class Relation(object):
+    # 因为没有单独给name属性，Relation这个类不能单独使用，需要被有name属性的class所继承才不会报错
+    def make_friends(self, other):
+        print(f'{self.name} make friend with {other.name}')
+        
+class Man(Relation, Person):
+    def __init__(self, name, age, weight):
+        # 因为Relation里面没有__init__, 所以找到的是Person的__init__
+        super().__init__(name, age)
+        self.weight=weight
+
+class Woman(Relation, Person):
+    def __init__(self, name, age, height):
+        super().__init__(name, age)
+        self.height=height
+
+m1=Man('grey', 26, 50)
+w1=Woman('jane', 25, 160)
+m1.make_friends(w1)# grey make friend with jane
 ```
 
 ### `__init__` vs `__new__`
