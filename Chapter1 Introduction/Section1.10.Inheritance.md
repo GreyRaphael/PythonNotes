@@ -1,19 +1,23 @@
 # Python Inheritance
 
+<!-- TOC -->
+
 - [Python Inheritance](#python-inheritance)
-    - [两种父类初始化](#%E4%B8%A4%E7%A7%8D%E7%88%B6%E7%B1%BB%E5%88%9D%E5%A7%8B%E5%8C%96)
-    - [多继承](#%E5%A4%9A%E7%BB%A7%E6%89%BF)
+    - [两种父类初始化](#两种父类初始化)
+    - [多继承](#多继承)
     - [private variable](#private-variable)
-    - [解决多次初始化](#%E8%A7%A3%E5%86%B3%E5%A4%9A%E6%AC%A1%E5%88%9D%E5%A7%8B%E5%8C%96)
+    - [解决多次初始化](#解决多次初始化)
     - [`isinstance` vs `type`](#isinstance-vs-type)
-    - [多态](#%E5%A4%9A%E6%80%81)
+    - [多态](#多态)
     - [`static` method](#static-method)
-        - [类属性vs实例属性](#%E7%B1%BB%E5%B1%9E%E6%80%A7vs%E5%AE%9E%E4%BE%8B%E5%B1%9E%E6%80%A7)
-        - [类方法vs实例方法vs静态方法](#%E7%B1%BB%E6%96%B9%E6%B3%95vs%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95vs%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95)
+        - [类属性vs实例属性](#类属性vs实例属性)
+        - [类方法vs实例方法vs静态方法](#类方法vs实例方法vs静态方法)
     - [inheritance with GUI](#inheritance-with-gui)
         - [DataSearch](#datasearch)
     - [Some example](#some-example)
         - [car store](#car-store)
+
+<!-- /TOC -->
 
 处理10亿级的数据，可能面试会问的问题：
 
@@ -328,7 +332,34 @@ process banana
 
 ## `static` method 
 
-static method不常用, 对于一个类通用的东西，就弄成static
+static method不常用, 对于一个类通用的东西，就弄成static; 其实和外部函数差不多, 只是放在了内部而已
+
+```python
+class Animal(object):
+    def __init__(self, name):
+        self.name=name
+    def talk(self):
+        pass
+    @staticmethod
+    def animal_talk(animal):
+        animal.talk()
+
+class Dog(Animal):
+    def talk(self):
+        print('wang wang')
+
+class Cat(Animal):
+    def talk(self):
+        print('miao miao')
+
+d1=Dog('grey')
+c1=Cat('Tom')
+
+Animal.animal_talk(d1)
+Animal.animal_talk(c1)
+# wang wang
+# miao miao
+```
 
 ```python
 class People(object):
