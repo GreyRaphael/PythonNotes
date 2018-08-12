@@ -4,7 +4,8 @@
 
 - [Python Inheritance](#python-inheritance)
     - [两种父类初始化](#两种父类初始化)
-    - [多继承](#多继承)
+    - [multi-inheritance](#multi-inheritance)
+        - [multi-inheritance examples](#multi-inheritance-examples)
     - [private variable](#private-variable)
     - [解决多次初始化](#解决多次初始化)
     - [`isinstance` vs `type`](#isinstance-vs-type)
@@ -54,7 +55,165 @@ person1.Eat()
 person1.Sleep()
 ```
 
-## 多继承
+## multi-inheritance
+
+继承自object的是新式类，不继承自object的是经典类;
+- python3中默认都是新式类, 不论是否写`class XXX(object)`中的`(object)`
+- python2中才有区别: 新式类采用广度优先继承, 经典类采用深度优先继承
+
+以下图的4个class的`__init__(self, ...)`来分析
+
+![](res/multi_inherit01.png)
+
+深度优先继承 vs 广度优先继承:
+- 广度优先: 比如`class D(B, C)`, 如果D有`__init__`那么使用自己的`__init__`; 如果没有那么寻找`__init__`的顺序是**B→C→A**, 只要找到了`__init__`那么就不再寻找; 而且继承的前后顺序很重要, 如果是`class D(C, B)`, 那么寻找父类同名函数的顺序是**C→B→A**
+- 深度优先: 比如`class D(B, C)`, 那么顺序是**B→A→C**
+
+可以通过`__mro__`来查看搜索顺序, 同时配合深度优先、广度优先的堆栈、队列数据结构来理解；
+
+```python
+# class A: # 经典类
+class A(object): # 新式类
+    def __init__(self):
+        print('initialize class A')
+
+class B(A):
+    def __init__(self):
+        print('initialize class B')
+
+class C(A):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        print('initialize class D')
+
+d1=D() # 通过注释不同的__init__, 根据打印信息自行检验
+print(D.__mro__)
+# (<class '__main__.D'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>)
+```
+
+`super()`继承顺序, 也是按照广度优先来查找
+
+```python
+class B(object):
+    def __init__(self):
+        print('initialize class B')
+
+class C(object):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        super().__init__()
+        print('initialize class D')
+
+d1=D()
+# initialize class B
+# initialize class D
+```
+
+```python
+class B(object):
+    pass
+
+class C(object):
+    def __init__(self):
+        print('initialize class C')
+
+class D(B, C):
+    def __init__(self):
+        super().__init__()
+        print('initialize class D')
+
+d1=D()
+# initialize class C
+# initialize class D
+```
+
+### multi-inheritance examples
+
+example1:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+class Relation(object):
+    # 因为没有单独给name属性，Relation这个类不能单独使用，需要被有name属性的class所继承才不会报错
+    def make_friends(self, other):
+        print(f'{self.name} make friend with {other.name}')
+        
+class Man(Person, Relation):
+    def __init__(self, name, age, weight):
+        super().__init__(name, age)
+        self.weight=weight
+
+class Woman(Person, Relation):
+    def __init__(self, name, age, height):
+        super().__init__(name, age)
+        self.height=height
+
+m1=Man('grey', 26, 50)
+w1=Woman('jane', 25, 160)
+m1.make_friends(w1)# grey make friend with jane
+```
+
+```python
+# 按照之前的思路理解改变Person, Relation的顺序
+class Person:
+    def __init__(self, name, age):
+        self.name=name
+        self.age=age
+
+class Relation(object):
+    # 因为没有单独给name属性，Relation这个类不能单独使用，需要被有name属性的class所继承才不会报错
+    def make_friends(self, other):
+        print(f'{self.name} make friend with {other.name}')
+        
+class Man(Relation, Person):
+    def __init__(self, name, age, weight):
+        # 因为Relation里面没有__init__, 所以找到的是Person的__init__
+        super().__init__(name, age)
+        self.weight=weight
+
+class Woman(Relation, Person):
+    def __init__(self, name, age, height):
+        super().__init__(name, age)
+        self.height=height
+
+m1=Man('grey', 26, 50)
+w1=Woman('jane', 25, 160)
+m1.make_friends(w1)# grey make friend with jane
+```
+
+example2:
+
+```python
+#尽量不要使用相同的函数名，如果不是多态的话
+class Base(object):
+    def test(self):
+        print("---base")
+
+class A(Base):
+    def test(self):
+        print("---A")
+
+class B(Base):
+    def test(self):
+        print("---B")
+
+class C(A,B):
+    pass
+
+myC=C()
+print(C.__mro__)#(<class '__main__.C'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.Base'>, <class 'object'>);决定了继承方法的顺序,一个挨着一个区搜索test方法，这个使用C3算法做的
+myC.test()#---A
+```
 
 ```python
 class BiologicalFather(object):
@@ -78,32 +237,114 @@ class BeautifulActress(BiologicalFather,GanDie):
         BiologicalFather.__init__(self)
         GanDie.__init__(self)
 
-#
 jingtian=BeautifulActress()
 print(jingtian.money,jingtian.vehicle,jingtian.house)#与两个初始化__init__()的顺序对应，后面的覆盖前面的,200000000.0 Lamborghini big house
-jingtian.buy()#与继承括号的继承顺序对应，前面的覆盖后面的
+jingtian.buy()#仍然按照广度优先寻找方法，先找到就停止寻找
+```
+
+example3: 充分理解[MRO](http://python.jobbole.com/85685/)(Method Resolution Order)
+
+```python
+class First(object):
+    def __init__(self):
+        print('First---1')
+        # 有了这个super()才能继续按照MRO搜索, 进入Second
+        super().__init__()
+        print("First---2")
+
+class Second(object):
+    def __init__(self):
+        print('Second---1')
+        super().__init__()
+        print("Second---2")
+
+class Third(First, Second):
+    def __init__(self):
+        print('Third---1')
+        super().__init__()
+        print("Third---2")
+
+t=Third()
+# Third---1
+# First---1
+# Second---1
+# Second---2
+# First---2
+# Third---2
+# 可以看到super()前后语句的不同效果, 有堆栈效果
+```
+
+example4: 
+
+```python
+# without super()
+class A(object):
+    def __init__(self, name):
+        self.name=name
+
+class B(object):
+    def __init__(self, age):
+        self.age=age
+
+class C(A, B):
+    def __init__(self, name, age):
+        A.__init__(self, name)
+        B.__init__(self, age)
+
+c=C('grey', 23)
+print(c.name, c.age) # grey 23
 ```
 
 ```python
-#尽量不要使用相同的函数名，如果不是多态的话
-class Base(object):
-    def test(self):
-        print("---base")
+# with super(), 实现相同的逻辑
+class A(object):
+    def __init__(self, name, *args):
+        self.name=name
+        # 下面的super()十分关键, 有了这一个才能继续MRO的搜索; 否则停止搜索了
+        # 这里拿掉了第一个参数，剩下一个进入B
+        super().__init__(*args)
 
-class A(Base):
-    def test(self):
-        print("---A")
+class B(object):
+    def __init__(self, age, *args):
+        self.age=age
 
-class B(Base):
-    def test(self):
-        print("---B")
+class C(A, B):
+    def __init__(self, *args):
+        super().__init__(*args)
 
-class C(A,B):
-    pass
+c=C('grey', 23)
+# 
+print(c.name, c.age) # grey 23
+```
 
-myC=C()
-print(C.__mro__)#(<class '__main__.C'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.Base'>, <class 'object'>);决定了继承方法的顺序,一个挨着一个区搜索test方法，这个使用C3算法做的
-myC.test()#---A
+example5: better example， 仔细品味打印顺序，有堆栈结构
+
+```python
+class A(object):
+  def __init__(self, a, *args, **kwargs):
+    print("A", a)
+
+class B(A):
+  def __init__(self, b, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    print("B", b)
+
+class C(A):
+  def __init__(self, c, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    print("C", c)
+
+class D(B, C):
+  def __init__(self, d, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    print("D", d)
+
+
+d1=D(a=1, b=2, c=3, d=4)
+# A 1
+# C 3
+# B 2
+# D 4
 ```
 
 ## private variable
