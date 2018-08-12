@@ -3,15 +3,15 @@
 <!-- TOC -->
 
 - [Python Inheritance](#python-inheritance)
+    - [python inherit](#python-inherit)
     - [init ParentClass with 3 methods](#init-parentclass-with-3-methods)
     - [multi-inheritance](#multi-inheritance)
     - [private variable](#private-variable)
     - [解决多次初始化](#解决多次初始化)
     - [多态](#多态)
     - [instance vs class](#instance-vs-class)
-        - [instance method, `@classmethod`, `@staticmethod`](#instance-method-classmethod-staticmethod)
         - [class variable, instance variable](#class-variable-instance-variable)
-        - [类方法vs实例方法vs静态方法](#类方法vs实例方法vs静态方法)
+        - [instance method, `@classmethod`, `@staticmethod`](#instance-method-classmethod-staticmethod)
     - [inheritance with GUI](#inheritance-with-gui)
         - [DataSearch](#datasearch)
     - [Some example](#some-example)
@@ -26,6 +26,44 @@
 - 多线程，线程冲突
 - 多进程，进程通信
 - 一台机器不够，分布式，分布式的架构
+
+## python inherit
+
+python3默认都是继承自`object`
+
+```python
+class ClassX(object):
+    pass
+
+class ClassY:
+    pass
+
+instance1=ClassX()
+print(dir(instance1))
+instance2=ClassY()
+print(dir(instance2) == dir(instance1)) # True
+
+print(dir(object))
+#比上面少了'__dict__', '__module__', '__weakref__'
+```
+
+```python
+#一些继承自object的函数
+class ClassX(object):
+    '''
+    This is the document of ClassX
+    '''
+    def __init__(self):
+        self.name="ClassX"
+
+print(ClassX.__doc__)#This is the document of ClassX
+print(ClassX.__name__)#ClassX
+print(ClassX.__module__)#__main__，属于__main__模块
+print(__name__)#__main__,当前的东西的名称
+print(ClassX.__base__)#<class 'object'>
+print(ClassX.__bases__)#(<class 'object'>,)
+print(ClassX.__dict__)#所有属性,方法的key-values pair
+```
 
 ## init ParentClass with 3 methods
 
@@ -58,7 +96,7 @@ person1.Sleep()
 ## multi-inheritance
 
 继承自object的是新式类，不继承自object的是经典类;
-- python3中默认都是新式类, 不论是否写`class XXX(object)`中的`(object)`
+- python3中默认都是新式类, 继承自object, 不论是否写`class XXX(object)`中的`(object)`
 - python2中才有区别: 新式类采用广度优先继承, 经典类采用深度优先继承
 
 以下图的4个class的`__init__(self, ...)`来分析
@@ -358,7 +396,7 @@ class Son(Father):
     def Show(self):
         # print(self.__wife)#AttributeError: 'Son' object has no attribute '_Son__wife'#里面都不能访问，外部的更加不可能
         pass
-#father
+
 father1=Father()
 # print(father1.__wife)#不能访问
 print(dir(father1))#可以查看private variable, private method
@@ -368,42 +406,6 @@ son1=Son()
 son1.Show()
 print(dir(son1))
 print(son1._Father__wife)#强制访问,Mother
-```
-
-所有的类都是默认继承于`object`，可以不用写
-
-```python
-class ClassX(object):
-    pass
-
-class ClassY:
-    pass
-
-instance1=ClassX()
-print(dir(instance1))
-instance2=ClassY()
-print(dir(instance2))
-#前两个结果一样
-#比上面少了'__dict__', '__module__', '__weakref__'
-print(dir(object))
-```
-
-```python
-#一些继承自object的函数
-class ClassX(object):
-    '''
-    This is the document of ClassX
-    '''
-    def __init__(self):
-        self.name="ClassX"
-
-print(ClassX.__doc__)#This is the document of ClassX
-print(ClassX.__name__)#ClassX
-print(ClassX.__module__)#__main__，属于__main__模块
-print(__name__)#__main__,当前的东西的名称
-print(ClassX.__base__)#<class 'object'>
-print(ClassX.__bases__)#(<class 'object'>,)
-print(ClassX.__dict__)#所有属性,方法的key-values pair
 ```
 
 ## 解决多次初始化
@@ -541,6 +543,24 @@ process banana
 
 ## instance vs class
 
+### class variable, instance variable
+
+```python
+#类属性实现多个对象数据共享
+class Base(object):
+    #类属性
+    num=0
+    def __init__(self,name):
+        self.name=name #实例属性
+        Base.num+=1
+    
+obj1=Base("grey")
+obj2=Base("moris")
+print(Base.num)#2
+print(obj1.num)#2
+print(obj2.num)#2
+```
+
 ### instance method, `@classmethod`, `@staticmethod`
 
 [实例方法、类方法、静态方法区别](https://blog.csdn.net/lihao21/article/details/79762681)
@@ -562,6 +582,7 @@ class A(object):
         print(f'nothing with class')
 
 a=A()
+
 # 实例方法
 a.instance_method()
 A.instance_method(a)
@@ -590,6 +611,7 @@ nothing with class
 example1:
 
 ```python
+# staticmethod用于多态
 class Animal(object):
     def __init__(self, name):
         self.name=name
@@ -616,46 +638,24 @@ Animal.animal_talk(c1)
 # miao miao
 ```
 
-### class variable, instance variable
-
-```python
-#类属性、类方法实现多个对象数据共享
-class Base(object):
-    #类属性
-    num=0
-    def __init__(self,name):
-        self.name=name #实例属性
-        Base.num+=1
-    
-obj1=Base("grey")
-obj2=Base("moris")
-print(Base.num)#2
-print(obj1.num)#2
-print(obj2.num)#2
-```
-
-### 类方法vs实例方法vs静态方法
-
+一般原则:
 - 要操作类属性，就要用到类方法；
 - 要操作实例属性，就要用到实例方法；
 - 和实例属性、类属性关系不大，就用静态方法；
 
 ```python
 class Base(object):
-    #类属性
     num=0
 
-    #实例方法
     def __init__(self,name):
-        self.name=name#实例属性
+        self.name=name
         Base.num+=1
     
-    #类方法,用于共享
-    @classmethod #装饰器
-    def add_num(cls):#用的是cls
+    @classmethod
+    def add_num(cls):
         cls.num+=1
     
-    @staticmethod #不写self,cls
+    @staticmethod
     def printMenu():
         print("base begin")
     
