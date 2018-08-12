@@ -3,7 +3,7 @@
 <!-- TOC -->
 
 - [Python Inheritance](#python-inheritance)
-    - [两种父类初始化](#两种父类初始化)
+    - [三种父类初始化](#三种父类初始化)
     - [multi-inheritance](#multi-inheritance)
         - [multi-inheritance examples](#multi-inheritance-examples)
     - [private variable](#private-variable)
@@ -28,7 +28,7 @@
 - 多进程，进程通信
 - 一台机器不够，分布式，分布式的架构
 
-## 两种父类初始化
+## 三种父类初始化
 
 ```python
 class Mammal(object):
@@ -43,6 +43,7 @@ class Mammal(object):
 class Person(Mammal):
     def __init__(self):
         # Mammal.__init__(self)#初始化父类，Mammal是一个class，所以需要self
+        # super(Person, self).__init__()
         super().__init__()#一般使用这个,super()是一个instance
         self.name="Human"
     def Eat(self):
