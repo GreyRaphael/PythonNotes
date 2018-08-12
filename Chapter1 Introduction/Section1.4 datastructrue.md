@@ -49,14 +49,17 @@ $$
 \end{array} \right. 
 $$
 
-可以使用`type`, `isinstance`来判断类型
+可以使用`type`, `isinstance`来判断类型, `type`更严格
 
 ```python
 a, b, c, d=10, 100.0, True, 3+4j
 
 print(type(a), type(b), type(c), type(d))
 # <class 'int'> <class 'float'> <class 'bool'> <class 'complex'>
+
 print(isinstance(a, int), isinstance(b, float), isinstance(c, bool), isinstance(d, complex))
+# True, True, True, True
+print(type(a)==int, type(b)==float, type(c)==bool, type(d)==complex)
 # True, True, True, True
 ```
 
@@ -69,9 +72,12 @@ class B(A):
     pass
 
 a, b=A(), B()
+
 print(type(a)==A, type(b)==A, type(b)==B)# True False True
 print(isinstance(a, A), isinstance(b, A), isinstance(b, B)) # True True True
 ```
+
+type convert:
 
 ```python
 # type convert example
