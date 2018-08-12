@@ -9,6 +9,7 @@
         - [class property vs instance property](#class-property-vs-instance-property)
         - [`super()`](#super)
         - [`__init__` vs `__new__`](#__init__-vs-__new__)
+        - [`__del__`](#__del__)
     - [python GUI](#python-gui)
     - [动态增加属性、方法](#动态增加属性方法)
     - [overload](#overload)
@@ -418,6 +419,26 @@ print(dog1.name,dog2.name)
 #output
 2243901186792 2243901186792
 grey grey
+```
+
+### `__del__`
+
+对象被销毁的时候调用
+
+```python
+class A:
+    def __del__(self):
+        print('count=0, this will be collected')
+
+a=A()
+b=a
+del a
+print('='*20)
+del b # 计数为0, 实例调用__del__
+print('='*20)
+# ====================
+# count=0, this will be collected
+# ====================
 ```
 
 ## python GUI
