@@ -32,8 +32,6 @@
 
 函数只是实现了**代码的重用**，而class还实现了**数据的封装**(数据独立性、权限)和**数据的重用**
 
-[实例方法、类方法、静态方法区别](https://blog.csdn.net/lihao21/article/details/79762681)
-
 ```python
 #class type
 class Student:
