@@ -22,9 +22,6 @@
         - [import method 2](#import-method-2)
     - [组合多种功能(send email,send sms)](#组合多种功能send-emailsend-sms)
     - [访问控制](#访问控制-1)
-    - [property](#property)
-        - [getter, setter对](#getter-setter对)
-        - [`property`](#property)
 
 <!-- /TOC -->
 
@@ -1301,71 +1298,4 @@ print(dir(Student))
 #output
 ['_Student__num', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__']
 ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__']
-```
-
-## property
-
-### getter, setter对
-
-```python
-class Student(object):
-    def __init__(self):
-        self.__age=22
-    def getAge(self):
-        return self.__age
-    def setAge(self, value):
-        if isinstance(value,int):
-            self.__age=value
-        else:
-            print('not a integer age')
-
-stu1=Student()
-print(stu1.getAge())#22
-stu1.setAge(20)
-print(stu1.getAge())#20
-```
-
-### `property`
-
-```python
-class Student(object):
-    def __init__(self):
-        self.__age=22
-    def getAge(self):
-        return self.__age
-    def setAge(self, value):
-        if isinstance(value,int):
-            self.__age=value
-        else:
-            print('not a integer age')
-    # 简化调用的时候书写getter,setter
-    Age=property(getAge,setAge)
-
-stu1=Student()
-print(stu1.Age)#22,会调用getAge函数
-stu1.Age=20
-print(stu1.Age)#20
-```
-
-使用装饰器的方法，达到同样的效果
-
-```python
-class Student(object):
-    def __init__(self):
-        self.__age=22
-    
-    @property
-    def Age(self):
-        return self.__age
-    @Age.setter
-    def Age(self, value):
-        if isinstance(value,int):
-            self.__age=value
-        else:
-            print('not a integer age')
-
-stu1=Student()
-print(stu1.Age)#22
-stu1.Age=20
-print(stu1.Age)#20
 ```
