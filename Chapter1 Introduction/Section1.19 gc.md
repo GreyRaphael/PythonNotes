@@ -31,6 +31,20 @@ Python 对小整数的定义是 `[-5, 257)` 这些整数对象是提前建立好
 但是当定义2个相同的字符串时，引用计数为0，触发垃圾回收
 
 ```python
+class A:
+    def __del__(self):
+        print('count=0, this will be collected')
+
+a=A()
+b=a
+del a
+print('='*20)
+del b # 计数为0, 实例调用__del__
+# ====================
+# count=0, this will be collected
+```
+
+```python
 #[-5,257)
 In [1]: a1,a2=-6,-6
 
