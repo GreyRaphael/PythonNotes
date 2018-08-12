@@ -3,15 +3,14 @@
 <!-- TOC -->
 
 - [Python Inheritance](#python-inheritance)
-    - [三种父类初始化](#三种父类初始化)
+    - [init ParentClass with 3 methods](#init-parentclass-with-3-methods)
     - [multi-inheritance](#multi-inheritance)
-        - [multi-inheritance examples](#multi-inheritance-examples)
     - [private variable](#private-variable)
     - [解决多次初始化](#解决多次初始化)
-    - [`isinstance` vs `type`](#isinstance-vs-type)
     - [多态](#多态)
-    - [`static` method](#static-method)
-        - [类属性vs实例属性](#类属性vs实例属性)
+    - [instance vs class](#instance-vs-class)
+        - [instance method, `@classmethod`, `@staticmethod`](#instance-method-classmethod-staticmethod)
+        - [class variable, instance variable](#class-variable-instance-variable)
         - [类方法vs实例方法vs静态方法](#类方法vs实例方法vs静态方法)
     - [inheritance with GUI](#inheritance-with-gui)
         - [DataSearch](#datasearch)
@@ -28,7 +27,7 @@
 - 多进程，进程通信
 - 一台机器不够，分布式，分布式的架构
 
-## 三种父类初始化
+## init ParentClass with 3 methods
 
 ```python
 class Mammal(object):
@@ -133,8 +132,6 @@ d1=D()
 # initialize class C
 # initialize class D
 ```
-
-### multi-inheritance examples
 
 example1:
 
@@ -490,36 +487,6 @@ xf=媳妇()
 大儿子构造了1次
 ```
 
-## `isinstance` vs `type`
-
-```python
-class ClassX(object):
-    pass
-
-class ClassXX(ClassX):
-    pass
-
-a=10
-b="10"
-c=ClassX()
-d=ClassXX()
-#
-print(isinstance(a,int))#True
-print(isinstance(a,(str,int)))#True
-print(isinstance(b,str))#True
-#检测一般
-print(isinstance(c,ClassX))#True
-print(isinstance(c,ClassXX))#False
-print(isinstance(d,ClassX))#True,子类属于父类
-print(isinstance(d,ClassXX))#True
-#检测严格
-#type()只能处理对象
-print(type(c)==ClassX)#True
-print(type(c)==ClassXX)#False
-print(type(d)==ClassX)#False
-print(type(d)==ClassXX)#True
-```
-
 ## 多态
 
 解决软件可拓展性, 弄一个父类，然后后面拓展的功能继承这个父类，那么就可以用一个父类的对象进行功能拓展了(比如工厂拓展业务线)
@@ -572,9 +539,55 @@ process apple
 process banana
 ```
 
-## `static` method 
+## instance vs class
 
-static method不常用, 对于一个类通用的东西，就弄成static; 其实和外部函数差不多, 只是放在了内部而已
+### instance method, `@classmethod`, `@staticmethod`
+
+[实例方法、类方法、静态方法区别](https://blog.csdn.net/lihao21/article/details/79762681)
+
+staicmethod其实和外部函数差不多, 只不过通过实例、类来调用而已; 
+> 比如某些module中的staicmethod, 只是通过模块名来组织成一个工具包而已;
+
+```python
+class A(object):
+    def instance_method(self):
+        print(f'para={self}')
+    
+    @classmethod
+    def cls_method(cls):
+        print(f'para={cls}')
+    
+    @staticmethod
+    def static_method():
+        print(f'nothing with class')
+
+a=A()
+# 实例方法
+a.instance_method()
+A.instance_method(a)
+
+# 类方法
+a.cls_method()
+A.cls_method()
+
+# 静态方法
+a.static_method()
+A.static_method()
+```
+
+```bash
+# output
+para=<__main__.A object at 0x00000214032DD438>
+para=<__main__.A object at 0x00000214032DD438>
+
+para=<class '__main__.A'>
+para=<class '__main__.A'>
+
+nothing with class
+nothing with class
+```
+
+example1:
 
 ```python
 class Animal(object):
@@ -603,33 +616,15 @@ Animal.animal_talk(c1)
 # miao miao
 ```
 
-```python
-class People(object):
-    def __init__(self,height,weight):
-        self.height=height
-        self.weight=weight
-    @staticmethod
-    def getEyes():#没有self
-        return 2
-    @classmethod#一般都省略了
-    def Eat(self):
-        print("I can eat")
-
-print(People.getEyes())#2
-p1=People(170,50)
-print(p1.height,p1.weight)#170 50
-```
-
-### 类属性vs实例属性
+### class variable, instance variable
 
 ```python
-#实例属性、实例方法实现多个对象数据共享
+#类属性、类方法实现多个对象数据共享
 class Base(object):
     #类属性
     num=0
-    #实例方法，因为有self
     def __init__(self,name):
-        self.name=name#实例属性
+        self.name=name #实例属性
         Base.num+=1
     
 obj1=Base("grey")
