@@ -1,18 +1,21 @@
 # Python OOP example
 
+<!-- TOC -->
+
 - [Python OOP example](#python-oop-example)
     - [fps game](#fps-game)
         - [Final code](#final-code)
-    - [飞机大战](#%E9%A3%9E%E6%9C%BA%E5%A4%A7%E6%88%98)
-        - [new window & load pic](#new-window-load-pic)
+    - [飞机大战](#飞机大战)
+        - [new window & load pic](#new-window--load-pic)
         - [key listen](#key-listen)
         - [change to OOP](#change-to-oop)
         - [plane fire](#plane-fire)
-        - [enermy move & 子弹边界消失](#enermy-move-%E5%AD%90%E5%BC%B9%E8%BE%B9%E7%95%8C%E6%B6%88%E5%A4%B1)
+        - [enermy move & 子弹边界消失](#enermy-move--子弹边界消失)
         - [enemyPlane fire](#enemyplane-fire)
-        - [抽取基类](#%E6%8A%BD%E5%8F%96%E5%9F%BA%E7%B1%BB)
-        - [爆炸效果](#%E7%88%86%E7%82%B8%E6%95%88%E6%9E%9C)
-    - [python Review](#python-review)
+        - [抽取基类](#抽取基类)
+        - [爆炸效果](#爆炸效果)
+
+<!-- /TOC -->
 
 ## fps game
 
