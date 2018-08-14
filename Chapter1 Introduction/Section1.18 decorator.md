@@ -10,9 +10,9 @@
         - [decorator with `help`](#decorator-with-help)
     - [静态语言vs动态语言](#静态语言vs动态语言)
     - [`__slots__`](#__slots__)
-    - [元类(metaclass)](#元类metaclass)
-        - [`__metaclass__`属性](#__metaclass__属性)
-        - [customize metaclass](#customize-metaclass)
+    - [metaclass(元类)](#metaclass元类)
+        - [`__metaclass__`](#__metaclass__)
+        - [metaclass application](#metaclass-application)
 
 <!-- /TOC -->
 
@@ -716,13 +716,47 @@ func name is func1
 ---do func1---
 ```
 
-类装饰器的作用：用来简化getter,setter
-
-`property`就是一个重写了`__call__`方法的class
-
 ### `property`
 
+`property`本质是一个重写了`__call__`方法的class
+
 ```python
+class Person:
+    @property
+    def eat(self):
+        print('eating....')
+    
+    def talk(self):
+        print('talking...')
+
+p1=Person()
+p1.eat # eating...
+p1.talk() #talking...
+```
+
+property for getter-setter:
+
+```python
+# with getter-setter pair
+class Student(object):
+    def __init__(self):
+        self.__age=22
+    def getAge(self):
+        return self.__age
+    def setAge(self, value):
+        if isinstance(value,int):
+            self.__age=value
+        else:
+            print('not a integer age')
+
+stu1=Student()
+print(stu1.getAge())#22
+stu1.setAge(20)
+print(stu1.getAge())#20
+```
+
+```python
+# with property instance
 class Student(object):
     def __init__(self):
         self.__age=22
@@ -742,9 +776,8 @@ stu1.Age=20
 print(stu1.Age)#20
 ```
 
-使用装饰器的方法，达到同样的效果
-
 ```python
+# with propety decorator
 class Student(object):
     def __init__(self):
         self.__age=22
@@ -765,9 +798,10 @@ stu1.Age=20
 print(stu1.Age)#20
 ```
 
-具体的演化方式
+具体的演化方式:
 
 ```python
+# step1
 class Student(object):
     def __init__(self):
         self.__age=22
@@ -779,7 +813,7 @@ class Student(object):
         else:
             print('not a integer age')
     #创建一个property()对象p1
-    #p1两个函数Age.getter(),p1.setter()分别包装了getAge,和setAge;返回值一个property对象，返回的对象当stu1有赋值重载和.的时候，发生调用；
+    #p1两个函数p1.getter(),p1.setter()分别包装了getAge,和setAge;分别返回property对象
     p1=property()
     getAge=p1.getter(getAge)
     setAge=p1.setter(setAge)
@@ -808,7 +842,7 @@ class Student(object):
 ```
 
 ```python
-#进一步进化
+# step2
 class Student(object):
     def __init__(self):
         self.__age=22
@@ -852,7 +886,7 @@ print(stu1.Age)#20
 ```
 
 ```python
-#引入__init__的考虑
+# step3, 使用了property的__init__
 class Student(object):
     def __init__(self):
         self.__age=22
@@ -887,6 +921,61 @@ stu1=Student()
 print(stu1.Age)#22
 stu1.Age=20
 print(stu1.Age)#20
+```
+
+```python
+# property deleter
+class Student(object):
+    def __init__(self):
+        self.__age=22
+    @property
+    def Age(self):
+        return self.__age
+    @Age.setter
+    def Age(self, value):
+        if isinstance(value,int):
+            self.__age=value
+        else:
+            print('not a integer age')
+    @Age.deleter
+    def Age(self):
+        del self.__age
+        print('delete __age attribute')
+stu1=Student()
+stu1.Age=20
+print(stu1.Age)# 20
+# 如果没有@Age.deleter, 下面报错
+del stu1.Age # delete __age attribute
+```
+
+example1: read-only property
+
+```python
+class Flight(object):
+    def __init__(self,name):
+        self.flight_name = name
+
+    def checking_status(self):
+        print(f"checking flight {self.flight_nama} status")
+        return  1
+
+    @property
+    def flight_status(self):
+        status = self.checking_status()
+        if status == 0 :
+            print("flight got canceled...")
+        elif status == 1 :
+            print("flight is arrived...")
+        elif status == 2:
+            print("flight has departured already...")
+        else:
+            print("cannot confirm the flight status...,please check later")
+
+
+f = Flight("CA980")
+# property主要是对后台进行封装，暴露合适的接口给用户
+# property在后台进行各种处理
+f.flight_status
 ```
 
 ### decorator with `help`
@@ -1028,217 +1117,179 @@ except Exception as e:
 'Student' object has no attribute 'score'
 ```
 
-## 元类(metaclass)
+## metaclass(元类)
 
-python认为，类同样也是一种对象;python中一切皆对象
+metaclass主要是为了实现**动态创建类型**; Java/CPP没有metaclass;
 
-ORM映射会用到metaclass
+- 类实例化得到对象
+- metaclass实例化得到类, `type`就是最基本的metaclass; 想要动态创建类型需要继承`type`
 
-```python
-#即便没有创建实例，也会运行
-class Person(object):
-    num=0
-    print("hello,world")
-    def __init__(self):
-        pass
-print(type(Person), Person)
-p1=Person()
-print(p1)
-```
+[`object` vs `type`](https://www.zhihu.com/question/38791962)
+- `type`继承自`object`
+- `object`是`type`的实例
 
-```bash
-#outputhello,world
-<class 'type'> <class '__main__.Person'>
-<__main__.Person object at 0x0000017020398208>
-hello,world
-```
+![](res/object_type01.png)
+- `object`代表的是继承关系的最顶层, 图中实线;
+- `type`代表的类型与实例的关系的最顶层, 图中虚线;
 
-动态创建class, method1: 一般不要这么干，因为class是一等公民
+> 通过`__bases__`获取类型的继承关系  
+> 通过`__class__`获取类型与实例的关系, 或者通过`type()`
 
 ```python
-def choose_class(name):
-    if name == 'foo':
-        class Foo(object):
-            pass
-        return Foo     # 返回的是类，不是类的实例
-    else:
-        class Bar(object):
-            pass
-        return Bar
+# object, type的实现
 
-fooClass=choose_class("foo")
-fooInstance=fooClass()
-print(fooClass,fooInstance)
-barClass=choose_class("other")
-barInstance=barClass()
-print(barClass,barInstance)
-```
-
-```bash
-#output
-<class '__main__.choose_class.<locals>.Foo'> <__main__.choose_class.<locals>.Foo object at 0x000001CCF6C6E0F0>
-<class '__main__.choose_class.<locals>.Bar'> <__main__.choose_class.<locals>.Bar object at 0x000001CCF6C6E1D0>
-```
-
-python中类型(int, str, float)本质是一个class，用来创建instance; 而class又是由type创建的，而一般把type称为**metaclass**(元类)；
-
-动态创建class, method2:`type`法(type既可以检查类型，也可以创建class，为了兼容旧版本，一般不这么做)
-
-`type(类名, 由父类名称组成的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）)`
-
-```python
-Student = type("Student", (object,), {"name":None,"age":55})
-
-stu1 = Student()
-print(stu1)
-stu1.name="grey"
-print(stu1.name, stu1.age)
-```
-
-```bash
-#output
-<__main__.Student object at 0x000001DAFCB6D080>
-grey 55
+# object's class is type
+object.__class__ = type
+# type inherit from object;
+# type's class is type
+type.__bases__ = (object,)
+type.__class__ = type(object)
 ```
 
 ```python
-#动态绑定方法
-def printInfo(self):
-    print(f"name={self.name}, age={self.age}")
-
-Student = type("Student", (object,), {"name":None, "age":55, "printStu":printInfo})
-
-stu1 = Student()
-stu1.printStu()
-```
-
-```bash
-#output
-name=None, age=55
-```
-
-```python
-class Student(object):
+# simple example
+class Person:
     pass
 
-stu1=Student()
-print(stu1.__class__)
-print(Student.__class__)
-print(type.__class__)#神奇
+p1=Person()
+
+print(p1, p1.__class__) # ...
+
+print(Person, Person.__class__, Person.__bases__)
+# <class '__main__.Person'> <class 'type'> (<class 'object'>,)
+
+print(object, object.__class__, object.__bases__)
+# <class 'object'> <class 'type'> ()
+
+print(type, type.__class__, type.__bases__)
+# <class 'type'> <class 'type'> (<class 'object'>,)
+```
+
+```python
+# 创建类的两种方式
+# method1:
+class Foo:
+    def __init__(self, name):
+        self.name=name
+    def func1(self):
+        pass
+# instantialization
+foo=Foo('grey')
+foo.func1()
+
+# method2: 利用type动态创建类型
+def __init__(self, name):
+    self.name=name
+
+def func2(self):
+    pass
+
+# 默认是新式类，可以不写object
+Bar=type('Bar', (object, ), {'__init__':__init__, 'func2':func2})
+bar=Bar('james')
+bar.func2()
+```
+
+stackoverflow最高票[metaclass example](https://stackoverflow.com/questions/100003/what-are-metaclasses-in-python)
+
+### `__metaclass__`
+
+Python会沿着**MRO**寻找`__metaclass__`属性(该属性是`type`的subclass)，如果找到了，Python就会用它来创建类Foo，如果没有找到，就会用`type`来创建这个类;
+
+> python3中的`__metaclass__`取消了，放在了继承括号里面
+
+```python
+# 如果只是为了显示metaclass, 使用__init__
+class my_meta(type):
+    def __init__(cls, name, bases, attrs):
+        print(f"defining class: {cls}")
+        print(f"class name: {name}")
+        print(f"bases: {bases}")
+        print("attributs:")
+        for key in attrs:
+            print(f"    {key}:{attrs[key]}")
+
+# python3
+class A(object, metaclass=my_meta):
+    foo='bar'
+
+# python2
+class B(object):
+    __metaclass__=my_meta
+    foo='bar'
 ```
 
 ```bash
-#output
-<class '__main__.Student'>
-<class 'type'>
-<class 'type'>
+# output
+defining class: <class '__main__.A'>
+class name: A
+bases: (<class 'object'>,)
+attributs:
+    __module__:__main__
+    __qualname__:A
+    foo:bar
 ```
 
-### `__metaclass__`属性
+```python
+# 如果想修改新class的一些属性, 用__new__
+class my_meta(type):
+    def __new__(cls, name, bases, attrs):
+        new_attrs={}
+        for key in attrs:
+            if not key.startswith('__'):
+                new_attrs[key.upper()]=attrs[key]+1
+        # return type(name, bases, new_attrs)
+        # return type.__new__(cls, name, bases, new_attrs)
+        return super().__new__(cls, name, bases, new_attrs)
 
-Python会在类的定义中寻找`__metaclass__`属性，如果找到了，Python就会用它来创建类Foo，如果没有找到，就会用内建的type来创建这个类
+class Foo(object, metaclass=my_meta):
+    bar=200
 
-- Foo中有`__metaclass__`这个属性吗？如果是，Python会通过`__metaclass__`创建一个名字为Foo的类(对象)
-- 如果Python没有找到`__metaclass__`，它会继续在Bar（父类）中寻找`__metaclass__`属性，并尝试做和前面同样的操作。
-- 如果Python在任何父类中都找不到`__metaclass__`，它就会在模块层次中去寻找`__metaclass__`，并尝试做同样的操作。
-- 如果还是找不到`__metaclass__`,Python就会用内置的type来创建这个类对象
+print(hasattr(Foo, 'bar')) # False
+print(hasattr(Foo, 'BAR')) # True
+print(Foo.BAR) # 201
+```
 
-### customize metaclass
+### metaclass application
 
-元类的主要目的就是为了当创建类时能够自动地改变类。通常，你会为API做这样的事情，你希望可以创建符合当前上下文的类
+meataclass实现简易[ORM](https://www.liaoxuefeng.com)
 
+metaclass实现[singleton](https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python)
+
+[understanding metaclass](https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/)
+
+> ![](res/create-instance.png)  
+> ![](res/create-class.png)
 
 ```python
-#主要考虑python3中的metaclass
-def upper_attr(future_class_name, future_class_parents, future_class_attr):
-    #遍历属性字典，把不是__开头的属性名字变为大写
-    newAttr = {}
-    for name,value in future_class_attr.items():
-        if not name.startswith("__"):
-            newAttr[name.upper()] = value
+class my_meta(type):
+    def __call__(cls, *args, **kwargs):
+        print('my_meta.__call__ is called')
+        return super().__call__(*args, **kwargs)    
+ 
+    def __new__(cls, name, bases, attrs):
+        print('my_meta.__new__ is called')
+        return super().__new__(cls, name, bases, attrs)
 
-    #调用type来创建一个类, 里面的属性都大写
-    return type(future_class_name, future_class_parents, newAttr)
+class A(metaclass=my_meta):
+    def __new__(cls, *args, **kwargs):
+        print('A.__new__ is called')
+        return super().__new__(cls)
+    def __init__(self, name, age):
+        print('A.__init__ is called')
+        self.name=name
+        self.age=age
 
-class Foo(object, metaclass=upper_attr):#关键就在这里
-    bar = 'bip'
-
-print(hasattr(Foo, 'bar'))#false
-print(hasattr(Foo, 'BAR'))#True
-
-f1 = Foo()
-print(f1.BAR)#bip
+a=A('grey', 20) # my_meta的__call__就发生在这个括号的位置
 ```
 
 ```bash
-#output
-False
-True
-bip
+# output
+# 在a之前发生
+my_meta.__new__ is called
+
+# a的时候发生
+my_meta.__call__ is called
+A.__new__ is called
+A.__init__ is called
 ```
-
-```python
-#in python2
-def upper_attr(future_class_name, future_class_parents, future_class_attr):
-    #遍历属性字典，把不是__开头的属性名字变为大写
-    newAttr = {}
-    for name,value in future_class_attr.items():
-        if not name.startswith("__"):
-            newAttr[name.upper()] = value
-    #调用type来创建一个类
-    return type(future_class_name, future_class_parents, newAttr)
-
-class Foo(object, metaclass=upper_attr):
-    bar = 'bip'
-
-print(hasattr(Foo, 'bar'))
-print(hasattr(Foo, 'BAR'))
-
-f = Foo()
-print(f.BAR)
-```
-
-```python
-#final example
-class UpperAttrMetaClass(type):
-    # __new__ 是在__init__之前被调用的特殊方法
-    # __new__是用来创建对象并返回之的方法
-    # 而__init__只是用来将传入的参数初始化给对象
-    # 你很少用到__new__，除非你希望能够控制对象的创建
-    # 这里，创建的对象是类，我们希望能够自定义它，所以我们这里改写__new__
-    # 如果你希望的话，你也可以在__init__中做些事情
-    # 还有一些高级的用法会涉及到改写__call__特殊方法，但是我们这里不用
-    def __new__(cls, future_class_name, future_class_parents, future_class_attr):
-        #遍历属性字典，把不是__开头的属性名字变为大写
-        newAttr = {}
-        for name,value in future_class_attr.items():
-            if not name.startswith("__"):
-                newAttr[name.upper()] = value
-        # 方法1：通过'type'来做类对象的创建
-        # return type(future_class_name, future_class_parents, newAttr)
-
-        # 方法2：复用type.__new__方法
-        # 这就是基本的OOP编程，没什么魔法
-        # return type.__new__(cls, future_class_name, future_class_parents, newAttr)
-
-        # 方法3：使用super方法
-        # return super(UpperAttrMetaClass, cls).__new__(cls, future_class_name, future_class_parents, newAttr)
-        return super().__new__(cls, future_class_name, future_class_parents, newAttr)
-
-# #python2的用法
-# class Foo(object):
-#     __metaclass__ = UpperAttrMetaClass
-#     bar = 'bip'
-
-# python3的用法
-class Foo(object, metaclass = UpperAttrMetaClass):
-    bar = 'bip'
-
-print(hasattr(Foo, 'bar'))#False
-print(hasattr(Foo, 'BAR'))#True
-
-f = Foo()
-print(f.BAR)#bip
-```
-
-python性能低的原因在于GIL, 可以用C语言突破这种限制；
