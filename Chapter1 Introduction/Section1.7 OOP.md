@@ -301,39 +301,29 @@ m1=Man('grey', 28, 50)
 
 ### `__init__` vs `__new__`
 
-流程：
+两个方法合起来相当于**ctor**:
+1. 实例化的时候调用`__new__`构造一个对象, 将该对象作为返回值交给`__init__`的`self`, 将`__new__`的其他参数交给`__init__`的其他参数
+2. `__init__` 初始化该对象，无返回值
 
-1. 创建一个对象(`__new__`)，将返回值给self，将其他参数也给`__init__`的其他参数
-2. 对应`__new__`的参数，初始化(`__init__`)
-3. 返回对象的引用
-
-- `__new__`:创建对象时调用，会返回当前对象的一个实例
-- `__init__`:创建完对象后调用，对当前对象的一些实例初始化，无返回值
-
-两个方法合起来相当于**ctor**
-
-python不会主动的调用父类的ctor(对应于`__init__()`), 所以主动调用父类的ctor对应的需要`super()`; c++会主动调用父类的ctor;
+> python不会主动的调用父类的ctor, 所以主动调用父类的ctor对应的需要`super()`; c++会主动调用父类的ctor;
 
 ```python
-class Dog(object):
-    def __init__(self):
-        print("__init__() called")
-    def __new__(cls):
-        print(id(cls))#cls是类对象
+# simple example:
+class A:
+    def __new__(cls, *args, **kwargs):
+        print(f'new called, id={id(cls)}')
+        return super().__new__(cls)
+    def __init__(self, name, age):
+        print(f'init called, id={id(self)}')
+        self.name=name
+        self.age=age
 
-        print("__new__() called")
-        return super().__new__(cls)#其实返回值，就是传递给了self,让self指向__new__()创建的对象
-
-print(id(Dog))
-dog1=Dog()
-```
-
-```bash
-#output
-1574827469672
-1574827469672
-__new__() called
-__init__() called
+a=A('grey', 20)
+print(f"{a.name}'s age is {a.age}")
+# new called, id=2718754700264
+# init called, id=2718763318464
+# grey's age is 20 
+print(id(A)) # 2718754700264
 ```
 
 ```python
