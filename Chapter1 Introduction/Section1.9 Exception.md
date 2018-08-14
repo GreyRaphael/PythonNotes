@@ -1,20 +1,29 @@
 # Python Exception
 
+<!-- TOC -->
+
 - [Python Exception](#python-exception)
     - [Error vs Exception](#error-vs-exception)
-    - [爆破MySQL](#%E7%88%86%E7%A0%B4mysql)
+    - [爆破MySQL](#爆破mysql)
     - [Raise Exception(diy exception)](#raise-exceptiondiy-exception)
-    - [`with ... as`](#with-as)
-    - [DIY Exception](#diy-exception)
+    - [`with ... as`](#with--as)
+    - [custom Exception](#custom-exception)
     - [Assert](#assert)
-    - [爆库](#%E7%88%86%E5%BA%93)
-    - [Exception dealing(预案处理)](#exception-dealing%E9%A2%84%E6%A1%88%E5%A4%84%E7%90%86)
-        - [异常处理的过程中raise异常](#%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E7%9A%84%E8%BF%87%E7%A8%8B%E4%B8%ADraise%E5%BC%82%E5%B8%B8)
+    - [爆库](#爆库)
+    - [Exception dealing(预案处理)](#exception-dealing预案处理)
+        - [异常处理的过程中raise异常](#异常处理的过程中raise异常)
+
+<!-- /TOC -->
+
 
 ## Error vs Exception
 
 - Error: 一定会发生
 - Exception: 有时候发生，有时候不发生
+
+> `try...except...`不引入新的作用域  
+> `except`抓不住`IndentationError`, `SyntaxError`, 书写错误  
+> custom Exception避免与系统自带的`Exception`同名;
 
 ```python
 #Snytax
@@ -39,9 +48,9 @@ num2=0
 try:
     print(num1/num2)
 except ValueError as error1:
-    print("Exception:"+str(error1))
+    print(f"Exception:{error1}")
 except ZeroDivisionError as error2:
-    print("Exception:"+str(error2))
+    print(f"Exception:{error2}")
 except:
     print("other Exception not handled")
 else:
@@ -206,7 +215,7 @@ with  open("simpleCSDN.txt","rb") as file:
         print(line, end="")
 ```
 
-## DIY Exception
+## custom Exception
 
 ```python
 #simple example
@@ -235,22 +244,6 @@ except:
 #     print("z error")
 finally:
     print("finish")
-```
-
-```python
-#simple inherit
-class Anime(object):
-    def __init__(self, name):
-        self.name=name
-        self.eyes=2
-
-class Peron(Anime):
-    def __init__(self):
-        super().__init__("mammal")
-        self.name="Human"
-
-person1=Peron()
-print(person1.name,person1.eyes)#Human 2
 ```
 
 ```python
