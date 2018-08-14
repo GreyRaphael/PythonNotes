@@ -148,8 +148,12 @@ F12/Network/XHR, 点击切换页码，发现了两个request(一个post, 一个g
 ```python
 # 斗鱼多页
 import re
+import os
 import sys
 import requests
+
+if 'imgs' not in os.listdir():
+    os.mkdir('imgs')
 
 html=requests.get('https://www.douyu.com/g_yz').text
 # 通过html的<script>xxx</script>获取页码
