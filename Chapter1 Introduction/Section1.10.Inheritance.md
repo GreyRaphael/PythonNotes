@@ -47,22 +47,65 @@ print(dir(object))
 #比上面少了'__dict__', '__module__', '__weakref__'
 ```
 
+```bash
+./
+    lib.py
+    test.py
+```
+
+```python
+# lib.py
+class C(object):
+    '''this is doc'''
+
+    def __init__(self, name):
+        self.name = name
+        self.age = 20
+
+    def func1(self):
+        print('this is function')
+```
+
 ```python
 #一些继承自object的函数
-class ClassX(object):
-    '''
-    This is the document of ClassX
-    '''
-    def __init__(self):
-        self.name="ClassX"
+# test.py
+from lib import C
 
-print(ClassX.__doc__)#This is the document of ClassX
-print(ClassX.__name__)#ClassX
-print(ClassX.__module__)#__main__，属于__main__模块
-print(__name__)#__main__,当前的东西的名称
-print(ClassX.__base__)#<class 'object'>
-print(ClassX.__bases__)#(<class 'object'>,)
-print(ClassX.__dict__)#所有属性,方法的key-values pair
+c=C('grey')
+print(__name__) # 当前的module, __main__
+print(c.__doc__) # this is doc
+print(c.__module__) # lib
+print(c.__class__) # <class 'lib.C'>
+print(c.__dict__) # 实例属性: {'name': 'grey', 'age': 20}
+
+print(C.__doc__) # this is doc
+print(C.__name__) # C
+print(C.__base__) # <class 'object'>
+print(C.__bases__)# (<class 'object'>,)
+print(C.__dict__) # 所有属性+方法除去实例属性
+```
+
+```python
+class Foo(object):
+    def __init__(self):
+        self.data={}
+    def __getitem__(self, key):
+        return self.data.get(key)
+ 
+    def __setitem__(self, key, value):
+        self.data[key]=value
+ 
+    def __delitem__(self, key):
+        del self.data[key]
+        print(f'delete {key}')
+ 
+ 
+obj = Foo()
+
+# 以为是一个字典其实是一个封装成字典的instance
+obj['k1']='value1'
+print(obj['k1'])
+del obj['k1']
 ```
 
 ## init ParentClass with 3 methods
