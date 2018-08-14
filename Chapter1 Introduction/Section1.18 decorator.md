@@ -13,6 +13,7 @@
     - [metaclass(元类)](#metaclass元类)
         - [`__metaclass__`](#__metaclass__)
         - [metaclass application](#metaclass-application)
+    - [Reflection](#reflection)
 
 <!-- /TOC -->
 
@@ -1330,4 +1331,52 @@ my_meta.__new__ is called
 my_meta.__call__ is called
 A.__new__ is called
 A.__init__ is called
+```
+
+## Reflection
+
+通过字符串映射或修改程序运行时的状态、属性、方法:
+- `getattr`
+- `hasattr`
+- `setattr`
+- `delattr`
+
+```python
+# simple example
+class A:
+    def __init__(self, name):
+        self.name=name
+    
+    def eat(self, what):
+        print(f"{self.name } is eating {what}")
+
+
+# example1
+a0=A('chris')
+# hasattr
+print(hasattr(a0, 'name')) # True
+# getattr
+print(getattr(a0, 'name')) # chris
+# setattr
+setattr(a0, 'age', 20)
+print(a0.age) # 20
+# delattr
+delattr(a0, 'name')
+
+
+# example2
+def drink(self, what):
+    print(f"{self.name} is drinking {what}")
+
+a1=A('grey')
+choice=input('Enter action:\n>>')
+
+if hasattr(a1, choice):
+    attr=getattr(d, choice) # method object
+    attr('chicken')
+elif choice=='drink':
+    setattr(a1, choice, drink) # 得到的函数名是choice, 不是drink
+    getattr(a1, choice)(a1, 'cola')
+else:
+    print('do nothing')
 ```
