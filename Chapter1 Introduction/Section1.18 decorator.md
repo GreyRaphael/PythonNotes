@@ -1262,10 +1262,12 @@ metaclass实现[singleton](https://stackoverflow.com/questions/6760685/creating-
 > ![](res/create-class.png)
 
 ```python
+# 为了证明instance-creation图
 class my_meta(type):
     def __call__(cls, *args, **kwargs):
         print('my_meta.__call__ is called')
-        return super().__call__(*args, **kwargs)    
+        obj=cls.__new__(cls, *args, **kwargs)
+        cls.__init__(obj, *args, **kwargs)
  
     def __new__(cls, name, bases, attrs):
         print('my_meta.__new__ is called')
@@ -1281,6 +1283,42 @@ class A(metaclass=my_meta):
         self.age=age
 
 a=A('grey', 20) # my_meta的__call__就发生在这个括号的位置
+```
+
+```bash
+# output
+# 在a之前发生
+my_meta.__new__ is called
+
+# a的时候发生
+my_meta.__call__ is called
+A.__new__ is called
+A.__init__ is called
+```
+
+
+```python
+# 一般做法
+class my_meta(type):
+    def __call__(cls, *args, **kwargs):
+        print('my_meta.__call__ is called')
+        # 如果注释下面, A.__new__, A.__init__不会被调用
+        return super().__call__(*args, **kwargs)    
+ 
+    def __new__(cls, name, bases, attrs):
+        print('my_meta.__new__ is called')
+        return super().__new__(cls, name, bases, attrs)
+
+class A(metaclass=my_meta):
+    def __new__(cls, *args, **kwargs):
+        print('A.__new__ is called')
+        return super().__new__(cls)
+    def __init__(self, name, age):
+        print('A.__init__ is called')
+        self.name=name
+        self.age=age
+
+a=A('grey', 20) 
 ```
 
 ```bash
