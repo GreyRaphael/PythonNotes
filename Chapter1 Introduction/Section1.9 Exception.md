@@ -41,6 +41,9 @@ finally:
      print("finally") 
 ```
 
+> 1. 如果在执行try子句的过程中发生了异常，那么try子句余下的部分将被忽略  
+> 2. 如果一个异常没有与任何的except匹配，那么这个异常将会传递给上层的try中
+
 ```python
 #simple example
 num1=10
