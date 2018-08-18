@@ -108,6 +108,47 @@ print(obj['k1'])
 del obj['k1']
 ```
 
+```python
+# python magic methods summary
+# 可以在class中override
+__new__
+__init__
+__del__
+
+__call__
+
+__str__
+__repr__
+
+__add__
+__sub__
+__mul__
+__div__
+__mod__
+__pow__
+__cmp__
+__len__
+
+__getitem__
+__setitem__
+```
+
+```python
+# override magic methods
+class Vector:
+    def __init__(self, a, b):
+        self.a=a
+        self.b=b
+    def __str__(self):
+        return f'({self.a}, {self.b})'
+    def __add__(self, other):
+        return Vector(self.a + other.a, self.b + other.b)
+
+v1=Vector(1, 2)
+v2=Vector(3, 4)
+print(v1+v2) # (4, 6)
+```
+
 ## init ParentClass with 3 methods
 
 ```python
