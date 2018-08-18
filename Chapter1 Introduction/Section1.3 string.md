@@ -630,3 +630,9 @@ print(f'{num:#x}')
 16
 0x10
 ```
+
+```python
+myDict={'name':'grey', 'age':20, 'weight':50}
+str1='name={name}, age={age}, weight={weight}kg'.format(**myDict)
+print(str1) # name=grey, age=20, weight=50kg
+```
