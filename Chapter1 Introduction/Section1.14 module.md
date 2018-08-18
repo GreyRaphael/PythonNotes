@@ -6,6 +6,7 @@
     - [`import`](#import)
         - [`import` module](#import-module)
         - [`import` package](#import-package)
+        - [some attention](#some-attention)
         - [module classification](#module-classification)
     - [`getpass` module](#getpass-module)
     - [`time` & `datetime`](#time--datetime)
@@ -136,12 +137,17 @@ main.py
 PackageA/
     __init__.py
     moduleA.py
+    moduleB.py
 ```
 
 ```python
 # __init__.py
 from . import moduleA
+from . import moduleB
 ```
+
+> 如果`__init__.py`是空文件，那么`import PackageA`执行`__init__.py`就无法使用`moduleA`, `moduleB`, 然而`import PackageA.moduleA`仍然管用  
+> 如果`__init__.py`是空文件，`from Package import moduleA, moduleB`仍然管用
 
 ```python
 # main.py
@@ -149,6 +155,21 @@ import PackageA
 
 PackageA.moduleA.say_hello()
 ```
+
+```python
+# __init__.py
+# 以前采用__all__, 经常IDE显示的是红色的, 不推荐
+__all__=['moduleA', 'moduleB']
+```
+
+### some attention
+
+1. 一个module只会被导入一次，不管你执行了多少次import
+2. `from xxx import *`不会导入以`_`开头的变量、函数、类...
+3. `import item.subitem.subsubitem`这种导入形式，除了最后一项，都必须是package，而最后一项则可以是package, module，但是不可以是类、函数、变量; 
+4. `from xxx import item`这种导入形式，item可以是package, module, 类, 函数, 变量
+
+
 
 ### module classification
 
