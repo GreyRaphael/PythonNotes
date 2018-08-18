@@ -603,6 +603,27 @@ print(safestrlast)
 ABC  ABC   ABC ABC   ABC
 ```
 
+```python
+# sub with function
+import re
+
+# remove comment
+phone='010-62755406 # 这是一个电话号码'
+num=re.sub(r'#.*', '', phone)
+print(num) # 010-62755406
+
+pure_num=re.sub(r'\D','', phone)
+print(pure_num) # 01062755406
+
+# 每个数字乘以2
+def func(matched):
+    value=eval(matched.group())
+    return str(value*2)
+
+modify_num=re.sub(r'(\d+)', func, 'a12b123c56')
+print(modify_num) # a24b246c112
+```
+
 ## Detail
 
 ### []
