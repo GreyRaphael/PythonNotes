@@ -24,6 +24,7 @@
         - [another examples](#another-examples)
     - [print example](#print-example)
     - [progress bar](#progress-bar)
+    - [start program](#start-program)
 
 <!-- /TOC -->
 
@@ -1253,4 +1254,20 @@ for i in range(N):
     time.sleep(0.1)
 
 # 7/10
+```
+
+## start program
+
+```python
+# method1: startfile
+import os
+
+os.startfile(r"D:\Cent\chrome.exe")
+
+# method2: system
+os.system(r"D:\Cent\chrome.exe")
+
+# method3: openbrowser
+import webbrowser
+webbrowser.open("https://www.baidu.com")
 ```
