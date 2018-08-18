@@ -306,6 +306,8 @@ m1=Man('grey', 28, 50)
 2. `__init__` 初始化该对象，无返回值
 
 > python不会主动的调用父类的ctor, 所以主动调用父类的ctor对应的需要`super()`; c++会主动调用父类的ctor;
+>
+> 如果子类没写`__init__`, 会自动调用父类的`__init__`
 
 ```python
 # simple example:
