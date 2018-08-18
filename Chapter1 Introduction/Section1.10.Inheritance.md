@@ -629,6 +629,8 @@ process banana
 
 ### class variable, instance variable
 
+> 实例属性与类属性同名, 实例属性优先级高
+
 ```python
 #类属性实现多个对象数据共享
 class Base(object):
