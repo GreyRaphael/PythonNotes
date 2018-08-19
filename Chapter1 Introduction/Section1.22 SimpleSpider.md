@@ -82,7 +82,9 @@ get_img(html)
 
 ## `requests`
 
-`pip install requests`
+`pip install requests`, 如果对性能有要求可以采用`pip install pycurl`
+
+> [requests vs pycurl](https://github.com/yudazilian/Pycurl-vs-Requests)
 
 ```python
 import requests
@@ -183,6 +185,58 @@ def get_img(img_urls):
             file.write(r.content)
 
 get_img(img_urls)
+```
+
+[头条街拍](https://www.jianshu.com/p/d67b1d4b99ad)
+
+```python
+import re
+import os
+import sys
+import requests
+
+# download imgs
+def get_img(img_urls, img_dir):
+    img_sum=len(img_urls)
+    for index, url in enumerate(img_urls):
+        sys.stdout.write(f'\r{index+1}/{img_sum}')
+        r=requests.get(url)
+        with open(f'./{img_dir}/image-{index}.jpg', 'wb') as file:
+            file.write(r.content)
+
+# begin
+if 'imgs' not in os.listdir():
+    os.mkdir('imgs')
+
+url='https://www.toutiao.com/search_content'
+offset=0
+
+while True:
+    # query param
+    param={'offset':offset, 'format':'json', 'keyword':'街拍', 'autoload':'true', 'count':20, 'cur_tab':3, 'from':'gallery'}
+    res=requests.get(url, param)
+    data=res.json().get('data')
+    if not data:
+        # data为空的时候表示没有链接了
+        break
+    
+    # get image urls
+    img_urls=[]
+    for article in data:
+        img_list=article.get('image_list')
+        if img_list:
+            for img in img_list:
+                origin_url=img['url'].replace('list', 'origin')
+                complete_url=f'http:{origin_url}'
+                img_urls.append(complete_url)
+    
+    # download imgages
+    img_dir=f'imgs/offset{offset}'
+    os.mkdir(img_dir)
+    get_img(img_urls, img_dir)
+    
+    # offset + 20
+    offset+=20
 ```
 
 ## `BeautifulSoup`
