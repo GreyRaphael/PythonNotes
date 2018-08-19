@@ -4,7 +4,16 @@
 
 - [Python Regular Expression](#python-regular-expression)
     - [regex table](#regex-table)
-    - [about escaping `\\`](#about-escaping-\\)
+    - [Attention](#attention)
+        - [about `(?:)`](#about-)
+        - [`(?#)`, `(?imx:...)`,`(?=...)`, `(?!...)`, `(?<=...)`, `(?<!...)`](#-imx---)
+        - [`(?(group) yes_pattern|no_pattern`](#group-yes_patternno_pattern)
+        - [`\b`, `\B`](#\b-\b)
+        - [about escaping `\\`](#about-escaping-\\)
+        - [about `^`](#about-^)
+        - [about `|`](#about-)
+        - [`expand()`](#expand)
+        - [`re.pattern`](#repattern)
     - [QQ or phone-number](#qq-or-phone-number)
     - [match, search, findall](#match-search-findall)
         - [match 搜索(bad)](#match-搜索bad)
@@ -22,11 +31,9 @@
             - [`*`,>=0次](#0次)
             - [`+`,>=1次](#1次)
             - [`?`,0 or 1次](#0-or-1次)
-            - [`{m}`,`{m,n}`, `{m,}`, `{m}`](#mmn-m-m)
-        - [开头和结尾](#开头和结尾)
+            - [greedy](#greedy)
         - [逻辑与分组](#逻辑与分组)
-        - [others](#others)
-        - [标签](#标签)
+        - [Tag](#tag)
     - [GUI 提取qq,email,phone](#gui-提取qqemailphone)
 
 <!-- /TOC -->
@@ -35,7 +42,7 @@ regex可以实现**搜索、匹配、切割、截取、替换**
 
 ## regex table
 
-[Official Table](https://docs.python.org/3/library/re.html)
+[Official Table](https://docs.python.org/3/library/re.html) vs [3rd Table](https://www.cnblogs.com/huxi/archive/2010/07/04/1771073.html)
 
 symbols|details
 ---|---
@@ -45,10 +52,11 @@ symbols|details
 `+`|匹配前一个字符或子表达式 $1\leqslant times$
 `+?`|惰性匹配上一个
 `?`|匹配前一个字符或子表达式 $times=0, 1$
-`{n}`|匹配前一个字符或子表达式 $times = n$
+`{m}`|匹配前一个字符或子表达式 $times = m$
 `{m,n}`|匹配前一个字符或子表达式 $m\leqslant times\leqslant n$
-`{n,}`|匹配前一个字符或者子表达式 $n\leqslant times$
-`{n,}?`|前一个的惰性匹配
+`{m,}`|匹配前一个字符或者子表达式 $m\leqslant times$
+`{,n}`|匹配前一个字符或者子表达式 $0\leqslant times\leqslant n$
+`{m,}?`|前一个的惰性匹配
 `^`|匹配字符串的开头
 `$`|匹配字符串结束
 `|`| or
@@ -57,16 +65,126 @@ symbols|details
 `[^]`|对字符集和取非 
 `-`|定义一个区间
 `\d`|匹配任意数字`[0-9]`
-`\D`|匹配数字以外的字符`[^0-9]`or`[^\d]`
+`\D`|`[^0-9]`, `[^\d]`
 `\t`|匹配tab
 `\s`|匹配空白字符`[<space>\t\r\n\f\v]`
-`\S`|匹配非空白字符
+`\S`|[^\s]
 `\w`|匹配任意数字字母下划线`[a-zA-Z0-9_]`
-`\W`|不匹配数字字母下划线
-`\b`|将\w与\W分开
-`\B`|\b取反
+`\W`|`[^\w]`
+`\b`|`\W`与`\w`的边界，该字符的长度为0
+`\B`|匹配非边界
+`\A`|匹配整个字符串的开头，即使在`re.M`模式下，也不会匹配其它行的行首
+`\Z`|匹配整个字符串的结尾，即使在`re.M`模式下，也不会匹配其它行的结尾
+`\1, \2, ....\9`|代指第1, 2, ...9个分组
 
-## about escaping `\\`
+## Attention
+
+regex分类:
+- 功能字符 `.` `*` `+` `|` `?` `^` `$` `\`
+- 分界符 `()` `[]` `{}`
+- 预定义转义字符 `\d` `\D` `\s` `\S` `\w`  `\W`
+- 特殊字符 `#` `!` `:` `-`
+
+### about `(?:)`
+
+无捕获组: 相较于`()`, 不将组的结果挖出来
+
+```python
+import re
+
+str1='I have a cat'
+pat1=r'I have a (?:dog|cat)'
+pat2=r'I have a (dog|cat)'
+pat3=r'I have a dog|cat' # 要么I have a dog, 要么cat
+
+print(re.match(pat1, str1).group()) # I have a cat
+# print(re.match(pat1, str1).group(1)) # no such group
+
+print(re.match(pat2, str1).group()) # I have a cat
+print(re.match(pat2, str1).group(1)) # cat
+
+print(re.match(pat3, str1)) # None
+```
+
+### `(?#)`, `(?imx:...)`,`(?=...)`, `(?!...)`, `(?<=...)`, `(?<!...)`
+
+- `(?#...)`: 注释
+- `(?imx:...)`: option flag, `re.I`, `re.M`, `re.X`
+
+
+```python
+import re
+
+str1='hello123grey'
+pat1=r'\d+(?# get the number in string)'
+
+re.match(pat1, str1)
+```
+
+```python
+import re
+#m=re.search(r"(abc){2}","abcabc")
+#m=re.search(r"(abc|xyz){2}","abcxyz")  abc|xyz取一个，连续两次
+#m=re.search(r"(?:abc){2}","abcabc") #?:不捕捉模式
+#m=re.search(r"((?i)abc){2}","abcAbc")#(?i)忽略大小写
+#m=re.search(r"(abc(?#你妹)){2}","abcabc") #?#注释
+#m=re.search(r"a(?=bc)","abc")  #后面必须=bc才能匹配a
+#m=re.search(r"a(?!bc)","acb") #后面必须!=bc才能匹配a
+#m=re.search(r"(?<=bc)a","cba")#qian面必须=bc才能匹配a
+#m=re.search(r"(?<!bc)a","bxa")#qian面必须!=bc才能匹配a
+```
+
+```python
+# 挖出注释的内容
+import re
+ 
+str1='/*comment1*/ /*comment2*/'
+pat1=re.compile(r'(?<=/\*).+?(?=\*/)')
+pat1.findall(str1) # ['comment1', 'comment2']
+```
+
+### `(?(group) yes_pattern|no_pattern`
+
+```python
+import re
+
+str1='<usr1@mail1> usr2@maill2 <usr3@mail3>'
+# 如果第一组匹配成功， 那么(?(1)>)采用>来匹配，如果匹配失败，采用''
+pat1=re.compile(r'(<)?(\w+@\w+)(?(1)>|)')
+
+pat1.findall(str1) # [('<', 'usr1@mail1'), ('', 'usr2@maill2'), ('<', 'usr3@mail3')]
+```
+
+### `\b`, `\B`
+
+> 匹配完的字符串不会包括那个分界的字符。而如果用`\s`来匹配的话，则匹配出的字符串中会包含那个分界符
+
+- `\b`作为`\w`和`\W`的边界,左右两边必须不同
+- `\B`不作为`\w`和`\W`的边界，左右两部是同类的\w或者\W
+
+```python
+import re
+
+str1='abc abcde bc bcd'
+pat1=r'\bbc\b'
+pat2=r'\sbc\s'
+pat3=r'\Bbc\w+'
+
+print(re.findall(pat1, str1)) # ['bc']
+print(re.findall(pat2, str1)) # [' bc ']
+print(re.findall(pat3, str1)) # ['bcde']
+```
+
+```python
+import re
+
+str1='grey'
+str2='!^&*'
+print(re.search(r'\Bre\B', str1)) # re
+print(re.search(r'\B\B', str2)) # &
+```
+
+### about escaping `\\`
 
 ```python
 import re
@@ -80,6 +198,40 @@ print(re.match(r'\d+', '123grey'))
 # print(re.match('\d+\\', '123\grey')) # error
 print(re.match('\\d+\\\\', '123\grey')) # <_sre.SRE_Match object; span=(0, 4), match='123\\'>
 print(re.match(r'\d+\\', '123\grey'))
+```
+
+### about `^`
+
+- `^`位于`[]`的开头表示取反: `[^a-z]`
+- `^`位于`[]`的内部表示普通符号: `[a-z^]`
+
+### about `|`
+
+- `[], {}`外部的`|`, `^`要转义, 比如`re.search(r'[a-z]+\^\|', 'apple^|')`
+
+### `expand()`
+
+```python
+import re
+
+str1='Tom 24 88888888'
+pat1=re.compile(r'(?P<name>\w+) (?P<age>\d+) (?P<phone>\d+)')
+
+m=pat1.match(str1)
+m.expand(r'name is \g<1> , age is \g<age> , tel is \3') # 'name is Tom , age is 24 , tel is 88888888'
+```
+
+### `re.pattern`
+
+```python
+import re
+
+str1='Tom 24 88888888'
+pat1=re.compile(r'(?P<name>\w+) (?P<age>\d+) (?P<phone>\d+)')
+
+print(pat1.pattern) # (?P<name>\w+) (?P<age>\d+) (?P<phone>\d+)
+m=pat1.match(str1)
+print(m.re.pattern) # (?P<name>\w+) (?P<age>\d+) (?P<phone>\d+)
 ```
 
 ## QQ or phone-number
@@ -687,27 +839,15 @@ None
 #### `?`,0 or 1次
 
 ```python
-import  re
-regex=re.compile(r"\d?")
-print(regex.match("8"))
-print(regex.match("81"))
-print(regex.match("81w"))
-print(regex.match("81asds13213"))
-print(regex.match("asds13213"))#*因为可以是0次
-print(regex.match("13213"))
+# 找出整数和科学计数法的整数
+import re
+
+str1='123 10e3 20e4e4 2E10 30ee5'
+pat1=re.compile(r'\b\d+[eE]?\d*\b')
+pat1.findall(str1) # ['123', '10e3', '2E10']
 ```
 
-```bash
-#output
-<_sre.SRE_Match object; span=(0, 1), match='8'>
-<_sre.SRE_Match object; span=(0, 1), match='8'>
-<_sre.SRE_Match object; span=(0, 1), match='8'>
-<_sre.SRE_Match object; span=(0, 1), match='8'>
-<_sre.SRE_Match object; span=(0, 0), match=''>
-<_sre.SRE_Match object; span=(0, 1), match='1'>
-```
-
-#### `{m}`,`{m,n}`, `{m,}`, `{m}`
+#### greedy
 
 [贪婪匹配 vs 惰性匹配](http://www.nowamagic.net/librarys/veda/detail/1038)
 
@@ -731,37 +871,15 @@ print(regex1.search("8848000").groups())#默认是贪婪模式,('8848000', '')
 print(regex2.search("8848000").groups())#惰性模式,('8848', '000')
 ```
 
-### 开头和结尾
-
-- `^`与`\A`效果一样都是开头；
-- `$`与`\Z`效果一样都是结尾；
-
-For example, `r'\bfoo\b'` matches `'foo'`, `'foo.'`, `'(foo)'`, `'bar foo baz'` but not `'foobar'` or `'foo3'`
-
-- `\b`作为`\w`和`\W`的边界,左右两边必须不同
-- `\B`不作为`\w`和`\W`的边界，左右两部是同类的\w或者\W
-
 ```python
-import  re
-regex1=re.compile(r"\bchina\b")
-regex2=re.compile(r"\Bph\B")
-regex3=re.compile(r"\B!\B")
-print(regex1.search("!china*"))
-print(regex1.search(" CchinaC "))
-print(regex2.search("alphA"))
-print(regex2.search("ph"))
-print(regex2.search("*ph!"))
-print(regex3.search("*!!*"))
-```
+import re
+ 
+str1='/*comment1*/ /*comment2*/'
+pat1=re.compile(r'/\*.*\*/')
+pat1.findall(str1) # ['/*comment1*/ /*comment2*/']
 
-```bash
-#output
-<_sre.SRE_Match object; span=(1, 6), match='china'>
-None
-<_sre.SRE_Match object; span=(2, 4), match='ph'>
-None
-None
-<_sre.SRE_Match object; span=(1, 2), match='!'>
+pat2=re.compile(r'/\*.*?\*/')
+pat2.findall(str1) # ['/*comment1*/', '/*comment2*/']
 ```
 
 ### 逻辑与分组
@@ -788,26 +906,7 @@ print(regex2.search("abcabcxyz"))
 <_sre.SRE_Match object; span=(0, 6), match='abcabc'>
 ```
 
-### others
-
-`?:`, `?i`, `?#`, `?=`, `?!`, `?<=`, `?<!`
-
-<http://blog.csdn.net/samed/article/details/50555663>
-
-```python
-import re
-#m=re.search(r"(abc){2}","abcabc")
-#m=re.search(r"(abc|xyz){2}","abcxyz")  abc|xyz取一个，连续两次
-#m=re.search(r"(?:abc){2}","abcabc") #?:不捕捉模式
-#m=re.search(r"((?i)abc){2}","abcAbc")#(?i)忽略大小写
-#m=re.search(r"(abc(?#你妹)){2}","abcabc") #?#注释
-#m=re.search(r"a(?=1bc)","abc")  #后面必须=1bc才能匹配a
-#m=re.search(r"a(?!bc)","acb") #后面必须!=bc才能匹配a
-#m=re.search(r"(?<=bc)a","cba")#qian面必须=bc才能匹配a
-#m=re.search(r"(?<!bc)a","bxa")#qian面必须!=bc才能匹配a
-```
-
-### 标签
+### Tag
 
 ```python
 import re
@@ -818,26 +917,36 @@ res.groupdict() # {'name': 'grey', 'gender': 'male', 'age': '23'}
 ```
 
 ```python
-import  re
-regex1=re.compile(r"<[a-zA-Z]*>.*</[a-zA-Z]*>")
-regex2=re.compile(r"<([a-zA-Z]*)>.*</\1>")#\1代替前面的标签
-regex3=re.compile(r"<[a-zA-Z]*><[a-zA-Z]*>.*</[a-zA-Z]*></[a-zA-Z]*>")
-regex4=re.compile(r"<([a-zA-Z]*)><([a-zA-Z]*)>.*</\2></\1>")#标签对称，用的是编号
-regex5=re.compile(r"<(?P<html>([a-zA-Z]*))><(?P<title>([a-zA-Z]*))>.*</(?P=title)></(?P=html)>")#标签对称,用名称来匹配，奇怪的方式，用得少
-print(regex1.match("<title>百度一下，你就知道 </title>"))
-print(regex2.match("<title>百度一下，你就知道 </title>"))
-print(regex3.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
-print(regex4.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
-print(regex5.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
+# 匹配分组的电话
+import re
+
+str1='13444422222'
+pat1=r'1[3458](\d)\1{3}(\d)\2{4}'
+pat2=r'1[3458](\d){4}(\d){5}'
+
+print(re.match(pat1, str1).group()) # 13444422222
+print(re.match(pat1, str1).group(1)) # 4
+print(re.match(pat1, str1).group(2)) # 2
+
+print(re.match(pat2, str1).group()) # 13444422222
+print(re.match(pat2, str1).group()) # 4444
+print(re.match(pat2, str1).group()) # 22222
 ```
 
-```bash
-#output
-<_sre.SRE_Match object; span=(0, 25), match='<title>百度一下，你就知道 </title>'>
-<_sre.SRE_Match object; span=(0, 25), match='<title>百度一下，你就知道 </title>'>
-<_sre.SRE_Match object; span=(0, 38), match='<HTML><title>百度一下，你就知道 </title></HTML>'>
-<_sre.SRE_Match object; span=(0, 38), match='<HTML><title>百度一下，你就知道 </title></HTML>'>
-<_sre.SRE_Match object; span=(0, 38), match='<HTML><title>百度一下，你就知道 </title></HTML>'>
+```python
+import  re
+pat1=re.compile(r"<[a-zA-Z]*>.*</[a-zA-Z]*>")
+pat2=re.compile(r"<([a-zA-Z]*)>.*</\1>")#\1代替前面的标签
+
+pat3=re.compile(r"<[a-zA-Z]*><[a-zA-Z]*>.*</[a-zA-Z]*></[a-zA-Z]*>")
+pat4=re.compile(r"<([a-zA-Z]*)><([a-zA-Z]*)>.*</\2></\1>")#标签对称，用的是编号
+pat5=re.compile(r"<(?P<html>([a-zA-Z]*))><(?P<title>([a-zA-Z]*))>.*</(?P=title)></(?P=html)>")#标签对称,用名称来匹配，奇怪的方式，用得少
+
+print(pat1.match("<title>百度一下，你就知道 </title>"))
+print(pat2.match("<title>百度一下，你就知道 </title>"))
+print(pat3.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
+print(pat4.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
+print(pat5.match("<HTML><title>百度一下，你就知道 </title></HTML>"))
 ```
 
 ## GUI 提取qq,email,phone
