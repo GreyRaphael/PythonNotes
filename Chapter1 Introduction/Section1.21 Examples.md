@@ -25,6 +25,7 @@
     - [print example](#print-example)
     - [progress bar](#progress-bar)
     - [start program](#start-program)
+    - [python with office](#python-with-office)
 
 <!-- /TOC -->
 
@@ -1271,3 +1272,12 @@ os.system(r"D:\Cent\chrome.exe")
 import webbrowser
 webbrowser.open("https://www.baidu.com")
 ```
+
+## python with office
+
+读写Office文档(word, exce, powerpoint):
+- 官方COM接口: 能够使用到几乎Office所有的功能，并且由于COM的跨语言特性，知识迁移非常容易；缺点在于仅限于Windows + Office平台，操作系统和软件缺一不可
+- 直接读写接口: 优点在于跨平台，只要Python能够支持的平台基本上都可以，不需要Windows也不需要Office软件；缺点在于只能够使用一些基本的功能
+
+> 采用官方COM接口: `pywin32`+MSDN;  
+> 采用直接读写接口: ...
