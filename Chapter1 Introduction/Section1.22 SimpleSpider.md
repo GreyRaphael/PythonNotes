@@ -276,3 +276,23 @@ for item in soup.find_all('img', {'class': 'JS_listthumb'}):
 
 print(img_urls)
 ```
+
+[Python Salary](https://ask.hellobi.com/blog/linjichu/6479)
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+params={'query':'Python', 'scity':101010100, 'page':1} # 101010100代表北京
+headers={
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+url='https://www.zhipin.com/job_detail/'
+res=requests.get(url,params, headers=headers)
+data=res.text
+soup=BeautifulSoup(data)
+
+# for item in soup.find_all('span', class_='red'):
+for item in soup.find_all('span', {'class': 'red'}):
+    print(item.get_text())
+```
