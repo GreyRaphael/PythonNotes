@@ -239,6 +239,25 @@ while True:
     offset+=20
 ```
 
+[九派新闻](https://ask.hellobi.com/blog/linjichu/sitemap/)
+
+```python
+import requests
+
+param={'page':1, 'pageSize':15, 'type':1}
+url='http://appjph.jiupaicn.com/app/content/recommend_pc/list'
+res=requests.get(url, param)
+data=res.json().get('resultData')
+
+news_urls=[]
+
+for item in data:
+    title=item.get('title')
+    if title:
+        new_url=f'http://jphao.jiupaicn.com/index.php?m=content&c=jiupaihao&a=article&id={item.get("id")}&memberId={item.get("memberId")}'
+        news_urls.append(new_url)
+```
+
 ## `BeautifulSoup`
 
 `pip install beautifulsoup4`
