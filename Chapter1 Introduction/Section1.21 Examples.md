@@ -26,6 +26,7 @@
     - [progress bar](#progress-bar)
     - [start program](#start-program)
     - [python with office](#python-with-office)
+    - [python with pdf](#python-with-pdf)
 
 <!-- /TOC -->
 
@@ -1281,3 +1282,17 @@ webbrowser.open("https://www.baidu.com")
 
 > 采用官方COM接口: `pywin32`+MSDN;  
 > 采用直接读写接口: ...
+
+## python with pdf
+
+`pip install pypdf2`
+
+```python
+import PyPDF2
+
+pdfFileObj = open('meetingminutes.pdf', 'rb')
+pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+pdfReader.numPages
+pageObj = pdfReader.getPage(0)
+pageObj.extractText()
+```
