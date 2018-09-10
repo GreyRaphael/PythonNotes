@@ -863,6 +863,13 @@ pat1.findall(str1) # ['123', '10e3', '2E10']
 `{n,}`|`{n,}?`|匹配 n 个或多个
 
 ```python
+import re
+
+pat=re.compile(r'data-original="(.*?\.(jpg|png))"')
+img_urls=pat.findall(html_text)
+```
+
+```python
 #example
 import  re
 regex1=re.compile(r"^(\d+)(0*)$")
