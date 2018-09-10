@@ -647,6 +647,24 @@ print(obj1.num)#2
 print(obj2.num)#2
 ```
 
+```python
+# 实例无法通过赋值修改类属性，本质是自己弄了一同名的实例属性，然后赋值
+class Test:
+    num=100
+    def __init__(self):
+        self.age=20
+
+a1=Test()
+a2=Test()
+print(a1.num, a2.num)# 100 100
+
+a1.num=200
+print(a1.num, a2.num)# 200 100
+
+del a1.num
+print(a1.num, a2.num)# 100 100
+```
+
 ### instance method, `@classmethod`, `@staticmethod`
 
 [实例方法、类方法、静态方法区别](https://blog.csdn.net/lihao21/article/details/79762681)
@@ -722,6 +740,59 @@ Animal.animal_talk(d1)
 Animal.animal_talk(c1)
 # wang wang
 # miao miao
+```
+
+example2:
+
+```python
+# classmethod用于修改类属性
+class Test:
+    num=100
+    def __init__(self):
+        self.age=20
+    
+    @classmethod
+    def set_num(cls, value):
+        cls.num=value
+
+
+a1=Test()
+print(a1.num)# 100
+
+a1.set_num(200)
+print(a1.num)#200
+
+Test.set_num(300)
+print(a1.num)#300
+```
+
+example3:
+
+```python
+# classmethod, staticmethod用于批量创建instance
+class Item:
+    def __init__(self):
+        self.weight=10
+class Box:
+    def __init__(self):
+        self.volume=20
+        
+class Table:
+    @classmethod
+    def create_items(cls, num):
+        temp_list=[Item() for _ in range(num)]
+        return temp_list
+    @staticmethod
+    def create_boxes(num):
+        return [Box() for _ in range(num)]
+
+t1=Table.create_items(3)
+for item in t1:
+    print(item.weight)
+
+t2=Table.create_boxes(2)
+for box in t2:
+    print(box.volume)
 ```
 
 一般原则:
