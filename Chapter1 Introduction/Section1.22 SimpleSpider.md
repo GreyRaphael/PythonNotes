@@ -8,12 +8,33 @@
     - [`urllib`](#urllib)
     - [`requests`](#requests)
     - [`BeautifulSoup`](#beautifulsoup)
+        - [BeautifulSoup selector](#beautifulsoup-selector)
 
 <!-- /TOC -->
 
 ## Introdution
 
 复杂的涉及分布式爬虫+ Elasticsearch
+
+友情链接作用：搜索引擎，会访问友情链接，所以为了让自己的搜索结果靠前，需要和其他网站大量交换友情链接
+
+应用场景:
+- 咨询报告
+- 抢票、投票作弊器
+- 预测（股市、票房）
+- 国民情感分析
+- 社交关系网络
+- 政府部分舆情监测
+
+浏览器输入网址后的动作:
+- 浏览器首先访问的是DNS服务器，查找域名对应的IP地址
+- 向IP对应的服务器发送请求(get, post)
+- 服务器响应请求，发回response
+- 浏览器渲染response
+
+> 爬虫其实就是为了得到response; 然后进一步得到数据
+
+> 浏览器和服务器要发送、接受数据，就需要遵循HTTP或HTTPS协议，协议规定了request, response的各种格式
 
 ## HTTP request/response
 
@@ -78,6 +99,25 @@ with opener.open('https://www.douyu.com/g_yz') as response:
 
 # begin
 get_img(html)
+```
+
+```python
+import urllib
+
+params=urllib.urlencode({'t':1,'eggs':2,'bacon':0})
+
+# urllib get
+f1=urllib.urlopen("http://python.org/query?%s" % params)
+print(f1.read())
+
+# urllib post
+f2=urllib.urlopen("http://python.org/query",parmas)
+print(f2.read())
+```
+
+```python
+# urllib download file
+urllib.urlretrieve('https://rpic.douyucdn.cn/20180831104533_small.jpg', './images/1.jpg')
 ```
 
 ## `requests`
@@ -262,6 +302,8 @@ for item in data:
 
 `pip install beautifulsoup4`
 
+[Official Document](https://beautifulsoup.readthedocs.io/zh_CN/latest/)
+
 ```python
 # 获取html的所有img_url
 import requests
@@ -295,4 +337,40 @@ soup=BeautifulSoup(data)
 # for item in soup.find_all('span', class_='red'):
 for item in soup.find_all('span', {'class': 'red'}):
     print(item.get_text())
+```
+
+### BeautifulSoup selector
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+html=requests.get('https://www.douyu.com/g_yz').text
+
+soup=BeautifulSoup(html)
+# format html
+# print(soup.prettify())
+
+# Select by tag
+# get text stirng: soup.tag
+# 获取第一个
+print(soup.title) # <title>This is title</title>
+print(soup.div.a) # <a class="head-logo fl" href="/"></a>
+print(soup.title.string)
+print(soup.name) # [document]
+print(soup.title.name) # title
+print(soup.div.attrs) # {'id': 'container', 'class': ['container']}
+print(soup.a['href']) # ...
+
+
+# CSS选择器
+print(soup.select('title')) # 标签选择器
+print(soup.select('.container .a-pop .list-wrap')) # class选择器
+# print(soup.select('#main-col')) # id选择器
+# print(soup.select('body #main-col')) # 三者组合
+
+# 特殊
+print(soup.select('head > title')) # 子标签选择器
+# print(soup.select('div[class="container"]'))
+# print(soup.select('a[name="grey"]'))
 ```
