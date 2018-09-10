@@ -46,6 +46,22 @@
 
 理论标准，从下往上按照7层(OSI mode)：链路层拆开：物理层→数据链路层；应用层拆开：会话层→表示层→应用层
 
+**OSI model** vs **TCP/IP model** vs **TCP/IP Suite**
+> ![](res/tcp-ip-osi.jpg)
+
+OSI示意图:
+> ![OSI model](res/osi.png)
+
+通信过程: 没经过一层就在原数据的基础上增加一些东西，接收方接收之后解包
+
+> 比如http服务: 先是raw_data进行http协议的打包，然后进入下一层继续打包，一直变成二进制，然后传递给对方；对方然后解包
+
+OSI Model下的通信过程
+> ![](res/data-communication.jpg)
+
+TCP/IP Model下的通信过程
+> ![](res/tcp_ip_encapsulation.gif)
+
 ## 端口(port)
 
 局域网最简单的组建方式：交换机
@@ -105,6 +121,9 @@ ipv6是用`:`分隔开，20个16进制数，每4个一组
 `127.0.0.1`: 即便是拔网线，也能ping通，测试本机网络通信协议是否好使
 
 ## socket
+
+`http`, `smtp`, ...都是基于`socket`
+> `socket`只干两件事情: `send`, `receive`
 
 本机的进程通信用的是队列、命名管道、文件；不同机器间的通信用到的就是socket
 
