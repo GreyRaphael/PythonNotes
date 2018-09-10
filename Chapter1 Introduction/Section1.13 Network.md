@@ -228,9 +228,105 @@ tcp_client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcp_client.connect(('192.168.128.1', 9988))
 while True:
     dataStr=input("enter a string:")
+    # client不能发空字符串，否则卡住了
+    if len(dataStr)==0: continue
     tcp_client.send(dataStr.encode('utf-8'))
     receivedDataStr=tcp_client.recv(1024).decode('utf-8')
     print(receivedDataStr)
+```
+
+```python
+# 进一步优化server; 如果client掉线, 那么重新新建conn
+import socket
+import time
+
+tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server.bind(('192.168.128.1', 9988))
+tcp_server.listen(5)  # 异步的时候才能看到效果, 最多5个客户端排队
+
+while True:
+    client_sock, client_addr = tcp_server.accept()  # 会在这里卡住
+
+    while True:
+        receviedData = client_sock.recv(1024)
+        if not receiveData:
+            print('client lost...')
+            break
+        print("Addr=", client_addr, "content=", receviedData.decode('utf-8'))
+        data2Send = f"{receviedData.decode('utf-8')} at({time.asctime()})".encode('utf-8')
+        client_sock.send(data2Send)
+```
+
+```python
+# 简易ssh, client发送命令, server执行命令并经结果返回给client
+# 这个不支持client执行动态的命令, 比如top; 因为popen()一直在read(),所以client卡住了;
+# 而且如果popen数据量很大，会逐次返回; 修改那个1024; 
+# 而且文件发送会有最大值为32768Bytes(32kB); 将send改成sendall()
+import socket
+import time
+import os
+
+tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server.bind(('192.168.128.1', 9988))
+tcp_server.listen(5)  # 异步的时候才能看到效果, 最多5个客户端排队
+
+while True:
+    client_sock, client_addr = tcp_server.accept()  # 会在这里卡住
+
+    while True:
+        receviedData = client_sock.recv(1024)
+        if not receiveData:
+            print('client lost...')
+            break
+        print("Addr=", client_addr, "content=", receviedData.decode('utf-8'))
+        # 执行命令
+        res=os.popen(receivedData).read()
+        data2Send = f"{res.decode('utf-8')} at({time.asctime()})".encode('utf-8')
+        client_sock.send(data2Send)
+```
+
+```python
+# simple file client, 仍然是有大小限制的;
+import socket
+
+tcp_client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_client.connect(('192.168.128.1', 9988))
+
+file=open('haha.mp4', 'wb')
+
+while True:
+    dataStr=input("enter a string:")
+    # client不能发空字符串，否则卡住了
+    if len(dataStr)==0: continue
+    tcp_client.send(dataStr.encode('utf-8'))
+    receivedDataStr=tcp_client.recv(1024*1024*200)
+    file.write(receivedDataStr)
+    file.flush()
+```
+
+```python
+# simple file server
+import socket
+import time
+import os
+
+tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server.bind(('192.168.128.1', 9988))
+tcp_server.listen(5)  # 异步的时候才能看到效果, 最多5个客户端排队
+
+while True:
+    client_sock, client_addr = tcp_server.accept()  # 会在这里卡住
+
+    while True:
+        receviedData = client_sock.recv(1024)
+        if not receiveData:
+            print('client lost...')
+            break
+        print("Addr=", client_addr, "content=", receviedData.decode('utf-8'))
+        # 执行命令
+        with open('video.mp4', 'rb') as file:
+            data2Send=file.read()
+        client_sock.sendall(data2Send)
 ```
 
 server先运行，由于client_sock那个地方卡住了，等待链接；链接上的client，server才会在循环中给予回复；
