@@ -62,6 +62,9 @@ OSI Model下的通信过程
 TCP/IP Model下的通信过程
 > ![](res/tcp_ip_encapsulation.gif)
 
+socket是对TCP/IP协议的封装，Socket本身并不是协议，而是一个调用接口（API），通过Socket，我们才能使用TCP/IP协议。操作系统提供了socket接口(api)；应用层可以和传输层通过Socket接口，区分来自不同应用程序进程或网络连接的通信；python的socket模块本质是时对操作系统的socket进一步封装。
+> Socket本质就是对网络传输行为的封装，通过这个封装我们可以无视网路层、链路层和传输层的是怎么做的。 我只要告诉它，我要用到的协议类型是TCP还是UDP。 
+
 ## 端口(port)
 
 局域网最简单的组建方式：交换机
