@@ -27,6 +27,7 @@
     - [start program](#start-program)
     - [python with office](#python-with-office)
     - [python with pdf](#python-with-pdf)
+    - [sqlite3](#sqlite3)
 
 <!-- /TOC -->
 
@@ -1295,4 +1296,400 @@ pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
 pdfReader.numPages
 pageObj = pdfReader.getPage(0)
 pageObj.extractText()
+```
+
+## sqlite3
+
+example1: create sqlite3 db & create table
+
+```python
+import sqlite3
+from sqlite3 import Error
+
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    try:
+        conn = sqlite3.connect(db_file)
+        return conn
+    except Error as e:
+        print(e)
+
+def creat_table(conn, sql):
+    try:
+        c=conn.cursor()
+        c.execute(sql)
+    except Error as e:
+        print(e)
+
+# 下面一长串代码可以在Navicat中复制得到
+sql_create_tb1='''CREATE TABLE "FunderManage" (
+  "id" INTEGER NOT NULL,
+  "FundManagerName" text NOT NULL,
+  "EstablishedDate" TEXT NOT NULL,
+  "ManageScale" TEXT NOT NULL,
+  "RegisterAddr" TEXT NOT NULL,
+  "FundNumber" text NOT NULL,
+  "RegisterMoney" TEXT NOT NULL,
+  "Shareholder" TEXT NOT NULL,
+  "FundName" TEXT NOT NULL,
+  "FundScale" TEXT NOT NULL,
+  "FundDuration" TEXT NOT NULL,
+  "FundRegisterAddr" TEXT NOT NULL,
+  "ManagementFee" TEXT NOT NULL,
+  "IncomeDistribution" TEXT NOT NULL,
+  "GPPromised" TEXT NOT NULL,
+  "MinimunMoney" TEXT NOT NULL,
+  "CoreMemberCollaboration" TEXT NOT NULL,
+  "InvestStrategy" TEXT,
+  "InvestStage" TEXT NOT NULL,
+  "InvestIndustry" TEXT NOT NULL,
+  "RecruitmentWin" TEXT,
+  "RecruitmentMoney" TEXT,
+  "RecruitmentSum" TEXT NOT NULL,
+  " InvestmentMeeting" TEXT NOT NULL,
+  "RiskCtrlSystem" TEXT NOT NULL,
+  "InvestedManagement" TEXT NOT NULL,
+  "IncentiveMechanism" TEXT NOT NULL,
+  "FundHighlight" TEXT NOT NULL,
+  "Suggestion" TEXT,
+  PRIMARY KEY ("id")
+);'''
+
+database='FangYuan.db'
+conn=create_connection(database)
+if conn:
+    creat_table(conn, sql_create_tb1)
+else:
+    print('Error')
+conn.close()
+```
+
+example2: docx with sqlite3
+
+```python
+import csv
+import sqlite3
+from sqlite3 import Error
+from docx import Document
+
+doc=Document('doc1.docx')
+t1=doc.tables[0]
+
+def iter_unique_cells(row):
+    """Generate cells in *row* skipping empty grid cells."""
+    prior_tc = None
+    for cell in row.cells:
+        this_tc = cell._tc
+        if this_tc is prior_tc:
+            continue
+        prior_tc = this_tc
+        yield cell
+
+all_cells=[]
+for row in t1.rows:
+    for cell in iter_unique_cells(row):
+        all_cells.append(cell.text)
+
+# 1.基金管理人基本信息
+FundManagerName=all_cells[2]
+EstablishedDate=all_cells[4]
+ManageScale=all_cells[6]
+RegisterAddr=all_cells[8]
+FundNumber=all_cells[10]
+RegisterMoney=all_cells[12]
+Shareholder=all_cells[14]
+
+# 2.基金基本条款
+FundName=all_cells[17]
+FundScale=all_cells[19]
+FundDuration=all_cells[21]
+FundRegisterAddr=all_cells[23]
+ManagementFee=all_cells[25]
+IncomeDistribution=all_cells[27]
+GPPromised=all_cells[29]
+MinimunMoney=all_cells[31]
+
+# 3.核心成员
+start_index=all_cells.index('基本简历')+1
+end_index=all_cells.index('核心团队合作情况')
+core_members=all_cells[start_index: end_index]
+CoreMemberCollaboration=all_cells[end_index+1]
+
+# 4.投资策略
+start_index=all_cells.index('投资策略')
+InvestStrategy=all_cells[start_index+1]
+InvestStage=all_cells[start_index+3]
+InvestIndustry=all_cells[start_index+5]
+
+# 5.历史业绩
+start_index=all_cells.index('5、历史业绩')+9
+end_index=all_cells.index('6、历史投资项目举例')
+history_grade=all_cells[start_index: end_index]
+
+# 6.历史投资项目举例
+start_index=all_cells.index('6、历史投资项目举例')+11
+end_index=all_cells.index('7、储备项目')
+history_example=all_cells[start_index: end_index]
+
+# 7. 储备项目
+start_index=all_cells.index('7、储备项目')
+end_index=all_cells.index('8、融资情况')
+reserve=all_cells[start_index+9: end_index]
+
+# 8.融资情况
+start_index=all_cells.index('8、融资情况')
+RecruitmentWin=all_cells[start_index+2]
+RecruitmentMoney=all_cells[start_index+4]
+end_index=all_cells.index('合计：')
+recruitment=all_cells[start_index+10 : end_index]
+# RecruitmentSum=all_cells[end_index+1: end_index+5]
+RecruitmentSum=all_cells[end_index+2]
+
+# 9.风控以及中后台
+start_index=all_cells.index('9、风控以及中后台')
+InvestmentMeeting=all_cells[start_index+2]
+RiskCtrlSystem=all_cells[start_index+4]
+InvestedManagement=all_cells[start_index+6]
+
+# 10. 收益分配及激励机制
+IncentiveMechanism=all_cells[start_index+8]
+
+# 11.基金主要亮点
+FundHighlight=all_cells[start_index+10]
+
+# 12.管理机构合作建议
+Suggestion=all_cells[start_index+12]
+
+# write to database
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    try:
+        conn = sqlite3.connect(db_file)
+        return conn
+    except Error as e:
+        print(e)
+    return None
+
+def creat_table(conn, sql):
+    try:
+        c=conn.cursor()
+        c.execute(sql)
+    except Error as e:
+        print(e)
+
+database='FangYuan.db'
+sql_create_tb1='''CREATE TABLE "FunderManage" (
+  "id" INTEGER NOT NULL,
+  "FundManagerName" text NOT NULL,
+  "EstablishedDate" TEXT NOT NULL,
+  "ManageScale" TEXT NOT NULL,
+  "RegisterAddr" TEXT NOT NULL,
+  "FundNumber" text NOT NULL,
+  "RegisterMoney" TEXT NOT NULL,
+  "Shareholder" TEXT NOT NULL,
+  "FundName" TEXT NOT NULL,
+  "FundScale" TEXT NOT NULL,
+  "FundDuration" TEXT NOT NULL,
+  "FundRegisterAddr" TEXT NOT NULL,
+  "ManagementFee" TEXT NOT NULL,
+  "IncomeDistribution" TEXT NOT NULL,
+  "GPPromised" TEXT NOT NULL,
+  "MinimunMoney" TEXT NOT NULL,
+  "CoreMemberCollaboration" TEXT NOT NULL,
+  "InvestStrategy" TEXT,
+  "InvestStage" TEXT NOT NULL,
+  "InvestIndustry" TEXT NOT NULL,
+  "RecruitmentWin" TEXT,
+  "RecruitmentMoney" TEXT,
+  "RecruitmentSum" TEXT NOT NULL,
+  "InvestmentMeeting" TEXT NOT NULL,
+  "RiskCtrlSystem" TEXT NOT NULL,
+  "InvestedManagement" TEXT NOT NULL,
+  "IncentiveMechanism" TEXT NOT NULL,
+  "FundHighlight" TEXT NOT NULL,
+  "Suggestion" TEXT,
+  PRIMARY KEY ("id")
+);'''
+sql_create_tb2='''CREATE TABLE "CoreMember" (
+  "id" INTEGER NOT NULL,
+  "main_id" INTEGER NOT NULL,
+  "Name" TEXT NOT NULL,
+  "Position" TEXT NOT NULL,
+  "EngagedDate" TEXT NOT NULL,
+  "Resume" TEXT NOT NULL,
+  PRIMARY KEY ("id")
+);'''
+sql_create_tb3='''CREATE TABLE "HistoryGrade" (
+  "id" INTEGER NOT NULL,
+  "main_id" INTEGER NOT NULL,
+  "Name" TEXT NOT NULL,
+  "Established" TEXT NOT NULL,
+  "Scale" TEXT NOT NULL,
+  "Reward" TEXT NOT NULL,
+  "ExpectedReward" TEXT NOT NULL,
+  "IRR" TEXT NOT NULL,
+  "MOC" TEXT NOT NULL,
+  "DPI" TEXT NOT NULL,
+  PRIMARY KEY ("id")
+);'''
+sql_create_tb4='''CREATE TABLE "HistoryExample" (
+  "id" INTEGER NOT NULL,
+  "main_id" INTEGER NOT NULL,
+  "Company" TEXT NOT NULL,
+  "InvestDate" TEXT NOT NULL,
+  "InitInvestStage" TEXT NOT NULL,
+  "InitInvestMoney" TEXT NOT NULL,
+  "CurrentValuation" TEXT NOT NULL,
+  "RewareRatio" TEXT NOT NULL,
+  "IRR" TEXT,
+  "Industry" TEXT NOT NULL,
+  "Location" TEXT NOT NULL,
+  "Notes" TEXT NOT NULL,
+  PRIMARY KEY ("id")
+);'''
+sql_create_tb5='''CREATE TABLE "Reserve" (
+  "id" INTEGER NOT NULL,
+  "main_id" INTEGER NOT NULL,
+  "Company" TEXT NOT NULL,
+  "InvestData" TEXT NOT NULL,
+  "InvestStage" TEXT NOT NULL,
+  "InvestMoney" TEXT NOT NULL,
+  "InvestValuation" TEXT NOT NULL,
+  "Industry" TEXT NOT NULL,
+  "InBeijing" TEXT NOT NULL,
+  "Notes" TEXT,
+  PRIMARY KEY ("id")
+);'''
+sql_create_tb6='''CREATE TABLE "Recruitment" (
+  "id" INTEGER NOT NULL,
+  "main_id" INTEGER NOT NULL,
+  "Name" TEXT NOT NULL,
+  "Type" TEXT NOT NULL,
+  "Money" TEXT NOT NULL,
+  "Process" TEXT NOT NULL,
+  "Notes" TEXT,
+  PRIMARY KEY ("id")
+);'''
+
+conn=create_connection(database)
+if conn:
+    creat_table(conn, sql_create_tb1)
+    creat_table(conn, sql_create_tb2)    
+    creat_table(conn, sql_create_tb3)    
+    creat_table(conn, sql_create_tb4)    
+    creat_table(conn, sql_create_tb5)    
+    creat_table(conn, sql_create_tb6)
+else:
+    print('Error')
+
+# insert FunderManage
+def insert_funder_manage(conn, data):
+    sql = ''' INSERT INTO FunderManage(FundManagerName,EstablishedDate,ManageScale,RegisterAddr,FundNumber,RegisterMoney,
+              Shareholder,FundName,FundScale,FundDuration,FundRegisterAddr,ManagementFee,
+              IncomeDistribution,GPPromised,MinimunMoney,CoreMemberCollaboration,InvestStrategy,
+              InvestStage,InvestIndustry,RecruitmentWin,RecruitmentMoney,RecruitmentSum,
+              InvestmentMeeting,RiskCtrlSystem,InvestedManagement,IncentiveMechanism,FundHighlight,Suggestion)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.execute(sql, data)
+    return cur.lastrowid
+
+# insert core_member
+def insert_core_members(conn, members):
+    sql = ''' INSERT INTO CoreMember(main_id, Name, Position, EngagedDate, Resume)
+              VALUES(?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.executemany(sql, members)
+    return cur.lastrowid
+
+# insert history grade
+def insert_history_grade(conn, grades):
+    sql = ''' INSERT INTO HistoryGrade(main_id,Name,Established,Scale,Reward,ExpectedReward,IRR,MOC,DPI)
+              VALUES(?,?,?,?,?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.executemany(sql, grades)
+    return cur.lastrowid    
+
+# insert history example
+def insert_history_examples(conn, examples):
+    sql = ''' INSERT INTO HistoryExample(main_id,Company,InvestDate,InitInvestStage,InitInvestMoney,CurrentValuation,RewareRatio,IRR,Industry,Location,Notes)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.executemany(sql, examples)
+    return cur.lastrowid    
+
+# insert reserve
+def insert_reserve(conn, reserves):
+    sql = ''' INSERT INTO Reserve(main_id,Company,InvestData,InvestStage,InvestMoney,InvestValuation,Industry,InBeijing,Notes)
+              VALUES(?,?,?,?,?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.executemany(sql, reserves)
+    return cur.lastrowid    
+
+# insert recruitment
+def insert_recruitment(conn, recruitments):
+    sql = ''' INSERT INTO Recruitment(main_id,Name,Type,Money,Process,Notes)
+              VALUES(?,?,?,?,?,?) '''
+    cur=conn.cursor()
+    cur.executemany(sql, recruitments)
+    return cur.lastrowid    
+
+data=(FundManagerName,EstablishedDate,ManageScale,RegisterAddr,FundNumber,RegisterMoney,
+      Shareholder,FundName,FundScale,FundDuration,FundRegisterAddr,ManagementFee,
+      IncomeDistribution,GPPromised,MinimunMoney,CoreMemberCollaboration,InvestStrategy,
+      InvestStage,InvestIndustry,RecruitmentWin,RecruitmentMoney,RecruitmentSum,
+      InvestmentMeeting,RiskCtrlSystem,InvestedManagement,IncentiveMechanism,FundHighlight,Suggestion)
+
+with conn:
+    data_id=insert_funder_manage(conn, data)
+    
+    members=[(data_id,)+tuple(core_members[i: i+4]) for i in range(0,len(core_members),4)]
+    grades =[(data_id,)+tuple(history_grade[i: i+8]) for i in range(0,len(history_grade), 8)]
+    examples=[(data_id,)+tuple(history_example[i: i+10]) for i in range(0, len(history_example), 10)]
+    reserves=[(data_id,)+tuple(reserve[i: i+8]) for i in range(0, len(reserve), 8)]
+    recruitments=[(data_id,)+tuple(recruitment[i: i+5]) for i in range(0, len(recruitment), 5)]
+    
+    insert_core_members(conn, members)
+    insert_history_grade(conn, grades)
+    insert_history_examples(conn, examples)
+    insert_reserve(conn, reserves)
+    insert_recruitment(conn, recruitments)
+
+# write to csv; 或者采用Navicate导出为Excel
+def write_csv(conn):
+    sql='''SELECT FunderManage.FundManagerName,FunderManage.EstablishedDate,FunderManage.ManageScale,
+                FunderManage.RegisterAddr,FunderManage.FundNumber,FunderManage.RegisterMoney,
+                FunderManage.Shareholder,FunderManage.FundName,FunderManage.FundScale,FunderManage.FundDuration,
+                FunderManage.FundRegisterAddr,FunderManage.ManagementFee,FunderManage.IncomeDistribution,
+                FunderManage.GPPromised,FunderManage.MinimunMoney,FunderManage.CoreMemberCollaboration,
+                FunderManage.InvestStrategy,FunderManage.InvestStage,FunderManage.InvestIndustry,FunderManage.RecruitmentWin,
+                FunderManage.RecruitmentMoney,FunderManage.RecruitmentSum,FunderManage.InvestmentMeeting,
+                FunderManage.RiskCtrlSystem,FunderManage.InvestedManagement,FunderManage.IncentiveMechanism,
+                FunderManage.FundHighlight,FunderManage.Suggestion,
+                CoreMember.Name, CoreMember.Position, CoreMember.EngagedDate,CoreMember.Resume,
+                HistoryGrade.Name,HistoryGrade.Established,HistoryGrade.Scale,HistoryGrade.Reward,
+                HistoryGrade.ExpectedReward,HistoryGrade.IRR,HistoryGrade.MOC,HistoryGrade.DPI,
+                HistoryExample.Company,HistoryExample.InvestDate,HistoryExample.InitInvestStage,
+                HistoryExample.InitInvestMoney,HistoryExample.CurrentValuation,HistoryExample.RewareRatio,
+                HistoryExample.IRR,HistoryExample.Industry,HistoryExample.Location,HistoryExample.Notes,
+                Reserve.Company,Reserve.InvestData,Reserve.InvestStage,Reserve.InvestMoney,
+                Reserve.InvestValuation,Reserve.Industry,Reserve.InBeijing,Reserve.Notes,
+                Recruitment.Name,Recruitment.Type,Recruitment.Money,Recruitment.Process,Recruitment.Notes
+                FROM FunderManage
+                INNER JOIN CoreMember ON CoreMember.main_id=FunderManage.id
+                INNER JOIN HistoryGrade ON HistoryGrade.main_id=FunderManage.id
+                INNER JOIN HistoryExample ON HistoryExample.main_id=FunderManage.id
+                INNER JOIN Reserve ON Reserve.main_id=FunderManage.id
+                INNER JOIN Recruitment ON Recruitment.main_id=FunderManage.id'''
+    cur=conn.cursor()
+    output=cur.execute(sql)
+    with open('output.csv', 'w') as file:
+        writer=csv.writer(file)
+        writer.writerows(output)
+
+write_csv(conn)
+
+
+# close conn
+conn.close()
 ```
