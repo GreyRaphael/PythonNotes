@@ -5,6 +5,7 @@
 - [Simple Spider](#simple-spider)
     - [Introdution](#introdution)
     - [HTTP request/response](#http-requestresponse)
+    - [proxy & architecture](#proxy--architecture)
     - [`urllib`](#urllib)
     - [`requests`](#requests)
     - [`BeautifulSoup`](#beautifulsoup)
@@ -48,6 +49,282 @@ HTTP response messages:
 
 HTTP request/response:
 > ![https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages](res/http_msg03.png)
+
+## proxy & architecture
+
+Some reference:
+- [抓取证券之星的股票数据](http://www.cnblogs.com/sjzh/archive/2016/09/24/5899716.html)
+- [抓取代理IP并多线程验证](https://www.cnblogs.com/sjzh/p/5990152.html)
+- [基础爬虫架构及爬取证券之星全站行情数据](https://www.cnblogs.com/sjzh/p/7657882.html)
+
+example1: 随机切换User-Agent
+
+```python
+import json
+import pickle
+import random
+import multiprocessing
+import requests
+from bs4 import BeautifulSoup
+
+url = 'http://quote.stockstar.com/webhandler/rank.ashx'
+user_agents = [
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/56.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:57.0) Gecko/20100101 Firefox/57.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:58.0) Gecko/20100101 Firefox/58.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:59.0) Gecko/20100101 Firefox/59.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0",
+]
+
+
+def add_data(queue, page_number):
+    params = {
+        'type': 'a',
+        'sortfield': 3,
+        'direction': 1,
+        'pageid': page_number
+    }
+    headers = {"User-Agent": random.choice(user_agents)}
+    try:
+        res = requests.get(url, params=params, headers=headers)
+        print(f'page-{page_number} is got')
+        temp_dict = json.loads(res.text[12:-1]) # response是变量，并不是json
+        queue.put(temp_dict['html'])
+    except Exception as e:
+        print(f'page={page_number}', e)
+
+
+if __name__ == '__main__':
+    queue_list = []
+    process_list = []
+    data_list = []
+    for i in range(118): # 总共118页，为了便于理解，这里没有进行进程分组
+        queue_list.append(multiprocessing.Queue())
+        process_list.append(multiprocessing.Process(
+            target=add_data, args=(queue_list[i], i+1)))
+        process_list[i].start()
+    for queue in queue_list:
+        data_list.append(queue.get())
+    # pickle.dump(data_list, open('data.dat', 'wb'))
+    print('===finished capture data===')
+
+    # write to file(也可以写入数据库)
+    with open('final.txt', 'w', encoding='utf8') as file:
+        for html in data_list:
+            soup=BeautifulSoup(html, features='lxml')
+            for i, td in enumerate(soup.select('td')):
+                file.write(f'{td.string:>12}')
+                if (i+1) % 13 ==0:
+                    file.write('\n')
+            file.write('\n')
+```
+
+example2: www.kuaidaili.com抓取代理ip
+> [免费代理IP地址列表](https://www.jianshu.com/p/93fd64a2747b)
+
+```python
+# www.kuaidaili.com
+import time
+import requests
+from bs4 import BeautifulSoup
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+# www.kuaidaili.com必须使用Session才能克服反爬虫
+session = requests.Session()
+
+htmls = []
+for page_number in range(1, 6):
+    url = f'https://www.kuaidaili.com/free/inha/{page_number}/'
+    try:
+        res = session.get(url, headers=headers)
+        htmls.append(res.text)
+    except Exception as e:
+        print(f'page={page_number}', e)
+    time.sleep(0.5)
+else:
+    print('finished capture response')
+
+all_ips = []
+all_ports = []
+all_types = []
+
+for html in htmls:
+    soup = BeautifulSoup(html, features="lxml")
+    for td in soup.select('td[data-title="IP"]'):
+        all_ips.append(td.string)
+    for td in soup.select('td[data-title="PORT"]'):
+        all_ports.append(td.string)
+    for td in soup.select('td[data-title="类型"]'):
+        all_types.append(td.string)
+
+all_addr = []
+for item in zip(all_types, all_ips, all_ports):
+    all_addr.append(f'{item[0]}://{item[1]}:{item[2]}')
+
+print(all_addr)
+```
+
+example3: www.xicidaili.com抓取代理ip
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+session = requests.Session()
+htmls = []
+
+for page_number in range(1, 6):
+    url = f'http://www.xicidaili.com/nn/{page_number}'
+    try:
+        res = session.get(url, headers=headers)
+        htmls.append(res.text)
+    except Exception as e:
+        print(f'page={page_number}', e)
+else:
+    print('finished capture response')
+
+
+all_ips = []
+all_ports = []
+all_types = []
+
+for html in htmls:
+    soup=BeautifulSoup(html, features='lxml')
+    for td in soup.select('tr > td:nth-of-type(2)'):
+        all_ips.append(td.string)
+    for td in soup.select('tr > td:nth-of-type(3)'):
+        all_ports.append(td.string)
+    for td in soup.select('tr > td:nth-of-type(6)'):
+        all_types.append(td.string)
+
+all_addr = []
+for item in zip(all_types, all_ips, all_ports):
+    all_addr.append(f'{item[0]}://{item[1]}:{item[2]}')
+
+print(len(all_addr))
+```
+
+example4: 同example3的套路
+
+```python
+url = f'http://www.ip3366.net/free/'
+
+params = {
+    "stype": 1,
+    "page": page_number
+}
+
+# 后面只需要微调
+```
+
+```python
+url=f'http://www.mimiip.com/gngao/{page_number}'
+# 后面微调
+```
+
+```python
+url=f'http://www.66ip.cn/areaindex_1/{page_number}.html'
+# 后面微调
+```
+
+example5: with regex
+
+```python
+import re
+import requests
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+session = requests.Session()
+
+home_url='http://www.xsdaili.com'
+pat0=re.compile(r'<a href="/dayProxy/ip/(\d+)\.html">')
+res0=session.get(home_url, headers=headers)
+url=f'http://www.xsdaili.com/dayProxy/ip/{pat0.search(res0.text)}.html'
+
+res=session.get(url, headers=headers)
+pat=re.compile(r'(\d+\.\d+\.\d+\.\d+:\d+)@(\w+)#')
+all_ip_port=pat.findall(res.text)
+
+all_addr=[]
+for item in all_ip_port:
+    all_addr.append(f'{item[1]}://{item[0]}')
+
+print(all_addr)
+```
+
+example6: check ip
+
+```python
+import re
+import multiprocessing
+import requests
+
+# get proxy ip
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+session = requests.Session()
+
+home_url = 'http://www.xsdaili.com'
+res0 = session.get(home_url, headers=headers)
+pat0 = re.compile(r'<a href="/dayProxy/ip/(\d+)\.html">')
+url = f'http://www.xsdaili.com/dayProxy/ip/{pat0.search(res0.text)}.html'
+
+res = session.get(url, headers=headers)
+pat = re.compile(r'(\d+\.\d+\.\d+\.\d+:\d+)@(\w+)#')
+all_ip_port = pat.findall(res.text)
+
+all_addr = []
+for item in all_ip_port:
+    all_addr.append(f'{item[1]}://{item[0]}')
+
+all_proxies = []
+for addr in all_addr:
+    # 每一个dict就是一个proxies
+    all_proxies.append({'https': addr})
+
+# 多进程check proxies
+test_url = 'http://quote.stockstar.com/stock'
+
+
+def check_ip(proxies, q):
+    try:
+        session.get(test_url, headers=headers, proxies=proxies)
+        q.put(proxies['https'])
+        print(f'{proxies} is good')
+    except Exception as e:
+        print(f'{proxies} is bad', e)
+
+
+if __name__ == '__main__':
+    queue_list = []
+    process_list = []
+    for i, proxies in enumerate(all_proxies):
+        queue_list.append(multiprocessing.Queue())
+        process_list.append(multiprocessing.Process(
+            target=check_ip, args=(proxies, queue_list[i])))
+    for process in process_list:
+        process.start()
+    # write to file
+    with open('good_ip.txt', 'w') as file:
+        for queue in queue_list:
+            file.write(f'{queue.get()}\n')
+    # # 主进程默认会等待，下面可以不写
+    # for process in process_list:
+    #     process.join()
+```
 
 ## `urllib`
 
