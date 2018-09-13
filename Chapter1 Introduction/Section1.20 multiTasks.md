@@ -1120,6 +1120,40 @@ stu=grey say Sorry
 stu=james say Sorry
 ```
 
+```python
+import threading
+
+data = threading.local()  # data是一个object, 为每一个线程提供独立存储空间
+
+
+def printData(func, x):
+    data.x = x  # data动态绑定，线程独立
+    print(threading.current_thread().name, data.x, id(data.x))
+    for i in range(5):
+        data.x = func(data.x)
+        print(threading.current_thread().name, data.x, id(data.x))
+
+
+threading.Thread(target=printData, args=(lambda x: x + 1, 1)).start()
+threading.Thread(target=printData, args=(lambda y: y + '1', '1')).start()
+```
+
+```bash
+#ouput
+Thread-1 1 1485598176
+Thread-1 2 1485598208
+Thread-1 3 1485598240
+Thread-1 4 1485598272
+Thread-1 5 1485598304
+Thread-1 6 1485598336
+Thread-2 1 2589563256032
+Thread-2 11 2589594063624
+Thread-2 111 2589563601672
+Thread-2 1111 2589594063624
+Thread-2 11111 2589563601672
+Thread-2 111111 2589594063624
+```
+
 ## 异步
 
 异步的好处：不用去等一个事件的发生，该干什么干什么，当发生的时候得到通知再去处理；
