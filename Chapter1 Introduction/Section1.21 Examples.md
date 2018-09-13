@@ -28,6 +28,7 @@
     - [python with office](#python-with-office)
     - [python with pdf](#python-with-pdf)
     - [sqlite3](#sqlite3)
+    - [data](#data)
 
 <!-- /TOC -->
 
@@ -1816,3 +1817,10 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+## data
+
+[新浪财经](https://www.jianshu.com/p/172214aa5961), [一些接口](https://blog.csdn.net/luanpeng825485697/article/details/78442062)
+
+可以利用之前在东方财富网弄到的股票代码来遍历这些接口；
+
