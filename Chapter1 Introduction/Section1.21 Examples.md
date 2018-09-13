@@ -1277,12 +1277,54 @@ webbrowser.open("https://www.baidu.com")
 
 ## python with office
 
+`pip install python-docx`
+
 读写Office文档(word, exce, powerpoint):
 - 官方COM接口: 能够使用到几乎Office所有的功能，并且由于COM的跨语言特性，知识迁移非常容易；缺点在于仅限于Windows + Office平台，操作系统和软件缺一不可
 - 直接读写接口: 优点在于跨平台，只要Python能够支持的平台基本上都可以，不需要Windows也不需要Office软件；缺点在于只能够使用一些基本的功能
 
 > 采用官方COM接口: `pywin32`+MSDN;  
 > 采用直接读写接口: ...
+
+example1: read docx
+
+```python
+from docx import Document
+
+def read_full_text(filename):
+    doc=Document(filename)
+    
+    full_text=[]
+    for p in doc.paragraphs:
+        full_text.append(p.text)
+    return '\n'.join(full_text)
+
+print(read_full_text('doc1.docx'))
+```
+
+```python
+def read_full_text(filename):
+    doc=Document(filename)
+    
+    full_text=[]
+    for p in doc.paragraphs:
+        full_text.append(f'  {p.text}') # 每行缩进两个空格
+    return '\n\n'.join(full_text) # 行间空格
+```
+
+example2: write docx
+
+```python
+from docx import Document
+
+# new a file
+doc=Document()
+doc.add_paragraph('This is 1st paragraph')
+p_obj1=doc.add_paragraph('This is 2nd paragraph')
+p_obj2=doc.add_paragraph('This is 3rd paragraph')
+p_obj1.add_run('behind p_obj1')
+doc.save('doc2.docx')
+```
 
 ## python with pdf
 
