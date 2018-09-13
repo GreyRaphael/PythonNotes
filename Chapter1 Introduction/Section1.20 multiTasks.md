@@ -1063,7 +1063,7 @@ stu=chris say Sorry
 stu=james say Sorry
 ```
 
-更进一步，使用`threading.local()`,使得不同线程对同一个全局变量local_school的操作，产生错乱
+更进一步，使用`threading.local()`,使得不同线程对同一个全局变量local_school的操作
 
 ```python
 import random
@@ -1092,7 +1092,7 @@ def do_task2():
 
 
 def test(name):
-    local_school.stu = Student(name)
+    local_school.stu = Student(name) #不同线程虽然stu同名，但是变量相互对立，不会相互影响
     do_task1()
     do_task2()
 
