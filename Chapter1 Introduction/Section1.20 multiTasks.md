@@ -1063,7 +1063,7 @@ stu=chris say Sorry
 stu=james say Sorry
 ```
 
-更进一步，使用`threading.local()`,使得不同线程对同一个全局变量local_school的操作
+更进一步，使用`threading.local()`,使得不同线程对同一个全局变量local_school的操作, 为不同线程提供独立的存储空间。
 
 ```python
 import random
