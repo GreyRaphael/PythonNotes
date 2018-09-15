@@ -1818,6 +1818,32 @@ if __name__ == '__main__':
     main()
 ```
 
+example3: sqlalchemy with pandas
+
+Anaconda默认自带`sqlalchemy`
+
+```python
+import pandas as pd
+from sqlalchemy import create_engine
+
+engine=create_engine('sqlite:///test.db')
+df = pd.DataFrame({'name' : ['User 1', 'User 2', 'User 3'], 'age':[20, 26, 22]})
+df.append({'name':'james', 'age':29}, ignore_index=True)
+print(df)
+
+# dataframe to table
+df.to_sql('table_name', con=engine, if_exists='append', index_label='id')
+```
+
+```bash
+# result
+    name    age
+0   User1   20
+1   User2   26
+2   User3   22
+3   james   29
+```
+
 ## data
 
 [新浪财经](https://www.jianshu.com/p/172214aa5961), [一些接口](https://blog.csdn.net/luanpeng825485697/article/details/78442062)
