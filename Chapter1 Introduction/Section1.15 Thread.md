@@ -1,25 +1,28 @@
 # python threads
 
+<!-- TOC -->
+
 - [python threads](#python-threads)
     - [single thread vs multithreads](#single-thread-vs-multithreads)
-    - [基于class的多线程](#%E5%9F%BA%E4%BA%8Eclass%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B)
+    - [基于class的多线程](#基于class的多线程)
         - [`join()`](#join)
-    - [线程冲突 线程同步](#%E7%BA%BF%E7%A8%8B%E5%86%B2%E7%AA%81-%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5)
+    - [线程冲突 线程同步](#线程冲突-线程同步)
         - [threading.Lock()](#threadinglock)
         - [threading.RLock()](#threadingrlock)
-    - [python thread的3中风格](#python-thread%E7%9A%843%E4%B8%AD%E9%A3%8E%E6%A0%BC)
-    - [信号量](#%E4%BF%A1%E5%8F%B7%E9%87%8F)
-    - [凑几个然后执行](#%E5%87%91%E5%87%A0%E4%B8%AA%E7%84%B6%E5%90%8E%E6%89%A7%E8%A1%8C)
-    - [线程通信](#%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1)
-    - [线程condition](#%E7%BA%BF%E7%A8%8Bcondition)
-        - [线程调度](#%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6)
-    - [Productor & Customer](#productor-customer)
+    - [python thread的3中风格](#python-thread的3中风格)
+    - [信号量](#信号量)
+    - [凑几个然后执行](#凑几个然后执行)
+    - [线程通信](#线程通信)
+    - [线程condition](#线程condition)
+        - [线程调度](#线程调度)
+    - [Productor & Customer](#productor--customer)
     - [Thread pool](#thread-pool)
-    - [定时线程](#%E5%AE%9A%E6%97%B6%E7%BA%BF%E7%A8%8B)
+    - [定时线程](#定时线程)
     - [`with`](#with)
-    - [前台进程&后台进程](#%E5%89%8D%E5%8F%B0%E8%BF%9B%E7%A8%8B%E5%90%8E%E5%8F%B0%E8%BF%9B%E7%A8%8B)
-    - [TLS](#tls)
+    - [前台进程&后台进程](#前台进程后台进程)
     - [Thread summary](#thread-summary)
+
+<!-- /TOC -->
 
 ## single thread vs multithreads
 
