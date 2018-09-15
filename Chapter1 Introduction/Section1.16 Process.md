@@ -1,20 +1,24 @@
 # Python Process
 
+<!-- TOC -->
+
 - [Python Process](#python-process)
     - [Introduction](#introduction)
     - [multiprocess global varibale](#multiprocess-global-varibale)
     - [multiprocessing](#multiprocessing)
         - [process `join()`](#process-join)
-    - [进程同步(Lock, RLock)](#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5lock-rlock)
-    - [进程共享](#%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB)
-    - [进程队列, 比pip弱](#%E8%BF%9B%E7%A8%8B%E9%98%9F%E5%88%97-%E6%AF%94pip%E5%BC%B1)
-        - [两个队列，可以实现双向共享](#%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%AE%9E%E7%8E%B0%E5%8F%8C%E5%90%91%E5%85%B1%E4%BA%AB)
-        - [进程队列高级用法](#%E8%BF%9B%E7%A8%8B%E9%98%9F%E5%88%97%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95)
-    - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue-multiprocessingarray)
-    - [`multiprocessing.List` & `multiprocessing.dict`](#multiprocessinglist-multiprocessingdict)
+    - [进程同步(Lock, RLock)](#进程同步lock-rlock)
+    - [进程共享](#进程共享)
+    - [进程队列, 比pip弱](#进程队列-比pip弱)
+        - [两个队列，可以实现双向共享](#两个队列可以实现双向共享)
+        - [进程队列高级用法](#进程队列高级用法)
+    - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
+    - [`multiprocessing.List` & `multiprocessing.dict`](#multiprocessinglist--multiprocessingdict)
     - [csv related](#csv-related)
-    - [多线程，多进程应用](#%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%8C%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%BA%94%E7%94%A8)
-    - [常见问题](#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)
+    - [多线程，多进程应用](#多线程多进程应用)
+    - [常见问题](#常见问题)
+
+<!-- /TOC -->
 
 ## Introduction
 
