@@ -326,6 +326,332 @@ if __name__ == '__main__':
     #     process.join()
 ```
 
+example7: 一个简单的爬虫框架
+
+```python
+import os
+from multiprocessing import Pool
+import random
+import re
+import time
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import sqlalchemy
+
+'''
+1.url获取器: get_catalog, get_urls
+2.url管理器: url_manager
+3.html下载器: spider_proxy, html_downloader
+4.html解析器: html_parser
+5.数据存储器: data_saver
+6.爬虫管理器: spider_manager
+'''
+
+
+class catalog_getter(object):
+    '''左边栏菜单'''
+
+    def __init__(self):
+        self.catalog = None
+
+    def save_catalog(self):
+        '''证券之星左侧导航的内容和网址并保存为csv'''
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/62.0",
+        }
+        session = requests.Session()
+        res = session.get('http://quote.stockstar.com/', headers=headers)
+        html = res.content.decode('gbk')
+        soup = BeautifulSoup(html, features='html5lib')
+
+        # 一级菜单列表+二级菜单列表
+        catalog1 = pd.DataFrame(columns=["cata1", "cata2", "url2"])
+        catalog2 = pd.DataFrame(columns=["url2", "cata3", "url3"])
+
+        for submenu in soup.select('.subMenuBox .list'):
+            for dl in submenu.select('.subNav dl'):
+                cata2 = dl.dt.a.string.strip(' ·\n\r\t')
+                url2 = dl.dt.a["href"]
+                catalog1 = catalog1.append(
+                    {"cata1": submenu.a.string, "cata2": cata2, "url2": url2}, ignore_index=True)
+                for li in dl.select('dd li'):
+                    cata3 = li.a.string.strip('·')
+                    catalog2 = catalog2.append(
+                        {"url2": url2, "cata3": cata3, "url3": li.a["href"]}, ignore_index=True)
+
+        # 合并成完整菜单列表
+        self.catalog = pd.merge(catalog1, catalog2, on='url2', how='left')
+        self.catalog.to_csv('catalog.csv', index=False)
+
+    def load_catalog(self):
+        '''导入csv'''
+        if 'catalog.csv' not in os.listdir():
+            self.save_catalog()
+            print('catalog.csv generated')
+        else:
+            print('catalog.csv already exists')
+            self.catalog = pd.read_csv('catalog.csv')
+        print('catalog.csv loaded')
+
+    def get_info(self, index):
+        '''创建每行的行名，作为存入数据库的表名，并获取每行终端的网址链接'''
+        if str(self.catalog.loc[index]['cata3']) == 'nan':
+            table_name = self.catalog.loc[index]['cata1'] + \
+                '_' + self.catalog.loc[index]['cata2']
+            url = f'http://quote.stockstar.com{self.catalog.loc[index]["url2"]}'
+        else:
+            table_name = self.catalog.loc[index]['cata1'] + '_' + \
+                self.catalog.loc[index]['cata2'] + '_' + \
+                self.catalog.loc[index]['cata3']
+            url = f'http://quote.stockstar.com{self.catalog.loc[index]["url3"]}'
+        return table_name, url
+
+
+class urls_getter(object):
+    '''获取每个menu的链接列表'''
+
+    def __init__(self, url):
+        self.url = url
+
+    def get_urllist(self):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/62.0",
+        }
+        session = requests.Session()
+        res = session.get(self.url, headers=headers)
+        html = res.content.decode('gbk')
+        soup = BeautifulSoup(html, features='html5lib')
+
+        page_size = int(soup.select_one(
+            '#ClientPageControl1_hdnPageSize')['value'])
+        total_count = int(soup.select_one(
+            '#ClientPageControl1_hdnTotalCount')['value'])
+        # ceiling division
+        page_count = (total_count+page_size-1)//page_size
+        # http://quote.stockstar.com/stock/sha_3_1_2.html中3, 1, 2分别是是sort_field, direction, page_index
+        sort_field = int(soup.select_one(
+            '#ClientPageControl1_hdnSortField')['value'])
+        direction = int(soup.select_one(
+            '#ClientPageControl1_hdnDirection')['value'])
+
+        # construct urllist
+        dot_index = self.url.rindex('.')
+        url_prefix = self.url[:dot_index]
+        urllist = [
+            f'{url_prefix}_{sort_field}_{direction}_{i+1}.html' for i in range(page_count)]
+        return urllist
+
+
+class url_manager(object):
+    def __init__(self):
+        # 未爬
+        self.new_urls = set()
+        # 已爬
+        self.old_urls = set()
+
+    def has_new_url(self):
+        '''判断是否有未爬取的URL'''
+        return len(self.new_urls) > 0
+
+    def get_new_url(self):
+        '''获取一个未爬取的URL'''
+        new_url = self.new_urls.pop()
+        self.old_urls.add(new_url)
+        return new_url
+
+    def add_new_urls(self, urls):
+        '''将新的URL列表添加到未爬取的URL集合中'''
+        if urls is None or len(urls) == 0:
+            return
+        for url in urls:
+            if url is None:
+                return
+            if url not in self.new_urls and url not in self.old_urls:
+                self.new_urls.add(url)
+
+
+class spider_proxy(object):
+    '''获取有效proxies并保存'''
+
+    @staticmethod
+    def get_proxies():
+        '''get proxy ips'''
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+        }
+        session = requests.Session()
+        home_url = 'http://www.xsdaili.com'
+
+        res0 = session.get(home_url, headers=headers)
+        pat0 = re.compile(r'<a href="/dayProxy/ip/(\d+)\.html">')
+        url = f'http://www.xsdaili.com/dayProxy/ip/{pat0.search(res0.text)}.html'
+
+        res = session.get(url, headers=headers)
+        pat = re.compile(r'(\d+\.\d+\.\d+\.\d+:\d+)@(\w+)#')
+        all_ip_port = pat.findall(res.text)
+
+        all_proxies = []
+        for item in all_ip_port:
+            all_proxies.append({'https': f'{item[1]}://{item[0]}'})
+        print('get all_proxies')
+        return all_proxies
+
+
+class html_downloader(object):
+    '''get html text'''
+
+    def __init__(self, all_proxies):
+        self.all_proxies = all_proxies
+
+    def download(self, url):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+        }
+        session = requests.Session()
+        proxies = random.choice(self.all_proxies)
+
+        print(proxies)
+
+        try:
+            res = session.get(url, headers=headers, proxies=proxies)
+            html = res.content.decode('gbk')
+            time.sleep(0.5)
+        except Exception as e:
+            print(f'get "{url}" error"', e)
+
+        # 一般返回的比较短都是被forbidden
+        if len(html) > 100:
+            return html
+        else:
+            return None
+
+
+class html_parser(object):
+    '''解析html获取数据'''
+
+    def __init__(self, html):
+        self.html = html
+        self.soup = BeautifulSoup(self.html, features='html5lib')
+
+    def get_date(self):
+        pat = re.compile(r'数据时间：(.*?)<')
+        try:
+            # 刨除后面的时间，只留下2018-09-14这样的日期
+            date_string = pat.search(self.html).group(1)[:10]
+        except Exception as e:
+            print(f'get date error', e)
+            return ''
+        return date_string
+
+    def get_header(self):
+        '''获取表的标题'''
+        header_name = []
+        try:
+            for td in self.soup.select('thead.tbody_right td'):
+                header_name.append(td.string)
+            header_name.append('数据时间')
+        except Exception as e:
+            print('get header name error', e)
+            header_name = []
+        finally:
+            return header_name
+
+    def get_datalist(self):
+        '''获取表的数据'''
+        header_name = self.get_header()
+        # 如果表标题长度与数据长度不一致
+        if len(header_name)-1 != len(self.soup.select('#datalist tr:nth-of-type(1) > td')):
+            return [], []
+
+        datalist = []
+        date = self.get_date()
+        try:
+            for tr in self.soup.select('#datalist tr'):
+                row = []
+                for td in tr.select('td'):
+                    row.append(td.string)
+                row.append(date)
+                datalist.append(row)
+        except Exception as e:
+            print('get datalist error', e)
+            datalist = []
+        return header_name, datalist
+
+    def get_dataframe(self):
+        '''用pandas组合成一个table'''
+        header_name, datalist = self.get_datalist()
+        table = pd.DataFrame(datalist, columns=header_name)
+        return table
+
+
+class data_saver(object):
+    '''将数据存入sqlite3数据库'''
+
+    def __init__(self, engine, table, table_name):
+        self.engine = engine
+        # table本质是pandas.DataFrame()
+        self.table = table
+        self.table_name = table_name
+
+    def sava_to_db(self):
+        # DataFrame的to_sql()方法
+        self.table.to_sql(name=self.table_name, con=self.engine,
+                          if_exists='append', index_label='id')
+
+
+class spider_manager(object):
+    '''爬虫调度器'''
+
+    def __init__(self, engine, table_name, all_proxies):
+        self.engine = engine
+        self.table_name = table_name
+        self.urlman = url_manager()
+        self.downloader = html_downloader(all_proxies)
+
+    def crawl_single(self, url):
+        '''爬取单一网址'''
+        html=self.downloader.download(url)
+        parser=html_parser(html)
+        if parser.get_header():
+            table=parser.get_dataframe()
+            saver=data_saver(self.engine, table, self.table_name)
+            saver.sava_to_db()
+            print(f"{url} saved to {self.table_name}")
+
+    def crawl_menu(self, urllist):
+        '''爬取一个menu'''
+        self.urlman.add_new_urls(urllist)
+
+        # pool = Pool(10)
+        while self.urlman.has_new_url():
+            new_url = self.urlman.get_new_url()
+            # apply_async的时候已经开始运行了
+            # pool.apply_async(func=self.crawl_single, args=(new_url, ))
+            self.crawl_single(new_url)
+
+        # pool.close()
+        # pool.join()  # 主进程卡在这里
+
+
+if __name__ == '__main__':
+    obj = catalog_getter()
+    obj.load_catalog()
+
+    engine = sqlalchemy.create_engine("sqlite:///Data.db")
+    all_proxies=spider_proxy.get_proxies()
+
+    for index, row in obj.catalog.iterrows():
+        table_name, url = obj.get_info(index)
+        urlsGetter = urls_getter(url)
+        urllist = urlsGetter.get_urllist()
+        print(f"{index}:{table_name}'s urllist got")
+
+        spider_man = spider_manager(engine, table_name, all_proxies)
+        spider_man.crawl_menu(urllist)
+        print(f"{index}: {table_name} crawled")
+```
+
 ## `urllib`
 
 python3中urllib, urllib2合并为[urllib](https://docs.python.org/3/howto/urllib2.html#urllib-howto); 现在一般用的requests, 而不用urllib; [requests vs urllib](https://www.cnblogs.com/znyyy/p/7868511.html)
