@@ -61,7 +61,7 @@ import os
 
 print(os.getpid())
 print('='*20)
-pid=os.fork()
+sub_pid=os.fork()
 print(os.getppid(), os.getpid(), sub_pid)
 ```
 
