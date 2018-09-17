@@ -3,17 +3,14 @@
 <!-- TOC -->
 
 - [python threads](#python-threads)
-    - [single thread vs multithreads](#single-thread-vs-multithreads)
-    - [基于class的多线程](#基于class的多线程)
-        - [`join()`](#join)
-    - [线程冲突 线程同步](#线程冲突-线程同步)
+    - [Introduction](#introduction)
+    - [Thread Synchronization](#thread-synchronization)
         - [threading.Lock()](#threadinglock)
         - [threading.RLock()](#threadingrlock)
-    - [python thread的3中风格](#python-thread的3中风格)
-    - [信号量](#信号量)
+    - [semaphore(信号量)](#semaphore信号量)
     - [凑几个然后执行](#凑几个然后执行)
-    - [线程通信](#线程通信)
-    - [线程condition](#线程condition)
+    - [线程通信 Event](#线程通信-event)
+    - [Condition](#condition)
         - [线程调度](#线程调度)
     - [Productor & Customer](#productor--customer)
     - [Thread pool](#thread-pool)
@@ -24,60 +21,133 @@
 
 <!-- /TOC -->
 
-## single thread vs multithreads
+## Introduction
+
+多线程模块: (threading常用)
+- python2: thread, threading
+- python3: _thread, threading
+
+_thread 提供了低级的、原始的线程以及一个简单的锁。threading是对低级_thread的封装，还有提供其他的[methods](https://docs.python.org/3/library/threading.html)
+
+使用threading的两种方式:
+- 函数调用：用于较为简单的多线程
+- 继承调用：用于较为复杂的多线程
+
+Example1: single-thread vs multi-threads
 
 ```python
-#single thread
-import win32api
+# single thread
+from win32api import MessageBox
 import win32con
 
 # 0代表系统，1代表窗口的style（0,1,2,3,4,5,6)
-win32api.MessageBox(0, "this is content", "this is caption", win32con.MB_OKCANCEL)
-win32api.MessageBox(0, "this is content", "this is caption", 0)
-win32api.MessageBox(0, "this is content", "this is caption", 3)
-win32api.MessageBox(0, "this is content", "this is caption", 6)
+MessageBox(0, "this is content", "this is caption", win32con.MB_OKCANCEL)
+MessageBox(0, 'this is content', "this is caption", 0)
+MessageBox(0, 'this is content', "this is caption", 3)
+MessageBox(0, 'this is content', "this is caption", 6)
 ```
 
 ```python
-#不带参数
-import win32api
-import win32con
-import _thread
-
+# multi threads without args, 函数调用
+import threading
+from win32api import MessageBox
 
 def show():
-    win32api.MessageBox(0, "this is content", "this is caption", win32con.MB_OKCANCEL)
+    MessageBox(0, 'This is content', 'this caption', 1)
 
 
 for i in range(5):
-    _thread.start_new_thread(show, ())
+    t1=threading.Thread(target=show)
+    t1.start()
 
-show()  # 也是为了卡住主线程，也可以用while True来卡住
+# threading模块，主线程会等待所有子线程结束之后再结束, 也就是t1.daemon==False
+# _thread模块，不会，所以要么用死循环while True: pass卡住，要么用MessageBox卡住
+# 如果t1.setDaemon(True)效果和_thread一样
 ```
 
 ```python
-#multithread
-import win32api
-import win32con
-import _thread
-
-
-def show(content, caption, style):
-    win32api.MessageBox(0, content, caption, style)
+# multi threads with args，函数调用
+import threading
+from win32api import MessageBox
 
 
 for i in range(5):
-    _thread.start_new_thread(show, ('this is content', f'this is window {i+1}', i))
-
-show("main thread", "main", 0)
+    t1=threading.Thread(target=MessageBox, args=(0, "this is content", f"caption{i+1}", 1))
+    t1.start()
 ```
 
-每一个`exe`就是一个进程**process**，每个进程里面还有线程**thread**
+Example2: 继承调用
+
+```python
+# method1
+import threading
+from win32api import MessageBox
+
+
+class MyThread(threading.Thread):
+    def __init__(self, caption):
+        # threading.Thread.__init__(self)
+        super().__init__()
+        self.caption = caption
+
+    def run(self): # run只有self这一个参数
+        MessageBox(0, "this is content", self.caption, 1)
+
+
+for i in range(3):
+    MyThread(f'caption-{i+1}').start()
+```
+
+```python
+# method2: 利用self._args或者self._kwargs
+import threading
+from win32api import MessageBox
+
+
+class MyThread(threading.Thread):
+    def run(self):
+        MessageBox(0, "this is content", self._kwargs['caption'], 1)
+
+
+for i in range(3):
+    MyThread(kwargs={'caption':f'caption-{i+1}'}).start()
+```
+
+```python
+# 为了方便后期处理，一般这么写
+import threading
+from win32api import MessageBox
+
+
+class MyThread(threading.Thread):
+    def run(self):
+        MessageBox(0, "this is content", self._kwargs['caption'], 1)
+
+
+thread_list=[MyThread(kwargs={'caption':f'caption-{i+1}'}) for i in range(3)]
+for t in thread_list:
+    t.start()
+```
+
+```python
+# method3: 不常用的方法
+import threading
+from win32api import MessageBox
+
+class MyThread(threading.Thread):
+    def __init__(self, func, caption):
+        super().__init__(group=None, target=func, args=(0, 'this is content', caption, 1))
+
+for i in range(3):
+    MyThread(MessageBox, f'caption-{i+1}').start()
+```
+
+Example3: other applications
 
 ```python
 #骚扰局域网
 import socket
-import _thread
+import threading
 
 mystr = "1_lbt4_10#32899#002481627512#0#0#0:1289671407:Grey:HostName:288:你好，骚年!"
 
@@ -89,11 +159,8 @@ def go(i):
     print(f"192.168.128.{255-i}", end=' ')
 
 
-for i in range(255):  # 255个线程，所以瞬间完成了
-    _thread.start_new_thread(go, (i,))
-
-while True:
-    pass
+for i in range(255):
+    threading.Thread(go, args=(i, ))
 ```
 
 ```python
@@ -116,203 +183,132 @@ while True:
     pass
 ```
 
-## 基于class的多线程
+```python
+# threading.Timer()
+import threading
+
+def test(name):
+    print('--->', name)
+
+t1=threading.Timer(interval=2, function=test, args=('t1', ))
+t2=threading.Timer(interval=2, function=test, args=('t2', ))
+t1.start()
+t2.start()
+t1.cancel() # t1线程，2s内如果用cancel()取消，那么t1将不执行
+```
+
+```bash
+# output
+---> t2
+```
+
+Example4: `join([timeout=None])`
+
+timeout参数，超时就不等了
 
 ```python
-#基于class的多线程
 import threading
-import win32api
+from win32api import MessageBox
 
 
 class MyThread(threading.Thread):
     def run(self):
-        win32api.MessageBox(0, "Content", "caption", 1)
+        MessageBox(0, "this is content", self._kwargs['caption'], 1)
 
 
-thread1 = MyThread()
-thread2 = MyThread()
-
-thread1.start()
-thread2.start()
-
-while True:
-    pass
+thread_list=[MyThread(kwargs={'caption':f'caption-{i+1}'}) for i in range(3)]
+for t in thread_list:
+    t.start()
+    t.join() # 没有并发，主线程等待每一个线程结束
 ```
 
 ```python
-#基于class的多线程
 import threading
-import win32api
-
-
-class MyThread(threading.Thread):
-    def run(self):#override
-        win32api.MessageBox(0, "Content", "caption", 1)
-
-
-thread_list = []
-for i in range(4):
-    thread_list.append(MyThread())
-for i in range(4):
-    thread_list[i].start()
-
-while True:
-    pass
-```
-
-### `join()`
-
-```python
-#顺序风格
-import threading
-import win32api
+from win32api import MessageBox
 
 
 class MyThread(threading.Thread):
     def run(self):
-        win32api.MessageBox(0, "Content", "caption", 1)
+        MessageBox(0, "this is content", self._kwargs['caption'], 1)
 
 
-thread_list = []
-for i in range(4):
-    thread_list.append(MyThread())
-for i in range(4):
-    thread_list[i].start()
-    thread_list[i].join()#主线程等待这个线程执行完，所以只有一个，解决线程冲突
+thread_list=[MyThread(kwargs={'caption':f'caption-{i+1}'}) for i in range(3)]
+for t in thread_list:
+    t.start()
+
+for t in thread_list:
+    t.join() # 本质上主线程卡着，等待thread_list[0]结束，然后主线程卡着，等待thread_list[1]结束...;用于汇总所有线程的数据；相当于单线程
 ```
 
 ```python
 import threading
-import win32api
+import time
+
+def go(name, seconds):
+    print(f'{name} will wait {seconds}s')
+    time.sleep(seconds)
+    print(f'{name} finished!')
 
 
-class MyThread(threading.Thread):
-    def run(self):
-        win32api.MessageBox(0, "Content", "caption", 1)
-
-
-thread_list = []
-for i in range(4):
-    thread_list.append(MyThread())
-for i in range(4):
-    thread_list[i].start()
-for i in range(4):
-    thread_list[i].join()  # 本质上主线程卡着，等待thread_list[0]结束，然后主线程卡着，等待thread_list[1]结束...;用于汇总所有线程的数据
+thread_list=[threading.Thread(target=go, args=(f'p{i+1}', i+1)) for i in range(4)]
+for t in thread_list:
+    t.start()
+print('summarize...')
+for i, t in enumerate(thread_list):
+    print(f'===>{i+1}')
+    t.join(timeout=0.5)
+print('do something')
 ```
 
+```bash
+# output
+p1 will wait 1s
+p2 will wait 2s
+p3 will wait 3s
+p4 will wait 4s
+summarize...
+===>1
+===>2
+p1 finished!
+===>3
+===>4
+p2 finished!
+do something
+p3 finished!
+p4 finished!
+```
+
+## Thread Synchronization
+
+- 多个线程共同对某个数据修改，为了保证数据正确，需要**线程同步**(同：协同)。
+- 让多个线程有序地完成一些事情，也需要线程同步
+
+线程同步的方法：
+- 互斥锁: Lock, RLock
+- 信号量: Semaphore
+- 条件变量: Condition
+
+同步的方法：使用`threading.Lock()`，`threading.RLock()`对象，将要冲突的部分放在`acquire()`和`release()`之间
+
 ```python
-#上面简化
 import threading
-import win32api
-
-
-class MyThread(threading.Thread):
-    def run(self):
-        win32api.MessageBox(0, "Content", "caption", 1)
-
-
-thread_list = []
-for i in range(4):
-    thread_list.append(MyThread())
-    thread_list[i].start()
-for i in range(4):
-    thread_list[i].join()  # 本质上主线程卡着，等待thread_list[0]结束，然后主线程卡着，等待thread_list[1]结束...
-```
-
-## 线程冲突 线程同步
-
-同时访问同一个资源
-
-```python
-#函数类型的多线程，只能解决简单的问题，复杂的问题要用到class
-import _thread
 
 num = 0
 
-
-def add():
+def modify_num():
     global num
     for i in range(1000000):
         num += 1
     print(num)
 
-
-_thread.start_new_thread(add, ())
-_thread.start_new_thread(add, ())
-
-while True:
-    pass
+threading.Thread(target=modify_num).start()
+threading.Thread(target=modify_num).start()
 ````
 
 ```bash
-#output, 发生冲突
+#output, 发生冲突，也可以用这种方式创建随机数
 1122886
 1293707
-```
-
-```python
-import threading
-
-num = 0
-
-
-class MyThread(threading.Thread):
-    def run(self):
-        global num
-        for i in range(1000000):
-            num += 1
-        print(num)
-
-
-thread_list = []
-for i in range(5):
-    thread_list.append(MyThread())
-    thread_list[i].start()
-
-for i in range(5):
-    thread_list[i].join()
-```
-
-```bash
-#output，可以用来创建随机数
-1255331
-1401144
-1680444
-1892049
-2265680
-```
-
-```python
-#相当于单线程
-import threading
-
-num = 0
-
-
-class MyThread(threading.Thread):
-    def run(self):
-        global num
-        for i in range(1000000):
-            num += 1
-        print(num)
-
-
-thread_list = []
-for i in range(5):
-    thread_list.append(MyThread())
-    thread_list[i].start()
-
-# for i in range(5):
-    thread_list[i].join()
-```
-
-```bash
-#output
-1000000
-2000000
-3000000
-4000000
-5000000
 ```
 
 ### threading.Lock()
@@ -324,24 +320,18 @@ import threading
 num = 0
 mutex = threading.Lock()
 
-
 class MyThread(threading.Thread):
     def run(self):
         global num
-        if mutex.acquire():  # 1表示独占，没有acquire的thread，都等着
+        if mutex.acquire():  # 表示独占，没有acquire的thread，都等着
             for i in range(1000000):
                 num += 1
             mutex.release()
         print(num)
 
-
-thread_list = []
-for i in range(5):
-    thread_list.append(MyThread())
-    thread_list[i].start()
-
-for i in range(5):
-    thread_list[i].join()
+thread_list = [MyThread() for _ in range(5)]
+for t in thread_list:
+    t.start()
 ```
 
 ```bash
@@ -388,9 +378,6 @@ girl_thread = GirlThread()
 
 boy_thread.start()
 girl_thread.start()
-
-boy_thread.join()
-girl_thread.join()
 ```
 
 ```bash
@@ -413,7 +400,7 @@ class BoyThread(threading.Thread):
         if boy_mutex.acquire():
             print("boy say sorry-1", self.name)
             boy_mutex.release()
-            time.sleep(1)  # 为了给时间让下面的girl_mutex acquire的锁，那么，这个线程就会一直卡在if语句那儿
+            time.sleep(1)
             if girl_mutex.acquire():
                 print("boy say sorry-2")
                 girl_mutex.release()
@@ -448,6 +435,8 @@ boy say sorry-2
 ```
 
 ### threading.RLock()
+
+RLock内部维护着一个Lock和一个counter变量，counter记录了acquire的次数，从而使得资源可以被多次acquire。直到一个线程所有的acquire都被release，其他的线程才能获得资源。
 
 ```python
 import threading
@@ -529,107 +518,9 @@ for i in range(5):
 5005 Thread-5
 ```
 
-## python thread的3中风格
+## semaphore(信号量)
 
-1. `import _thread`的函数方法，对于简单的问题可以解决
-2. `import threading`的class法, override run的方法; 用的最多
-3. 构造函数法，修改`__init__`的方法
-
-```python
-import threading
-import win32api
-
-# anonymous
-threading.Thread(target=win32api.MessageBox, args=(0, 'content', 'caption', 0)).start()
-threading.Thread(target=win32api.MessageBox, args=(0, 'content', 'caption', 0)).start()
-threading.Thread(target=win32api.MessageBox, args=(0, 'content', 'caption', 0)).start()
-
-while True:
-    pass
-```
-
-```python
-import threading
-import win32api
-
-class MyThread(threading.Thread):
-    def __init__(self, func, content, caption, style):
-        super().__init__(group=None,target=func,args=(0, content,caption,style))
-
-
-MyThread(win32api.MessageBox,"content","caption",1).start()
-MyThread(win32api.MessageBox,"content","caption",1).start()
-MyThread(win32api.MessageBox,"content","caption",1).start()
-
-while True:
-    pass
-```
-
-```python
-import threading
-import win32api
-
-class MyThread(threading.Thread):
-    def __init__(self, num):
-        super().__init__()
-        self.num=num
-    def run(self):
-        win32api.MessageBox(0,"content",f"caption {self.num}",1)
-
-MyThread(1).start()
-MyThread(2).start()
-MyThread(3).start()
-
-while True:
-    pass
-```
-
-```python
-import time
-import threading
-
-
-class Test(threading.Thread):
-    def __init__(self, name, delay):
-        super().__init__()
-        self.name = name
-        self.delay = delay
-
-    def run(self):
-        print(f"{self.name} delay for {self.delay} seconds")
-        time.sleep(self.delay)
-        c = 0
-        while True:
-            print(f"This is thread {self.name} on line {c}")
-            c += 1
-            if c == 3:
-                print(f"End of thread {self.name}")
-                break
-
-
-t1 = Test('Thread1', 5)
-t2 = Test('Thread2', 3)
-t1.start()
-t2.start()
-```
-
-```bash
-#output
-Thread1 delay for 5 seconds
-Thread2 delay for 3 seconds
-This is thread Thread2 on line 0
-This is thread Thread2 on line 1
-This is thread Thread2 on line 2
-End of thread Thread2
-This is thread Thread1 on line 0
-This is thread Thread1 on line 1
-This is thread Thread1 on line 2
-End of thread Thread1
-```
-
-ddos 压力测试；
-
-## 信号量
+semaphore通过一个计数器限制可以同时运行的线程数量。计数器表示的是还可以运行的数量，acquire()减小计数，release()增加计数。
 
 一个服务器假设只能处理1000个线程(假设一个线程服务一个人)，那么超过1000的人就要排队；
 
@@ -649,9 +540,6 @@ def show():
 
 for i in range(4):
     threading.Thread(target=show).start()
-
-while True:
-    pass
 ```
 
 ```python
@@ -703,7 +591,11 @@ Thread-2 end
 Thread-1 end
 ```
 
-## 线程通信
+## 线程通信 Event
+
+`threading.Event`通过内部的标记来进程同步，wait()会阻塞进程，直到标记变成True
+- set()将标记变成True
+- clear()将标记变成False
 
 线程同步：资源只能在一个时候由一个线程访问；
 
@@ -760,9 +652,52 @@ e.set()
 1 go go go
 ```
 
-## 线程condition
+```python
+# 实际编程会为每一个线程准备一个Event(), 为了避免没有及时clear()造成意外
+import threading
+import time
 
-这个是最常用的，既解决通信，也解决同步
+class MyThread(threading.Thread):
+    def run(self):
+        print(self.name, 'waits')
+        self._args[0].wait()
+        print(self.name, 'ends')
+
+e = threading.Event()
+for i in range(4):
+    t = MyThread(args=(e, )) # 所有的线程同一个event
+    t.start()
+time.sleep(1)
+e.set()
+```
+
+```bash
+# output
+Thread-1 waits
+Thread-2 waits
+Thread-3 waits
+Thread-4 waits
+Thread-2 ends
+Thread-1 ends
+Thread-4 ends
+Thread-3 ends
+```
+
+## Condition
+
+这个是最常用的，既解决通信，也解决同步; 除了提供与Lock类似的acquire和release方法外，还提供了wait和notify方法。可以看作是Lock/RLock与Event的合体。
+
+wait(), notify()分别类似yield和send()
+
+线程先acquire一个条件变量，然后判断条件，根据条件要么wait(), 要么notify()其他线程，其他处于wait状态的线程接到通知后会重新判断条件
+
+可以认为Condition对象维护了一个锁（Lock/RLock)和一个waiting池。线程通过acquire获得Condition对象，当调用wait方法时，线程会释放Condition内部的锁并进入blocked状态，同时在waiting池中记录这个线程。当调用notify方法时，Condition对象会从waiting池中挑选一个线程，通知其调用acquire方法尝试取到锁。
+
+> 只有acquire锁的线程才能调用wait(), notify()，所以必须在锁release()之前调用wait(), notify()
+
+Condition对象的构造函数可以接受一个Lock/RLock对象作为参数，如果没有指定，则Condition对象会在内部自行创建一个RLock。
+
+除了notify方法外，Condition对象还提供了notifyAll方法，可以通知waiting池中的所有线程尝试acquire内部锁。notifyAll的作用在于防止有线程永远处于沉默状态。
 
 ```python
 #go1干到i=2;等待go2()把活干完，再通知go1
@@ -906,6 +841,70 @@ Thread-2 3
 Thread-2 4
 Thread-1 3
 Thread-1 4
+```
+
+```python
+# example: condition with Producer & Consumer
+# 如果总数<1000,那么每个生产者每次生产100个；如果总数>100， 每个消费者每次消费3个
+import threading
+import time
+
+
+class Producer(threading.Thread):
+    def run(self):
+        global count
+        while True:
+            with con:
+                if count > 1000:
+                    con.wait()
+                else:
+                    count = count+100
+                    print(self.name, 'produce 100, count=', count)
+                    con.notify()
+            time.sleep(1)
+
+
+class Consumer(threading.Thread):
+    def run(self):
+        global count
+        while True:
+            with con:
+                if count < 100:
+                    con.wait()
+                else:
+                    count = count-3
+                    print(self.name, 'consume 3, count=', count)
+                    con.notify()
+            time.sleep(1)
+
+
+count = 500
+con = threading.Condition()
+for i in range(5):
+    c = Consumer()
+    c.start()
+for i in range(2):
+    p = Producer()
+    p.start()
+```
+
+```bash
+# output
+Thread-1 consume 3, count= 497
+Thread-2 consume 3, count= 494
+Thread-3 consume 3, count= 491
+Thread-4 consume 3, count= 488
+Thread-5 consume 3, count= 485
+Thread-6 produce 100, count= 585
+Thread-7 produce 100, count= 685
+Thread-1 consume 3, count= 682
+Thread-4 consume 3, count= 679
+Thread-3 consume 3, count= 676
+Thread-2 consume 3, count= 673
+Thread-7 produce 100, count= 773
+Thread-6 produce 100, count= 873
+Thread-5 consume 3, count= 870
+....
 ```
 
 ### 线程调度
@@ -1233,6 +1232,70 @@ Consumer 1 get:Producer 0's 50563
 Producer 2 product 78167
 Consumer 3 get:Producer 2's 78167
 ......
+```
+
+python的queue模块提供了`Queue`(first in first out), `LifoQueue`(last in first out), `PriorityQueue`都是线程安全的，可用于多线程。
+
+```python
+# mainthread as producer
+import queue
+import threading
+import time
+
+
+class myThread (threading.Thread):
+    def run(self):
+        print(self.name, 'begins')
+        self.process_data(self._args[0])
+        print(self.name, 'ends')
+
+    def process_data(self, q):
+        while not exitFlag:
+            with mutex:
+                if not q.empty():
+                    print(self.name, 'processing', q.get())
+
+
+exitFlag = 0
+q = queue.Queue(10)
+mutex = threading.Lock()
+nameList = ["One", "Two", "Three", "Four", "Five"]
+
+threads = [myThread(args=(q, )) for _ in range(3)]
+for t in threads:
+    t.start()
+
+time.sleep(1)  # 因为q.empty()==True, 所以最先抢到mutex的是主线程
+with mutex:
+    for word in nameList:
+        q.put(word)  # 主线程充当一次性生产者
+
+# 等待队列清空
+while not q.empty():
+    pass
+# 通知线程是时候退出
+exitFlag = 1
+
+# 等待所有线程完成
+for t in threads:
+    t.join()
+print("main thread ends")
+```
+
+```bash
+# output
+Thread-1 begins
+Thread-2 begins
+Thread-3 begins
+Thread-2 processing One
+Thread-2 processing Two
+Thread-2 processing Three
+Thread-2 processing Four
+Thread-2 processing Five
+Thread-2 ends
+Thread-3 ends
+Thread-1 ends
+main thread ends
 ```
 
 应用：创建多个线程抓邮箱，将邮箱用标签标记，然后生产者端，用多个线程根据标签写入文件；不用考虑线程冲突，十分方便；
