@@ -4,6 +4,9 @@
 
 - [Python Process](#python-process)
     - [Introduction](#introduction)
+        - [Concurrency & Parallelism](#concurrency--parallelism)
+        - [process vs thread](#process-vs-thread)
+        - [CPython GIL](#cpython-gil)
     - [multiprocess global varibale](#multiprocess-global-varibale)
     - [multiprocessing](#multiprocessing)
         - [process `join()`](#process-join)
@@ -22,17 +25,65 @@
 
 ## Introduction
 
-服务器有人访问的时候一般是多进程，但是用户太多，压力太大，会选择优化的方法；
+### Concurrency & Parallelism
 
-Python的**多线程是鸡肋**，推荐使用**多进程**
+- 并发(Concurrent)：多个事件在**同一时间段内**发生，每一个时刻只有发生多个事件中的一个
+- 并行(Parallel)：多个事件在**同一时刻**发生
 
-- 并发：多线程，GIL(Global Interpreter Locker)一小段一小段时间循环切换;
-- 并行：多进程
+单核cpu的多进程、多线程都是并发，多核cpu才能实现并行。[Example](https://blog.csdn.net/qq_33530388/article/details/62448212)
 
-应用场景：
+> Intel超线程技术(Hyper Threading)：在一个物理核心的基础上虚拟出两个逻辑核心，操作系统只认逻辑核心，比如4核8线程的i7，任务管理器显示的是8核CPU。下文的多核都是指多逻辑核心。4核8线程肯定比不上8核8线程，一个明显的例子就是密集计算的时候，4核8线程的任务管理器显示为50%占用，实际占用其实到了80-90%.
 
-- 计算(CPU)密集：多进程；计算、深度学习训练、科学计算、内存检索开房数据
-- IO密集: 多线程；网络下载、网络等待、文件操作
+```python
+# 4核8线程电脑上的Anaconda
+import mkl
+print(mkl.get_max_threads()) # 4
+
+# python使用numpy运算的本质是调用了mkl的库
+# 而mkl采用多线程不受gil的限制，我的默认mkl的thread默认是4，而电脑是4核8线程
+# 所以mkl可以将cpu占用到50%，切换为8可能提升性能
+mkl.set_num_threads(8)
+import numpy as np
+
+a = np.random.rand(10000,1000)
+b = np.random.rand(100,10000)
+c = a.dot(b)
+```
+
+### process vs thread
+
+[进程 vs 线程](https://www.jianshu.com/p/ba7aa11d1488)，详见《Modern Operating System》Chapter2, 8
+
+> 进程是资源分配、调度的基本单位  
+> 线程是CPU调度、分派的基本单位。cpu只能看见线程
+
+进程: 由program data, associated data, pcb(process control block)组成。线程在program data中，由thread control block, user stack, kernel stack构成。
+
+> OS通过dispatcher来将cpu core, memory, io等资源分配给一个进程。而cpu core只能看见进程内部的线程， 如果发现多个线程，就往其他的cpu core上分配任务。OS再将空闲cpu core, memory, io分配给下一个进程。多个process的状态根据优先级等不断切换。
+
+并行策略：
+- 多线程并行：将该process中的threads分配到不同的core上面，实现并行
+- 多进程并行：multicore的cpu有多种架构模型，调度模型也不同，一般认为多进程是准并行的。
+- 系统级别的并行
+
+### CPython GIL
+
+> Python因为GIL的存在造成**多线程无法并行**，所以需要使用**多进程并行**
+
+GIL(Global Interpreter Lock)不是python的语法特征，它是实现CPython解释器时引用的一个应用。IronPython, Jython, Pypy中就没有GIL。
+
+GIL造成线程无法并行的原因: 比如Python开了多个线程并分配到多个cpu core, 每个线程执行代码的流程(获取GIL→执行代码→释放GIL)，所以当一个cpu core获得GIL其他的都在等待，相当于只有一个cpu core在执行，无法并行。
+
+Python多进程可以并行的原因: 每一个进程只有一个线程， 虽然每个进程都有GIL但是进程之间互不干扰，仅仅针对多核CPU
+
+Python多进程，多线程应用场景:
+
+- 计算密集：计算、深度学习训练、科学计算、内存检索开房数据
+- IO密集: 网络下载、网络等待、文件操作; 因为没有获得GIL的线程如果是在等待IO的话，也是可以节约时间的。
+
+注意:
+- 一个无法并行的程序，去掉GIL也无法提升性能。比如一个单线程死循环，python代码占用cpu与cpp代码占用cpu差别不大；多线程死循环，python代码占用cpu还是1/8，cpp代码占用就可以到100%。
+- numpy等科学计算库能够提升cpu占用的原因: python调用的c模块，C/CPP模块并不受到GIL影响，C/CPP模块内部开多线程就可以占用cpu到100%。
 
 ```python
 #in linux的fork()
