@@ -54,6 +54,8 @@ c = a.dot(b)
 
 [进程 vs 线程](https://www.jianshu.com/p/ba7aa11d1488)，详见《Modern Operating System》Chapter2, 8
 
+进程不能单独执行，只是资源的集合。进程要操作CPU，必须要先创建一个线程。 所有在同一个进程里的线程，是同享同一块内存空间的
+
 > 进程是资源分配、调度的基本单位  
 > 线程是CPU调度、分派的基本单位。cpu只能看见线程
 
