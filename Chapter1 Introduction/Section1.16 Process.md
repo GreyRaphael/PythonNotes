@@ -12,7 +12,7 @@
         - [process `join()`](#process-join)
     - [进程同步(Lock, RLock)](#进程同步lock-rlock)
     - [进程共享](#进程共享)
-    - [进程队列, 比pip弱](#进程队列-比pip弱)
+    - [进程队列, 比pipe弱](#进程队列-比pipe弱)
         - [两个队列，可以实现双向共享](#两个队列可以实现双向共享)
         - [进程队列高级用法](#进程队列高级用法)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
@@ -54,7 +54,12 @@ c = a.dot(b)
 
 [进程 vs 线程](https://www.jianshu.com/p/ba7aa11d1488)，详见《Modern Operating System》Chapter2, 8
 
-进程不能单独执行，只是资源的集合。进程要操作CPU，必须要先创建一个线程。 所有在同一个进程里的线程，是同享同一块内存空间的
+- 进程不能单独执行，只是资源的集合。
+- 进程要操作CPU，必须要先创建一个线程。 
+- 不同的进程，内存是独立的
+- 在同一个进程里的线程，是同享同一块内存空间的
+- 创建新线程很简单，创建新进程需要对其父进程进行一次克隆，所以启动线程比启动进程快，运行速度没有可比性
+- 同一进程内的线程之间可以互相通信；两个进程通信需要中间代理，另外父进程可以操作子进程
 
 > 进程是资源分配、调度的基本单位  
 > 线程是CPU调度、分派的基本单位。cpu只能看见线程
@@ -67,6 +72,8 @@ c = a.dot(b)
 - 多线程并行：将该process中的threads分配到不同的core上面，实现并行
 - 多进程并行：multicore的cpu有多种架构模型，调度模型也不同，一般认为多进程是准并行的。
 - 系统级别的并行
+
+[线程与进程的优缺点](https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000/0014319292979766bd3285c9d6b4942a8ea9b4e9cfb48d8000)
 
 ### CPython GIL
 
@@ -348,6 +355,75 @@ if __name__ == '__main__':
 - 进程通信：一个人把活干完了，通知其他人；
 - 进程共享：多个人把活干完了，进行汇总；
 
+进程通信的方式:
+- Pipe(): 用于两个进程之间通信
+- Queue(): 在Pipe()基础上发展而来，用于多个进程通信，比Pipe()慢
+
+Example1: Pipe()
+
+```python
+import multiprocessing
+
+def func1(pipe):
+    for i in range(5):
+        pipe.send(i)
+        print(f'func1 receive: {pipe.recv()}')
+
+
+def func2(pipe):
+    for i in range(5):
+        pipe.send(i**2)
+        print(f'func2 receive {pipe.recv()}')
+
+
+if __name__ == '__main__':
+    pipe = multiprocessing.Pipe()
+    p1 = multiprocessing.Process(target=func1, args=(pipe[0], ))
+    p2 = multiprocessing.Process(target=func2, args=(pipe[1], ))
+
+    p1.start()
+    p2.start()
+```
+
+```bash
+# output
+func2 receive 0
+func1 receive: 0
+func1 receive: 1
+func2 receive 1
+func2 receive 2
+func1 receive: 4
+func1 receive: 9
+func2 receive 3
+func1 receive: 16
+func2 receive 4
+```
+
+```python
+import multiprocessing
+
+
+def func(conn, name):
+    print(f"This is {name}, receive >", conn.recv())
+    conn.send([f"message1 from {name}", 3.14])
+    conn.close()
+
+
+if __name__ == '__main__':
+    conn_a, conn_b = multiprocessing.Pipe()  # pipe的两端
+    p1 = multiprocessing.Process(target=func, args=(conn_a, 'p1'))
+    p1.start()
+    # main send something to p1
+    conn_b.send("message from main")
+    print("This is main,", conn_b.recv())
+```
+
+```bash
+# output
+This is p1, receive > message from main
+This is main, ['message1 from p1', 3.14]
+```
+
 ```python
 import multiprocessing
 
@@ -378,35 +454,7 @@ if __name__ == '__main__':
 ['subprocess-0'] 2413416340936
 ```
 
-```python
-import multiprocessing
-import os
-
-
-def func(conn, name):
-    print("This is sub,", os.getpid(), conn.recv())
-    conn.send([f"message from {name}", 'c'])
-    conn.close()
-
-
-if __name__ == '__main__':
-    conn_a, conn_b = multiprocessing.Pipe()  # 2 pip connection
-    # print(conn_a, type(conn_a))
-    p1 = multiprocessing.Process(target=func, args=(conn_a, 'p1'))
-    p1.start()
-    # main send something to p1
-    conn_b.send("message from main")
-    print("This is main,", os.getpid(), conn_b.recv())
-    p1.join()
-```
-
-```bash
-#output
-This is sub, 1672 message from main
-This is main, 9536 ['message from p1', 'c']
-```
-
-## 进程队列, 比pip弱
+## 进程队列, 比pipe弱
 
 这个队列进行了特殊的加工，队列只有一个方向(单向共享)：
 
