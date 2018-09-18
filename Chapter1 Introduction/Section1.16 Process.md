@@ -12,7 +12,7 @@
         - [process `join()`](#process-join)
     - [进程同步(Lock, RLock)](#进程同步lock-rlock)
     - [进程共享](#进程共享)
-    - [进程队列, 比pipe弱](#进程队列-比pipe弱)
+    - [Queue()](#queue)
         - [两个队列，可以实现双向共享](#两个队列可以实现双向共享)
         - [进程队列高级用法](#进程队列高级用法)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
@@ -237,9 +237,124 @@ print(process1.returncode)
 
 ## multiprocessing
 
+可以使用`subprocess`包来创建子进程，但这个包有两个很大的局限性：
+- 我们总是让subprocess运行外部的程序，而不是运行一个Python脚本内部编写的函数。
+- 进程间只通过管道进行文本交流。
+以上限制了我们将subprocess包应用到更广泛的多进程任务。
+
+`multiprocessing.Process`与`threading.Thread`十分类似，可以利用multiprocessing.Process对象来创建一个进程。该进程可以运行在Python程序内部编写的函数。
+也有`start()`, `run()`, `join()`，也有Lock, Event, Semaphore, Condition来进程同步。
+
+multiprocessing的api使用注意:
+- multiprocessing提供了threading包中没有的IPC(比如Pipe和Queue)，效率上更高。应优先考虑Pipe和Queue，避免使用Lock/Event/Semaphore/Condition等同步方式 (因为它们占据的不是用户进程的资源)。
+- 多进程应该避免共享资源。在多线程中，我们可以比较容易地共享资源，比如使用全局变量或者传递参数。在多进程情况下，由于每个进程有自己独立的内存空间，以上方法并不合适。此时我们可以通过共享内存和Manager的方法来共享资源。但这样做提高了程序的复杂度，并因为同步的需要而降低了程序的效率。
+- Process.PID中保存有PID，如果进程还没有start()，则PID为None。
+- 在UNIX平台上，当某个进程终结之后，该进程需要被其父进程调用wait，否则进程成为僵尸进程(Zombie)。所以，有必要对每个Process对象调用join()方法 (实际上等同于wait)。对于多线程来说，由于只有一个进程，所以不存在此必要性。
+
+> 如果一个进程已经终止了,但是其父进程还没有获取其状态,那么这个进程就称之为僵尸进程
+
 python中的这个标准库，是跨平台的；
 
 多进程必须要`main()`否则无法区分主进程和次进程；
+
+```python
+import os
+import threading
+import multiprocessing
+
+
+def worker(sign, mutex):
+    with mutex:
+        print(sign, os.getpid())
+
+
+if __name__ == '__main__':
+    print('main process', os.getpid())
+
+    # multithreads
+    thread_lock = threading.Lock()
+    thread_list = []
+    for i in range(4):
+        t = threading.Thread(target=worker, args=(f't-{i}', thread_lock))
+        thread_list.append(t)
+        t.start()
+
+    for t in thread_list:
+        t.join()
+    
+    # multiprocess
+    process_lock=multiprocessing.Lock()
+    process_list=[]
+    for i in range(4):
+        p=multiprocessing.Process(target=worker, args=(f'p-{i}', process_lock))
+        process_list.append(t)
+        p.start()
+    
+    for p in process_list:
+        p.join()
+```
+
+```bash
+# output,所有Thread的PID都与主程序相同，而每个Process都有一个不同的PID
+main process 13640
+t-0 13640
+t-1 13640
+t-2 13640
+t-3 13640
+p-0 6268
+p-3 9280
+p-1 11176
+p-2 7376
+```
+
+```python
+import multiprocessing
+
+
+def inputQ(i, q):
+    info = f"process-{i}'s {i}"
+    q.put(info)
+
+
+def outputQ(c, q, lock):
+    info = q.get()
+    # 为了不让print乱七八糟
+    with lock:
+        print(f'process-{c} get: {info}')
+
+
+if __name__ == '__main__':
+    input_processes = []
+    output_processes = []
+    lock = multiprocessing.Lock()
+    q = multiprocessing.Queue(3)
+
+    for i in range(5):
+        p = multiprocessing.Process(target=inputQ, args=(i, q))
+        p.start()
+        input_processes.append(p)
+
+    for c in 'ABCD':
+        p = multiprocessing.Process(target=outputQ, args=(c, q, lock))
+        p.start()
+        output_processes.append(p)
+
+    for p in input_processes:
+        p.join()
+
+    q.close()
+
+    for p in output_processes:
+        p.join()
+```
+
+```bash
+# output
+process-B get: process-1's 1
+process-C get: process-4's 4
+process-A get: process-2's 2
+process-D get: process-3's 3
+```
 
 ```python
 import os
@@ -454,7 +569,9 @@ if __name__ == '__main__':
 ['subprocess-0'] 2413416340936
 ```
 
-## 进程队列, 比pipe弱
+## Queue()
+
+Queue允许多个进程放入，多个进程从中取出对象。
 
 这个队列进行了特殊的加工，队列只有一个方向(单向共享)：
 
