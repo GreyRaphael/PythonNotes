@@ -16,7 +16,7 @@
         - [两个队列，可以实现双向共享](#两个队列可以实现双向共享)
         - [进程队列高级用法](#进程队列高级用法)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
-    - [`multiprocessing.List` & `multiprocessing.dict`](#multiprocessinglist--multiprocessingdict)
+    - [``Manager()``](#manager)
     - [csv related](#csv-related)
     - [多线程，多进程应用](#多线程多进程应用)
     - [常见问题](#常见问题)
@@ -357,6 +357,29 @@ process-D get: process-3's 3
 ```
 
 ```python
+# 用lock进程同步
+import multiprocessing
+
+def func(i, lock):
+    with lock:
+        print(f'process-{i}')
+
+
+if __name__ == '__main__':
+    lock=multiprocessing.Lock()
+    for i in range(4):
+        multiprocessing.Process(target=func, args=(i, lock)).start()
+```
+
+```bash
+# output, 没有lock，下面的print，乱糟糟
+process-0
+process-2
+process-1
+process-3
+```
+
+```python
 import os
 import multiprocessing
 
@@ -470,9 +493,20 @@ if __name__ == '__main__':
 - 进程通信：一个人把活干完了，通知其他人；
 - 进程共享：多个人把活干完了，进行汇总；
 
-进程通信的方式:
-- Pipe(): 用于两个进程之间通信
-- Queue(): 在Pipe()基础上发展而来，用于多个进程通信，比Pipe()慢
+Linux进程间通信方式:
+1. 管道通信: pipe可用于具有"血缘"关系进程间(也就是父子进程或者兄弟进程)的通信。named pipe除具有管道所具有的功能外，还允许无"血缘"关系进程间的通信
+1. 信号通信: sinal是在软件层次上对中断机制的一种模拟，它是比较复杂的通信方式，用于通知进程有某事件发生。
+1. 信号量通信: semaphore主要作为进程之间及同一进程的不同线程之间的同步和互斥手段
+1. 消息队列通信: Message queue克服了前几种通信方式中信息量有限的缺点，具有写权限的进程可以按照一定的规则向消息队列中添加消息;对消息队列具有读权限的进程则可以从消息队列中读取消息。
+1. 共享内存通信: Shared Memory可以说这是最有效的进程间通信方式。它使得多个进程可以访问同一块内存空间，不同进程可以及时看到对方进程中对共享内存中数据的更新。这种通信方式需要依靠某种同步机制，如互此锁和信号量等。
+1. socket通信: socket可用于网络中不同机器之间的进程间通信
+
+> 多进程共享资源必然会带来进程间相互竞争。而这种竞争又会造成race condition，我们的结果有可能被竞争的不确定性所影响。如果需要，我们依然可以通过共享内存和Manager对象这么做
+
+python进程通信的方式:
+- `Pipe()`: 用于两个进程之间通信
+- `Queue()`: 在Pipe()基础上发展而来，用于多个进程通信，比Pipe()慢
+- `Value()`, `Array()`,  `Manage()`: 内存共享
 
 Example1: Pipe()
 
@@ -691,20 +725,135 @@ if __name__ == '__main__':
 
 可以线程共享的Value和Array
 
-Type|meaning
----|---
-'c'|char character
-'b'|signed char int
-'B'|unsigned char int
-'u'|Py_UNICODE Unicode character
-'h'|signed short int
-'H'|unsigned short int
-'i'|signed int int
-'I'|unsigned int long
-'l'|signed long int
-'L'|unsigned long long
-'f'|float float
-'d'|double float
+[Type Code](https://docs.python.org/3.7/library/array.html)
+
+| Type code | C Type             | Python Type       | Minimum size in bytes |
+| --------- | ------------------ | ----------------- | --------------------- |
+| 'b'       | signed char        | int               | 1                     |
+| 'B'       | unsigned char      | int               | 1                     |
+| 'u'       | Py_UNICODE         | Unicode character | 2                     |
+| 'h'       | signed short       | int               | 2                     |
+| 'H'       | unsigned short     | int               | 2                     |
+| 'i'       | signed int         | int               | 2                     |
+| 'I'       | unsigned int       | int               | 2                     |
+| 'l'       | signed long        | int               | 4                     |
+| 'L'       | unsigned long      | int               | 4                     |
+| 'q'       | signed long long   | int               | 8                     |
+| 'Q'       | unsigned long long | int               | 8                     |
+| 'f'       | float              | float             | 4                     |
+| 'd'       | double             | float             | 8                     |
+
+```python
+# 内存不共享的多进程
+from multiprocessing import Process
+import time
+li = []
+
+def foo(i):
+    li.append(i)
+    print("say hi", li)
+
+if __name__ == '__main__':
+    p_list = []
+    for i in range(4):
+        p = Process(target=foo, args=(i,))
+        p.start()
+        p_list.append(p)
+
+    for p in p_list:
+        p.join()
+
+    print(li)
+```
+
+```bash
+# output
+say hi [0]
+say hi [2]
+say hi [3]
+say hi [1]
+[]
+```
+
+```python
+import multiprocessing
+import time
+
+def func1(num, arr):
+    num.value = 3.14
+    arr[0] = 111
+
+if __name__ == '__main__':
+    num = multiprocessing.Value('d', 0)
+    arr = multiprocessing.Array('i', range(10))
+    p1 = multiprocessing.Process(target=func1, args=(num, arr))
+    p1.start()
+    p1.join()
+
+    # 子进程修改数据，主进程打印数据
+    print(num.value)
+    print(arr[:])
+```
+
+```python
+import multiprocessing
+
+
+def func(num, arr, li):
+    num.value = 3.14
+    arr[0] = 222
+    li.append('hello')
+
+
+if __name__ == '__main__':
+    server = multiprocessing.Manager()
+    num = server.Value('d', 0)
+    arr = server.Array('i', range(10))
+    li = server.list()
+
+    p = multiprocessing.Process(target=func, args=(num, arr, li))
+    p.start()
+    p.join()
+
+    print(num.value, num)
+    print(list(arr), arr)
+    print(li)
+```
+
+```bash
+# output
+3.14 Value('d', 3.14)
+[222, 1, 2, 3, 4, 5, 6, 7, 8, 9] array('i', [222, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+['hello']
+```
+
+```python
+from multiprocessing import Process, Array
+
+def Foo(i, temp):
+    temp[i] = 100+i
+    for item in temp:
+        print(i, '----->', item)
+
+if __name__ == '__main__':
+    temp = Array('i', [11, 22, 33])
+    for i in range(3):
+        p = Process(target=Foo, args=(i, temp))
+        p.start()
+```
+
+```bash
+# output
+2 -----> 11
+2 -----> 22
+2 -----> 102
+0 -----> 100
+0 -----> 22
+0 -----> 102
+1 -----> 100
+1 -----> 101
+1 -----> 102
+```
 
 ```python
 import multiprocessing
@@ -762,9 +911,13 @@ if __name__ == '__main__':
 [],[10],[111, 11],[10, 11, 12],[10, 11, 12, 13],[10, 11, 12, 13, 14],
 ```
 
-## `multiprocessing.List` & `multiprocessing.dict`
+## ``Manager()``
 
-本质是共享内存；
+Manager对象类似于服务器与客户之间的通信 (server-client)，与我们在Internet上的活动很类似。我们用一个进程作为服务器，建立Manager来真正存放资源。其它的进程可以通过参数传递或者根据地址来访问Manager，建立连接后，操作服务器上的资源。在防火墙允许的情况下，我们完全可以将Manager运用于多计算机，从而模仿了一个真实的网络情境。
+
+> Manager()本质是共享内存；
+
+`Manager()` will support types list, dict, Namespace, Lock, RLock, Semaphore, BoundedSemaphore, Condition, Event, Barrier, Queue, Value and Array. 
 
 ```python
 import multiprocessing
