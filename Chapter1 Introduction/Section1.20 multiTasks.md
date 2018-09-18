@@ -1344,6 +1344,46 @@ test2 args=MainProcess,Thread-1's result
 MainProcess,MainThread end!
 ```
 
+```bash
+# callback用于汇总数据
+from multiprocessing import Pool
+
+def Foo(i):
+    print(f'p-{i}')
+    return i+100
+
+def Bar(return_value):
+    # Foo返回值作为Bar的参数
+    print('return=', return_value)
+    data.append(return_value)
+
+if __name__ == '__main__':
+    data = []
+    pool = Pool(4)
+    for i in range(6):
+        pool.apply_async(func=Foo, args=(i,), callback=Bar)
+    pool.close()
+    pool.join()
+    print(data)
+```
+
+```bash
+# output
+p-0
+p-1
+return= 100
+p-2
+return= 101
+p-3
+return= 102
+p-4
+return= 103
+p-5
+return= 104
+return= 105
+[100, 101, 102, 103, 104, 105]
+```
+
 前端会用到异步，比如网页局部刷新(Ajax)
 
 ## GIL
