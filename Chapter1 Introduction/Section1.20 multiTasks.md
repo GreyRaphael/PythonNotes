@@ -1,5 +1,7 @@
 # python multiTasks
 
+<!-- TOC -->
+
 - [python multiTasks](#python-multitasks)
     - [about CPU](#about-cpu)
     - [process pool](#process-pool)
@@ -7,12 +9,14 @@
         - [Queue](#queue)
         - [pool Queue](#pool-queue)
     - [Thread](#thread)
-    - [线程(tid) vs 进程(pid)](#%E7%BA%BF%E7%A8%8Btid-vs-%E8%BF%9B%E7%A8%8Bpid)
-        - [利用lock来协调线程的顺序](#%E5%88%A9%E7%94%A8lock%E6%9D%A5%E5%8D%8F%E8%B0%83%E7%BA%BF%E7%A8%8B%E7%9A%84%E9%A1%BA%E5%BA%8F)
-    - [Producer & Consumer](#producer-consumer)
+    - [线程(tid) vs 进程(pid)](#线程tid-vs-进程pid)
+        - [利用lock来协调线程的顺序](#利用lock来协调线程的顺序)
+    - [Producer & Consumer](#producer--consumer)
     - [`threading.local()`](#threadinglocal)
-    - [异步](#%E5%BC%82%E6%AD%A5)
+    - [异步](#异步)
     - [GIL](#gil)
+
+<!-- /TOC -->
 
 ## about CPU
 
@@ -62,6 +66,58 @@ print("hahah")
 进程池一开始就建立，最后才销毁，避免频繁分配，提高了效率；
 
 ```python
+# simple example
+from multiprocessing import Pool
+
+def func(x):
+    return x**3
+
+if __name__ == '__main__':
+    p = Pool() # Pool()的默认个数是cpu core number
+    data = [x for x in range(10)]
+    res = p.map(func, data)
+
+    p.close()
+    p.join()
+    print(res)
+```
+
+```python
+from multiprocessing import Pool
+import time
+
+
+def func(name, x):
+    print(f'{name} waits...')
+    time.sleep(2)
+    return x**3
+
+
+if __name__ == '__main__':
+    p = Pool()
+    for i in range(5):
+        res = p.apply_async(func, args=(f'process-{i}', i))
+        print(res.get()) # 不要使用.get()因为会block进程，无法并行
+
+    p.close()
+    p.join()
+```
+
+```bash
+# output
+process-0 waits...
+0
+process-1 waits...
+1
+process-2 waits...
+8
+process-3 waits...
+27
+process-4 waits...
+64
+```
+
+```python
 #这个必须要join，一般的multiprocessing不用，这个是pool，需要
 import multiprocessing
 import time
@@ -106,6 +162,46 @@ SpawnPoolWorker-1 finish4 last 1.0s
 SpawnPoolWorker-2 finish1 last 3.0s
 SpawnPoolWorker-3 finish3 last 3.0s
 ---end---
+```
+
+```python
+from multiprocessing import Pool
+import os
+import time
+
+
+def worker(name):
+    print(name, 'begins')
+    time.sleep(1)
+    print(name, 'ends')
+
+
+if __name__ == '__main__':
+    print('Main Process', os.getpid())
+    p = Pool(4)
+    for i in range(5):
+        # apply_async的时候，进程已经开始
+        p.apply_async(worker, args=(f'task-{i}',))
+
+    p.close()  # join()之前必须有close(), close()之后不能apply了
+    p.join()  # wait all subprocess to finish
+    print('All subprocesses done.')
+```
+
+```bash
+# output
+Main Process 1528
+task-0 begins
+task-1 begins
+task-2 begins
+task-3 begins
+task-0 ends
+task-4 begins
+task-1 ends
+task-2 ends
+task-3 ends
+task-4 ends
+All subprocesses done.
 ```
 
 ```python
