@@ -198,7 +198,7 @@ else:
 ![](res/fork01.png)
 
 ```python
-#in linux
+#in linux, subprocess执行外部程序shell
 import subprocess
 
 #Execute a child program in a new process.
@@ -232,7 +232,7 @@ print(process1.returncode)
 
 ```bash
 #output, 只是对于黑窗口界面
-意外中断，会得到信号
+意外中断，会得到信号，比如ctrl+c
 ```
 
 ## multiprocessing
@@ -255,7 +255,7 @@ multiprocessing的api使用注意:
 
 python中的这个标准库，是跨平台的；
 
-多进程必须要`main()`否则无法区分主进程和次进程；
+多进程必须要有`if __name__=="__main__"`，进程每次将自己复制一遍，如果没有的话，无法区分主进程和次进程；
 
 ```python
 import os
@@ -961,14 +961,22 @@ if __name__ == '__main__':
 read csv
 
 ```python
+# method1: csv package
 import csv
-import codecs
 
-path = r"./res/sz002040.csv"
-csv_reader = csv.reader(codecs.open(path, 'rb', encoding='gbk'))  # 比较通用
-# csv_reader = csv.reader(codecs.open(path, 'r'))
-for line in csv_reader:
-    print(line)
+with open('csv/000001.csv') as file:
+    csv_reader=csv.reader(file)
+
+    for item in csv_reader:
+        print(item) # item是list
+```
+
+```python
+# method2: pandas
+import pandas as pd
+
+data=pd.read_csv('csv/000001.csv', encoding='gbk')
+print(data)
 ```
 
 write csv
@@ -977,9 +985,9 @@ write csv
 import csv
 
 # newline是为了去掉两行之间的空行，显得紧凑
-with open('./test.csv', 'w', newline='') as data_csv:
-    csv_writer=csv.writer(data_csv, dialect='excel')
-    csv_writer.writerow([x for x in range(10)])
+with open('test.csv', 'w', newline='') as file:
+    csv_writer=csv.writer(file)
+    csv_writer.writerow([x for x in range(4)])
     csv_writer.writerow(['a', 'b', 'c', 'd'])
 ```
 
@@ -1003,7 +1011,7 @@ class MyCountThread(threading.Thread):
         with open(self.path, 'r') as data_csv:
             csv_reader = csv.reader(data_csv)
             lines = 0
-            for line in csv_reader:
+            for _ in csv_reader:
                 lines += 1
             self.lines_count = lines
 
@@ -1012,12 +1020,7 @@ path = "./res/sz002040.csv"
 thread1 = MyCountThread(path)
 thread1.start()
 thread1.join() #这里必须加上join()，因为主线程等待子线程结束才会结束，子线程虽然是前台模式；如果没有join()主线程打印完下一行后才会等待
-print(thread1.lines_count)
-```
-
-```bash
-#ouptut
-3150
+print(thread1.lines_count) # 3150
 ```
 
 多线程统计文件的行数
@@ -1039,7 +1042,7 @@ class MyCountThread(threading.Thread):
         with open(self.path, 'r') as data_csv:
             csv_reader = csv.reader(data_csv)
             lines = 0
-            for line in csv_reader:
+            for _ in csv_reader:
                 lines += 1
             self.lines_count = lines
 
@@ -1055,13 +1058,8 @@ for filename in filename_list:
 for my_thread in thread_list:
     my_thread.join()
     line_count_list.append(my_thread.lines_count)
-print(line_count_list)
+print(line_count_list) # [3150, 3134, 3127, 3123, 3117]
 # 求平均数、方差、后面就是数学方面的东西
-```
-
-```bash
-#output
-[3150, 3134, 3127, 3123, 3117]
 ```
 
 单进程统计文件的行数, 可以用主进程来做，为了举例子，采用了multiprocessing
@@ -1095,6 +1093,7 @@ if __name__ == '__main__':
 多进程统计文件行数
 
 ```python
+# with Value()
 import os
 import csv
 import multiprocessing
@@ -1103,66 +1102,91 @@ import multiprocessing
 def get_lines_count(path, data):
     with open(path, 'r') as data_csv:
         csv_reader = csv.reader(data_csv)
-        for line in csv_reader:
+        for _ in csv_reader:
             data.value += 1
-    # print(multiprocessing.current_process(), data.value)
 
 
 if __name__ == '__main__':
     filename_list = os.listdir("./res")
-    process_list = []
+    p_list = []
     data_list = []  # 存多进程共享数据
-    for i in range(len(filename_list)):
+    for i, filename in enumerate(filename_list):
         data_list.append(multiprocessing.Value('i', 0))
-        process = multiprocessing.Process(target=get_lines_count, args=(f"./res/{filename_list[i]}", data_list[i]))
-        process_list.append(process)
-        process.start()
-    for process in process_list:
-        process.join()
+        p = multiprocessing.Process(target=get_lines_count, args=(f"./res/{filename}", data_list[i]))
+        p_list.append(p)
+        p.start()
+    for p in p_list:
+        p.join()
     for data in data_list:
         print(data.value, end=',')
-```
-
-```bash
-#ouput
-3150,3134,3127,3123,3117,
+    # 3150,3134,3127,3123,3117,
 ```
 
 ```python
+# with Manager().list()
 import os
 import csv
 import multiprocessing
 
 
 def get_lines_count(path, my_list):
-    with open(path, 'r') as data_csv:
-        csv_reader = csv.reader(data_csv)
+    with open(path) as file:
+        csv_reader = csv.reader(file)
         lines = 0
-        for line in csv_reader:
+        for _ in csv_reader:
             lines += 1
         my_list.append(lines)
 
 
 if __name__ == '__main__':
     filename_list = os.listdir("./res")
-    process_list = []
-    data_list = multiprocessing.Manager().list()
-    for i in range(len(filename_list)):
-        process = multiprocessing.Process(target=get_lines_count, args=(f"./res/{filename_list[i]}", data_list))
-        process_list.append(process)
-        process.start()
-    for process in process_list:
-        process.join()
-    for data in data_list:
-        print(data, end=',')
+    p_list = []
+
+    with multiprocessing.Manager() as m:
+        data_list=m.list()
+
+        for i, filename in enumerate(filename_list):
+            p = multiprocessing.Process(target=get_lines_count, args=(f"./res/{filename_list[i]}", data_list))
+            p_list.append(p)
+            p.start()
+        for p in p_list:
+            p.join()
+        print(data_list) # [3123,3127,3117,3134,3150]
 ```
 
-```bash
-#ouput
-3123,3127,3117,3134,3150,
+```python
+# with Manager().dict()
+import os
+import csv
+import multiprocessing
+
+
+def get_lines_count(filename, my_dict):
+    with open(f'./res/{filename}') as file:
+        csv_reader = csv.reader(file)
+        lines = 0
+        for _ in csv_reader:
+            lines += 1
+        my_dict[filename] = lines
+
+
+if __name__ == '__main__':
+    filename_list = os.listdir("./res")
+    p_list = []
+
+    with multiprocessing.Manager() as m:
+        data_dict = m.dict()
+
+        for i, filename in enumerate(filename_list):
+            p = multiprocessing.Process(target=get_lines_count, args=(filename, data_dict))
+            p_list.append(p)
+            p.start()
+        for p in p_list:
+            p.join()
+        print(data_dict) # {'000003.csv': 2771, '000004.csv': 4887, '000002.csv': 4881, '000001.csv': 4880, '000005.csv': 4882}
 ```
 
-求每个公司的平均市值：
+求每个公司的平均市值：一般pandas更快
 
 ```python
 #修改的部分
