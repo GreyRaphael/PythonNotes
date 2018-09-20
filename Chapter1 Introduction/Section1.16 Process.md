@@ -214,6 +214,8 @@ print(process1.returncode)
 0
 ```
 
+[Python's signal](https://www.jianshu.com/p/c8edab99173d)
+
 ```python
 #in linux
 import subprocess
