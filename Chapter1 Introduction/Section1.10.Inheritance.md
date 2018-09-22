@@ -311,6 +311,8 @@ w1=Woman('jane', 25, 160)
 m1.make_friends(w1)# grey make friend with jane
 ```
 
+> 一般基类不单独实例化，所以`super().__init__()`一般没有参数，上面是为了演示MRO
+
 example2:
 
 ```python
@@ -670,7 +672,7 @@ print(a1.num, a2.num)# 100 100
 [实例方法、类方法、静态方法区别](https://blog.csdn.net/lihao21/article/details/79762681)
 
 staicmethod其实和外部函数差不多, 只不过通过实例、类来调用而已; 
-> 比如某些module中的staicmethod, 只是通过模块名来组织成一个工具包而已;
+> 比如某些module中的staicmethod, 只是通过模块名来组织成一个工具包而已; 静态方法无法通过`self`, `cls`访问class或者instance的任何属性，除非将instance作为静态方法的参数。
 
 ```python
 class A(object):
