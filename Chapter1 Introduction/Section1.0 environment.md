@@ -13,8 +13,7 @@
     - [python like shell](#python-like-shell)
     - [python project directory structure](#python-project-directory-structure)
         - [examples](#examples)
-    - [python AI](#python-ai)
-    - [python big data](#python-big-data)
+    - [Google Python code stype](#google-python-code-stype)
 
 <!-- /TOC -->
 
@@ -154,20 +153,6 @@ from atm import main
 main.main()
 ```
 
-## python AI
+## Google Python code stype
 
-- scikit-learn
-- knn算法, 线性回归, logistic回归
-- 决策树
-- 朴素贝叶斯
-- 验证码识别
-- k-means
-- tensorflow
-- .cnn, .rnn
-- python alphago
-
-## python big data
-
-- python hadoop
-- python spark
-- python storm
+[Google code style](https://zh-google-styleguide.readthedocs.io/en/latest/contents/)
