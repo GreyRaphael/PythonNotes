@@ -1277,6 +1277,40 @@ print(dict1)
 {4: 'grey', 11: 'alpha', 6: 'beta', 1: 'gamma'}
 ```
 
+iterable排序有两种方式:
+- 内建的`.sort()`
+- `sorted()`
+
+```python
+# example1: number
+# sorted不改变原数据
+L1=[36, 5, 12, -9, 21]
+print(sorted(L1, reverse=True)) # [36, 21, 12, 5, -9]
+print(sorted(L1, key=lambda x: x**2)) # [5, -9, 12, 21, 36]
+
+# .sort改变原数据
+L1.sort(reverse=True)
+print(L1) # [36, 21, 12, 5, -9]
+
+# example2: string
+L2=['bob', 'about', 'Zoo', 'Credit']
+print(sorted(L2)) # 根据ASCII排序，['Credit', 'Zoo', 'about', 'bob']
+print(sorted(L2, key=str.lower)) # ['about', 'bob', 'Credit', 'Zoo']
+
+# example3: tuple
+L3=[('b', 6), ('a', 1), ('c', 3), ('d', 4), ('a', 7)]
+print(sorted(L3)) # [('a', 1), ('a', 7), ('b', 6), ('c', 3), ('d', 4)]
+print(sorted(L3, key=lambda x: x[1])) # [('a', 1), ('c', 3), ('d', 4), ('b', 6), ('a', 7)]
+
+# example4: tuple with itemgetter
+import operator
+print(sorted(L3, key=operator.itemgetter(1))) # [('a', 1), ('c', 3), ('d', 4), ('b', 6), ('a', 7)]
+
+# examle5: 多个关键字排序，先按照其中一个排序，相同的话按照另一个排序
+print(sorted(L3, key=lambda x: (x[1], x[0]))) # [('a', 1), ('c', 3), ('d', 4), ('b', 6), ('a', 7)]
+print(sorted(L3, key=operator.itemgetter(1, 0))) # [('a', 1), ('c', 3), ('d', 4), ('b', 6), ('a', 7)]
+```
+
 ### `zip`
 
 zip的两个参数，长度可以不一致
