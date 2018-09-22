@@ -49,7 +49,9 @@
 **OSI model** vs **TCP/IP model** vs **TCP/IP Suite**
 > ![](res/tcp-ip-osi.jpg)
 
-OSI示意图:
+OSI示意图: 网络层的IP协议表示两者之间是连着的，但是不能相互发数据，往上的传输层才能表示能够进行数据传输(TCP, UDP)。ICMP是网络层的，发`ping`包用的。
+> 两个人都在服务区相当于是网络层(两者之间有物理连接)；两个人接通电话相当于是传输层；两个人说英文、中文相当是应用层。
+
 > ![OSI model](res/osi.png)
 
 通信过程: 没经过一层就在原数据的基础上增加一些东西，接收方接收之后解包
@@ -63,7 +65,12 @@ TCP/IP Model下的通信过程
 > ![](res/tcp_ip_encapsulation.gif)
 
 socket是对TCP/IP协议的封装，Socket本身并不是协议，而是一个调用接口（API），通过Socket，我们才能使用TCP/IP协议。操作系统提供了socket接口(api)；应用层可以和传输层通过Socket接口，区分来自不同应用程序进程或网络连接的通信；python的socket模块本质是时对操作系统的socket进一步封装。
-> Socket本质就是对网络传输行为的封装，通过这个封装我们可以无视网路层、链路层和传输层的是怎么做的。 我只要告诉它，我要用到的协议类型是TCP还是UDP。 
+> Socket本质就是对网络传输行为(TCP, UDP有不同的传输行为，下图以TCP为例: 建立连接，send, receive，断开连接)的封装，通过这个封装我们可以无视网路层、链路层和传输层的是怎么做的。 我只要告诉它，我要用到的协议类型是TCP还是UDP。 
+
+TCP时序图:
+> ![](res/tcp03.png)
+
+UDP时序图: 无连接，只有发送、接收
 
 ## 端口(port)
 
@@ -132,6 +139,14 @@ ipv6是用`:`分隔开，20个16进制数，每4个一组
 
 它能实现不同主机间的进程间通信，我们网络上各种各样的服务大多都是基于 Socket 来完成通信的
 
+本机进程默认无法通信，实现进程通信
+- 文件读写 
+- 可以`socket.AF_UNIX`unix本机进程间通信，本质是socket相当于文件
+
+`socket.SOCK_RAW`原始套接字，普通的套接字无法处理ICMP、IGMP等网络报文，而SOCK_RAW可以；其次，SOCK_RAW也可以处理特殊的IPv4报文；此外，利用原始套接字，可以通过IP_HDRINCL套接字选项由用户伪造IP头，进行洪水攻击
+
+> 洪水攻击: 用伪造的ip发SYN, 然后服务器回复SYN+ACK，因为是伪造的，三次握手的最后一次无法实现，那么服务器处于SYN.RCVD等待；如果伪造的ip太多，那么服务器假死。
+
 ```python
 #socket和之前进程通信的队列是同样的功能
 import socket
@@ -160,6 +175,19 @@ data = "helllo, this is grey".encode('utf-8')
 # data = b"helllo, this is grey"
 s2.sendto(data, target_addr)
 s2.close()
+```
+
+```python
+# tcp 简单例子，发给网络助手
+import socket
+
+tcp_socket=socket.socket()
+tcp_socket.connect(('222.29.69.149', 9999))
+tcp_socket.send(b'helo, world')
+
+data=tcp_socket.recv(1024)
+print(data)
+tcp_socket.close()
 ```
 
 ```bash
@@ -873,6 +901,17 @@ DHCP Server提供自动分配ip的服务, 然后每个终端修改为DHCP获取i
 ### TCP三次握手
 
 三次握手: 也就是`tcp_socket.connect()`时候发生的事情;
+
+简单理解三次握手:
+- A: 你在吗？(SYN)
+- B: 我在(ACK)，有什么事情吗？(SYN)
+- A: 我要给你发数据(ACK)
+
+简单理解四次挥手:
+- A: 我没有数据发了(ACK), 我可以关闭连接了吗？(FIN)
+- B: 你可以关闭了(ACK)
+- B: 那我能关闭了吗？(FIN)
+- A: 你可以关闭了(ACK)
 
 三次握手过程:
 
