@@ -1375,8 +1375,14 @@ if hasattr(a1, choice):
     attr=getattr(d, choice) # method object
     attr('chicken')
 elif choice=='drink':
+    # set一个方法
     setattr(a1, choice, drink) # 得到的函数名是choice, 不是drink
     getattr(a1, choice)(a1, 'cola')
 else:
     print('do nothing')
+    # set一个属性
+    setattr(a1, choice, None)
+    print(getattr(a1, choice))
 ```
+
+> 如果没有Reflection， 只能用大量if不断判断，代码冗长；使用Relection之后，代码精简，而且程序根据用户输入，动态装配不同的功能。
