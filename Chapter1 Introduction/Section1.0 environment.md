@@ -3,36 +3,22 @@
 <!-- TOC -->
 
 - [Python Environment](#python-environment)
-    - [window环境变量](#window环境变量)
-    - [`.py` file format](#py-file-format)
-    - [Anaconda](#anaconda)
+    - [Anaconda & VSCode](#anaconda--vscode)
     - [py2exe](#py2exe)
     - [pywin32](#pywin32)
-    - [wmi(Windows Management Instrumentation)](#wmiwindows-management-instrumentation)
     - [CGI](#cgi)
     - [python like shell](#python-like-shell)
     - [python project directory structure](#python-project-directory-structure)
         - [examples](#examples)
-    - [Google Python code stype](#google-python-code-stype)
+    - [Python code stype](#python-code-stype)
 
 <!-- /TOC -->
 
-## window环境变量
+## Anaconda & VSCode
 
-环境变量的意义在于可以在cmd中不用输入路径就打开一个外部的exe(比如`firefox`)
-
-## `.py` file format
-
-`pip install autopep8`
-- vscode: **Shift+Alt+F**
-- pycharm: **Ctrl+Alt+L**
-
-
-## Anaconda
-
-机器学习要用到anaconda工具(最好用64bit),也可以用winpython
-
-安装anaconda完毕之后，在pyCharm中选择Anaconda的python
+配置[Anaconda3](https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/)环境
+- PyCharm中选择Anaconda的python
+- VSCode的setting: `"python.pythonPath": "D:/ProgrammingTools/Anaconda3/python",`
 
 Anaconda中`conda update --all`遇到问题，看看结果，一般
 
@@ -43,8 +29,9 @@ conda update ipykernel
 conda update --all
 ```
 
-- `D:\ProgrammingTools\Anaconda3\Lib`里面一般是系统lib
-- `D:\ProgrammingTools\Anaconda3\Lib\site-packages`里面一般是安装的lib
+>`D:\ProgrammingTools\Anaconda3\Lib`里面一般是系统lib  
+>`D:\ProgrammingTools\Anaconda3\Lib\site-packages`里面一般是安装的lib  
+>`D:\ProgrammingTools\Anaconda3\pkgs`里面的可以全部删除  
 
 ## py2exe
 
@@ -54,12 +41,6 @@ https://pypi.python.org/pypi/py2exe/0.9.2.0
 
 调用windows自带的软件(text to speech,speech reconition),要用到
 [Pywin32 Download](https://sourceforge.net/projects/pywin32/)
-
-## wmi(Windows Management Instrumentation)
-
-https://pypi.python.org/pypi/WMI
-
-获取一些系统的信息(流量、内存、cpu...)
 
 ## CGI
 
@@ -153,6 +134,10 @@ from atm import main
 main.main()
 ```
 
-## Google Python code stype
+## Python code stype
 
 [Google code style](https://zh-google-styleguide.readthedocs.io/en/latest/contents/)
+
+`pip install autopep8`
+- vscode: **Shift+Alt+F**
+- pycharm: **Ctrl+Alt+L**
