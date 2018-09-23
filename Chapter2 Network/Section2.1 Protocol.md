@@ -623,21 +623,27 @@ tcp_socket.close()
 
 ```python
 #socket是全双工了，这里相当于模拟了半双工
-#而且是单任务的，一次只能一个new_socket
+#而且是单任务的，一次只能一个new_socket；
+# 也就是一次只能接一个client，连接第二个必须断开第一个client
 #把new_socket放到进程中去
 #tcp server，单双工，收的时候发不了；发的时候收不了
 import socket
 
-tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcp_socket.bind(('', 7788))
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
 tcp_socket.listen(10)#变被动
 while True:
     new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
     while True:
         recv_data = new_socket.recv(1024).decode('utf-8')
-        if len(recv_data) > 0:
+        if recv_data: 
+            # Linux下如果客户端Ctrl+C断开，那么recv_data为""，并且死循环
+            # windows下会假死
             print(f'>>{recv_data}')
         else:
+            # 如果Client挂了，那么结束这个new_socket
+            print('client has lost')
             break
         send_data="Hello, this is server"
         new_socket.send(('>>'+send_data).encode('utf-8'))
@@ -650,14 +656,16 @@ tcp_socket.close()
 #tcp client
 import socket
 
-tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcp_socket.connect(('10.128.160.66', 7788))
+tcp_socket = socket.socket()
+tcp_socket.connect(('localhost', 7788))
 while True:
     send_data = input("<<")
-    if len(send_data) > 0:
+    if send_data:
         tcp_socket.send(send_data.encode('utf-8'))
     else:
-        break
+        # 发不了""，所以干脆continue或者break
+        print('you send empty! will continue')
+        continue
     recv_data = tcp_socket.recv(1024).decode('utf-8')
     print(recv_data)
 tcp_socket.close()
@@ -677,6 +685,142 @@ tcp_socket.close()
 <<Hello, this is server
 >>这是我
 <<Hello, this is server
+```
+
+```python
+# ssh服务器
+import os
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
+tcp_socket.listen(10)  # 变被动
+while True:
+    new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
+    while True:
+        # 假装一次能够收10k
+        recv_data = new_socket.recv(10240).decode('utf-8')
+        if recv_data:
+            # Linux下如果客户端Ctrl+C断开，那么recv_data为""，并且死循环
+            # windows下会假死
+            print(f'>>{recv_data}')
+        else:
+            # 如果Client挂了，那么结束这个new_socket
+            print('client has lost')
+            break
+        send_data = os.popen(recv_data).read()
+        new_socket.send(('>>'+send_data).encode('utf-8'))
+        print('<<'+send_data)
+    new_socket.close()
+tcp_socket.close()
+```
+
+```python
+# 文件传输server
+import os
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
+tcp_socket.listen(10)  # 变被动
+
+while True:
+    new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
+    while True:
+        recv_data = new_socket.recv(1024).decode('utf-8')
+        if recv_data:
+            # Linux下如果客户端Ctrl+C断开，那么recv_data为""，并且死循环
+            # windows下会假死
+            print(f'>>{recv_data}')
+        else:
+            # 如果Client挂了，那么结束这个new_socket
+            print('client has lost')
+            break
+        
+        file=open('test.mp4', 'rb') # 60M
+        send_data=file.read()
+        new_socket.send(send_data)
+        print('<< server finish sending')
+    new_socket.close()
+tcp_socket.close()
+```
+
+```python
+# 文件传输client
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.connect(('localhost', 7788))
+while True:
+    send_data = input("<<")
+    if send_data:
+        tcp_socket.send(send_data.encode('utf-8'))
+    else:
+        # 发不了""，所以干脆continue或者break
+        print('you send empty! will continue')
+        continue
+    recv_data = tcp_socket.recv(1024*1024*100)
+    # 虽然是60M, 但是server一次只能发32k
+    with open('movie.mp4', 'wb') as file:
+        file.write(recv_data)
+tcp_socket.close()
+```
+
+> 文件传输server有一个最大的send大小32k, 文件传输client也有一个最大的recv限制
+
+```python
+# 文件传输server，循环发送sendall()
+import os
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
+tcp_socket.listen(10)  # 变被动
+
+while True:
+    new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
+    while True:
+        recv_data = new_socket.recv(1024).decode('utf-8')
+        if recv_data:
+            print(f'>>{recv_data}')
+        else:
+            print('client has lost')
+            break
+        
+        file=open('test.mp4', 'rb') # 60M
+        send_data=file.read()
+        new_socket.sendall(send_data) # 循环发送
+        print('<< server finish sending')
+    new_socket.close()
+tcp_socket.close()
+```
+
+```python
+# 文件传输client, 循环接收
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.connect(('localhost', 7788))
+
+file=open('movie.mp4', 'wb')
+
+while True:
+    send_data = input("<<")
+    if send_data:
+        tcp_socket.send(send_data.encode('utf-8'))
+    else:
+        # 发不了""，所以干脆continue或者break
+        print('you send empty! will continue')
+        continue
+    recv_data = tcp_socket.recv(1024*1024)
+    file.write(recv_data)
+    file.flush()
+
+file.close
+tcp_socket.close()
 ```
 
 ```python
