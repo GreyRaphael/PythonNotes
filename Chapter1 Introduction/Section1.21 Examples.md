@@ -29,6 +29,10 @@
     - [python with pdf](#python-with-pdf)
     - [sqlite3](#sqlite3)
     - [data](#data)
+    - [SMTP](#smtp)
+        - [simple email](#simple-email)
+        - [email with attachment](#email-with-attachment)
+    - [email with image](#email-with-image)
 
 <!-- /TOC -->
 
@@ -1850,3 +1854,173 @@ df.to_sql('table_name', con=engine, if_exists='append', index_label='id')
 
 可以利用之前在东方财富网弄到的股票代码来遍历这些接口；
 
+## SMTP
+
+### simple email
+
+```python
+# plain email
+import smtplib
+from email.mime.text import MIMEText
+
+sender = 'vip.gewei@foxmail.com'
+receivers = ['gewei@pku.edu.cn', 'pku_gewei@163.com']
+
+msg = MIMEText('This is my content!')
+msg['From'] = f'Wei Ge<{sender}>'  # Wei Ge表示显示的名字
+msg['To'] = ';'.join(receivers)
+msg['Subject'] = 'This is subject'
+
+try:
+    mail_server = smtplib.SMTP_SSL()
+    mail_server.connect('smtp.qq.com', 465)
+    # # 或者采用
+    # mail_server=smtplib.SMTP()
+    # mail_server.connect('smtp.qq.com', 25)
+
+    user_name = sender
+    user_pwd = 'xxxxxxxxxx'
+    mail_server.login(user_name, user_pwd)
+
+    mail_server.sendmail(sender, receivers, msg.as_bytes())
+except Exception as e:
+    print('send mail failed:', e)
+else:
+    print('send mail success!')
+```
+
+```python
+# email 增加称呼
+import smtplib
+from email.mime.text import MIMEText
+
+sender = 'vip.gewei@foxmail.com'
+receivers = ['gewei@pku.edu.cn', 'pku_gewei@163.com']
+
+# 增加开头的称呼
+receiver_names = []
+for r in receivers:
+    at_index = r.index('@')
+    receiver_names.append(r[:at_index])
+content_begins = ', '.join(receiver_names)
+
+msg = MIMEText(f'Dear {content_begins}, \n\nThis is my content!')
+msg['From'] = f'Wei Ge<{sender}>'  # Wei Ge表示显示的名字
+msg['To'] = ';'.join(receivers)
+msg['Subject'] = 'This is subject'
+
+try:
+    mail_server = smtplib.SMTP_SSL()
+    mail_server.connect('smtp.qq.com', 465)
+
+    user_name = sender
+    user_pwd = 'xxxxxxxxxx'
+    mail_server.login(user_name, user_pwd)
+
+    mail_server.sendmail(sender, receivers, msg.as_bytes())
+except Exception as e:
+    print('send mail failed:', e)
+else:
+    print('send mail success!')
+```
+
+```python
+# html email
+content="""
+<p>Dear <strong>Grey</strong>:</p>
+<p>&nbsp;&nbsp;&nbsp; This is my first <span style="color: #ff0000;">mail</span> to you!</p>
+<p>Yours sincerely</p>
+<p>James</p>"""
+
+msg=MIMEText(content, 'html')
+```
+
+### email with attachment
+
+```python
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+sender = 'vip.gewei@foxmail.com'
+receivers = ['gewei@pku.edu.cn', 'pku_gewei@163.com']
+
+msg = MIMEMultipart()
+msg['From'] = f'Wei Ge<{sender}>'  # Wei Ge表示显示的名字
+msg['To'] = ';'.join(receivers)
+msg['Subject'] = 'This is subject'
+msg.attach(MIMEText('This is content!'))
+
+attachment1 = MIMEText(open('Test.py', 'rb').read(), 'base64', 'utf8')
+attachment1['Content-Type'] = 'application/octet-stream'
+attachment1["Content-Disposition"] = 'attachment; filename="Test.py"'
+attachment2 = MIMEText(open('Hello.txt', 'rb').read(), 'base64', 'utf8')
+attachment2['Content-Type'] = 'application/octet-stream'
+attachment2["Content-Disposition"] = 'attachment; filename="Hello.txt"'
+msg.attach(attachment1)
+msg.attach(attachment2)
+
+
+try:
+    mail_server = smtplib.SMTP_SSL()
+    mail_server.connect('smtp.qq.com', 465)
+    # # 或者采用
+    # mail_server=smtplib.SMTP()
+    # mail_server.connect('smtp.qq.com', 25)
+
+    user_name = sender
+    user_pwd = 'xxxxxxxxxxx'
+    mail_server.login(user_name, user_pwd)
+
+    mail_server.sendmail(sender, receivers, msg.as_bytes())
+except Exception as e:
+    print('send mail failed:', e)
+else:
+    print('send mail success!')
+```
+
+## email with image
+
+```python
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+
+
+sender = 'vip.gewei@foxmail.com'
+receivers = ['gewei@pku.edu.cn', 'pku_gewei@163.com']
+
+msg = MIMEMultipart()
+msg['From'] = f'Wei Ge<{sender}>'
+msg['To'] = ';'.join(receivers)
+msg['Subject'] = 'This is subject'
+
+part = MIMEMultipart()
+content = """
+<p>Python Email Test...</p>
+<p>Picture: </p>
+<p><img src="cid:image1" width="300"></p>
+"""
+part.attach(MIMEText(content, 'html', 'utf8'))
+msg.attach(part)
+
+with open('Pig.png', 'rb') as file:
+    img = MIMEImage(file.read())
+    img.add_header('Content-ID', '<image1>')
+    msg.attach(img)
+
+try:
+    mail_server = smtplib.SMTP_SSL()
+    mail_server.connect('smtp.qq.com', 465)
+
+    user_name = sender
+    user_pwd = 'great@@631331'
+    mail_server.login(user_name, user_pwd)
+
+    mail_server.sendmail(sender, receivers, msg.as_bytes())
+except Exception as e:
+    print('send mail failed:', e)
+else:
+    print('send mail success!')
+```
