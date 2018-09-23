@@ -10,6 +10,9 @@
     - [`requests`](#requests)
     - [`BeautifulSoup`](#beautifulsoup)
         - [BeautifulSoup selector](#beautifulsoup-selector)
+    - [selenium](#selenium)
+        - [selenium + chrome](#selenium--chrome)
+        - [selenium + phantomjs](#selenium--phantomjs)
 
 <!-- /TOC -->
 
@@ -976,4 +979,59 @@ print(soup.select('.container .a-pop .list-wrap')) # class选择器
 print(soup.select('head > title')) # 子标签选择器
 # print(soup.select('div[class="container"]'))
 # print(soup.select('a[name="grey"]'))
+```
+
+## selenium
+
+### selenium + chrome
+
+> 先要下载[chromedriver](http://chromedriver.chromium.org/downloads)
+
+```python
+from selenium import webdriver
+
+options = webdriver.ChromeOptions()
+options.binary_location = 'D:/Cent/chrome.exe'
+driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
+
+url = 'http://www.cmsoft.cn/'
+driver.get(url)
+page_source = driver.page_source
+driver.close()
+
+print(page_source) # 包含了动态生成的html
+```
+
+### selenium + phantomjs
+
+先要下载[phantomjs](http://phantomjs.org/)
+
+```python
+from selenium import webdriver
+
+driver=webdriver.PhantomJS('phantomjs.exe')
+
+url = 'http://www.cmsoft.cn/'
+driver.get(url)
+page_source = driver.page_source
+driver.close()
+
+print(page_source)
+```
+
+```python
+# phantom with user-agents
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+dcap = dict(DesiredCapabilities.PHANTOMJS)
+dcap["phantomjs.page.settings.userAgent"] = ("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0", )
+driver = webdriver.PhantomJS('phantomjs.exe', desired_capabilities=dcap)
+
+url = 'http://www.cmsoft.cn/'
+driver.get(url)
+page_source = driver.page_source
+driver.close()
+
+print(page_source)
 ```
