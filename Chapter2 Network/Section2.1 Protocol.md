@@ -7,6 +7,7 @@
     - [端口(port)](#端口port)
     - [ip addr](#ip-addr)
     - [socket](#socket)
+    - [SocketServer](#socketserver)
     - [wireshark](#wireshark)
     - [tftp](#tftp)
     - [udp brodcast](#udp-brodcast)
@@ -66,6 +67,13 @@ TCP/IP Model下的通信过程
 
 socket是对TCP/IP协议的封装，Socket本身并不是协议，而是一个调用接口（API），通过Socket，我们才能使用TCP/IP协议。操作系统提供了socket接口(api)；应用层可以和传输层通过Socket接口，区分来自不同应用程序进程或网络连接的通信；python的socket模块本质是时对操作系统的socket进一步封装。
 > Socket本质就是对网络传输行为(TCP, UDP有不同的传输行为，下图以TCP为例: 建立连接，send, receive，断开连接)的封装，通过这个封装我们可以无视网路层、链路层和传输层的是怎么做的。 我只要告诉它，我要用到的协议类型是TCP还是UDP。 
+
+应用程序通常通过socket向网络发出请求或者应答网络请求，使主机间或者一台计算机上的进程间可以通讯。
+
+Python提供了两个级别访问的网络服务：
+- 低级别的网络服务支持基本的 Socket，它提供了标准的 BSD Sockets API，可以访问底层操作系统Socket接口的全部方法。
+- 高级别的网络服务模块 SocketServer， 它提供了服务器中心类，可以简化网络服务器的开发。
+
 
 TCP时序图:
 > ![](res/tcp03.png)
@@ -376,6 +384,32 @@ sys.stdout.write('\n')
 #output, 强制退出的结果
 49.00%|#########
 Process finished with exit code 1
+```
+
+## SocketServer
+
+```python
+import socketserver
+
+class MySock(socketserver.BaseRequestHandler):
+    def handle(self):
+        print('got a new connection from:', self.client_address)
+        while True:
+            data=self.request.recv(1024).decode('utf8')
+            if data:
+                print('received:', data)
+            else:
+                print('client has host...')
+                break
+            self.request.send(data.upper().encode('utf8'))
+
+def main():
+    addr=('localhost', 9999)
+    s=socketserver.ThreadingTCPServer(addr, MySock)
+    s.serve_forever()
+
+if __name__ == '__main__':
+    main()
 ```
 
 ## wireshark
