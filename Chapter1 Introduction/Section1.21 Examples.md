@@ -1331,6 +1331,16 @@ p_obj1.add_run('behind p_obj1')
 doc.save('doc2.docx')
 ```
 
+example3: read xlsx
+
+```python
+import xlrd
+
+wb = xlrd.open_workbook('filename.xlsx')
+sheet = wb.sheet_by_name('Sheet1')
+data_list = sheet.col_values(0) # 第一列的数据
+```
+
 ## python with pdf
 
 `pip install pypdf2`
