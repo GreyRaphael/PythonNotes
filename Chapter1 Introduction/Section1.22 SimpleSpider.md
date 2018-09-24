@@ -13,6 +13,9 @@
     - [selenium](#selenium)
         - [selenium + chrome](#selenium--chrome)
         - [selenium + phantomjs](#selenium--phantomjs)
+    - [login with cookie](#login-with-cookie)
+        - [method1: only with session](#method1-only-with-session)
+        - [method2&3: cookie with request](#method23-cookie-with-request)
 
 <!-- /TOC -->
 
@@ -1036,4 +1039,75 @@ page_source = driver.page_source
 driver.close()
 
 print(page_source)
+```
+
+## login with cookie
+
+[requests模拟登录的原理](https://blog.csdn.net/zwq912318834/article/details/79571110)
+
+[requests模拟登录的三种方法](https://blog.csdn.net/hui1788/article/details/79944102):
+- method1利用session模拟登陆
+- method2将cookie放在headers中一起发送请求就可以了
+- method3将cookie值拿出来直接在requests中发送就可以了，不过在发送时我们需要把cookie字符串转化为字典。
+
+### method1: only with session
+
+```python
+# method1: only with session, 不稳定
+import requests
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+
+# login
+s = requests.session()
+login_url = 'https://passport.baidu.com/'
+username = 'XXXXXX'
+password = 'YYYYYY'
+raw_post = {"username": username, "password": password}
+s.post(login_url, headers=headers, data=raw_post)
+
+# visited other sites
+url = 'https://www.baidu.com/'
+r = s.get(url, headers=headers)
+print(r.content.decode('utf8'))
+```
+
+### method2&3: cookie with request
+
+F12/Network/Headers/RequestHeaders/Cookie复制字符串
+> ![](res/cookie_login01.png)
+
+```python
+# method2: cookie in header, 最简单
+import requests
+
+cookie_str = 'BIDUPSID=9E547011EFA2D219E2FEC5BEDF7B9475; PSTM=1537057280; BD_UPN=12314753; BAIDUID=4594E9308E15EE0085797C1212051F67:FG=1; BDUSS=WdCMGQwRFJHUHo1YjFoa3VXa1JIRDQ0bjRNUmMzTXd-TU5rd2ljLUVlSG1OOGRiQVFBQUFBJCQAAAAAAAAAAAEAAAC6p~WiQWxwaGFHcmV5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOaqn1vmqp9bd; cflag=15%3A3; delPer=1; BD_HOME=1; H_PS_PSSID=1438_26965_21116_22157; sug=3; sugstore=0; bdime=0; ORIGIN=2; ISSW=1'
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+    "Cookie": cookie_str
+}
+url = 'https://www.baidu.com/'
+
+
+r = requests.get(url, headers=headers)
+print(r.content.decode('utf8'))
+```
+
+```python
+# method3: cookie in requests
+import requests
+
+headers={
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+url='https://www.baidu.com/'
+
+
+cookie_str='BIDUPSID=9E547011EFA2D219E2FEC5BEDF7B9475; PSTM=1537057280; BD_UPN=12314753; BAIDUID=4594E9308E15EE0085797C1212051F67:FG=1; BDUSS=WdCMGQwRFJHUHo1YjFoa3VXa1JIRDQ0bjRNUmMzTXd-TU5rd2ljLUVlSG1OOGRiQVFBQUFBJCQAAAAAAAAAAAEAAAC6p~WiQWxwaGFHcmV5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOaqn1vmqp9bd; cflag=15%3A3; delPer=1; BD_HOME=1; H_PS_PSSID=1438_26965_21116_22157; sug=3; sugstore=0; bdime=0; ORIGIN=2; ISSW=1'
+cookie_dict={item.split('=')[0]:item.split('=')[1] for item in cookie_str.split('; ')}
+
+r=requests.get(url, headers=headers, cookies=cookie_dict)
+print(r.content.decode('utf8'))
 ```
