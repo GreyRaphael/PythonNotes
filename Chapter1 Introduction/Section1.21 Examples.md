@@ -2015,7 +2015,7 @@ try:
     mail_server.connect('smtp.qq.com', 465)
 
     user_name = sender
-    user_pwd = 'great@@631331'
+    user_pwd = 'xxxxxxxxxxxxx'
     mail_server.login(user_name, user_pwd)
 
     mail_server.sendmail(sender, receivers, msg.as_bytes())
