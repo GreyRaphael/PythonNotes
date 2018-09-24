@@ -55,6 +55,8 @@ HTTP request/response:
 
 ## proxy & architecture
 
+淘宝买一个**vps秒换ip**, 将写好的程序挪到那个vps上运行就行。
+
 Some reference:
 - [抓取证券之星的股票数据](http://www.cnblogs.com/sjzh/archive/2016/09/24/5899716.html)
 - [抓取代理IP并多线程验证](https://www.cnblogs.com/sjzh/p/5990152.html)
