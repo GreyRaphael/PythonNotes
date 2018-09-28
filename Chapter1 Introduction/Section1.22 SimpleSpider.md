@@ -16,6 +16,7 @@
     - [login with cookie](#login-with-cookie)
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
+    - [word cloud](#word-cloud)
 
 <!-- /TOC -->
 
@@ -1052,6 +1053,9 @@ print(page_source)
 
 ### method1: only with session
 
+> 标准做法是用Fiddler来抓取post的内容: Find: post→Inspector→TextView  
+> Fiddler也可以获取header: 一般写上User-Agent, Refer就行了
+
 ```python
 # method1: only with session, 不稳定
 import requests
@@ -1110,4 +1114,69 @@ cookie_dict={item.split('=')[0]:item.split('=')[1] for item in cookie_str.split(
 
 r=requests.get(url, headers=headers, cookies=cookie_dict)
 print(r.content.decode('utf8'))
+```
+
+## word cloud
+
+因为英文单词之间有空格分隔，中文没有， 所以需要用[jieba](https://github.com/fxsjy/jieba)来分开词语。然后用[wordcloud](https://github.com/amueller/word_cloud)来生成词云
+
+- `pip install jieba`
+- `pip install wordcloud`
+
+```python
+# english simple
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+file_content=open('alice.txt').read()
+wc=WordCloud(width=1000, height=860).generate(file_content)
+
+plt.imshow(wc)
+plt.axis('off')
+plt.show()
+
+wc.to_file('test.png')
+```
+
+```python
+# english with picture example
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
+file_content=open('alice.txt').read()
+alice_coloring=np.array(Image.open('alice_color.png'))
+
+wc=WordCloud(width=1000, height=860, mask=alice_coloring).generate(file_content)    
+plt.imshow(wc)
+plt.axis('off')
+plt.show()
+
+wc.to_file('test.png')
+```
+
+```python
+# chinese with picture example
+import jieba
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
+file_content=open('xiao.txt', encoding='utf8').read()
+seg_list=jieba.cut(file_content, cut_all=False)
+# 构造成类似英文分隔
+text=' '.join(seg_list)
+
+alice_coloring=np.array(Image.open('alice_color.png'))
+
+# 必须有font_path, 使用的是环境变量中的Microsoft Yahei或者font_path='simkai.ttf'
+wc=WordCloud(width=1000, height=860, mask=alice_coloring,font_path="msyh.ttc").generate(text)
+
+plt.imshow(wc)
+plt.axis('off')
+plt.show()
+
+wc.to_file('test.png')
 ```
