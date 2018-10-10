@@ -50,6 +50,18 @@ b = np.random.rand(100,10000)
 c = a.dot(b)
 ```
 
+[mkl](https://software.intel.com/en-us/mkl-windows-developer-guide-mkl-dynamic)默认采用的是environment variable`MKL_DYNAMIC=True`，要充分利用所有的核心，就要设置environment variable
+
+```bash
+# linux commandline, reboot
+export MKL_DYNAMIC=FALSE
+
+# windows commandline, reboot
+setx MKL_DYNAMIC FALSE
+```
+
+![](res/mkl01.png)
+
 ### process vs thread
 
 [进程 vs 线程](https://www.jianshu.com/p/ba7aa11d1488)，详见《Modern Operating System》Chapter2, 8
