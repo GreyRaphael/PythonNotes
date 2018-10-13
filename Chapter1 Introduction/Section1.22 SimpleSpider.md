@@ -1185,6 +1185,7 @@ wc.to_file('test.png')
 ## Periodic Sign Task
 
 Linux: `nohup python task.py &`
+> kill task: `lsof nohup.out`, `kill -9 32767`
 
 ```python
 # task.py
