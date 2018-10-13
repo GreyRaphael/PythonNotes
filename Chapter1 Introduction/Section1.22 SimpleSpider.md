@@ -17,6 +17,7 @@
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
     - [word cloud](#word-cloud)
+    - [Periodic Sign Task](#periodic-sign-task)
 
 <!-- /TOC -->
 
@@ -1179,4 +1180,63 @@ plt.axis('off')
 plt.show()
 
 wc.to_file('test.png')
+```
+
+## Periodic Sign Task
+
+Linux: `nohup python task.py &`
+
+```python
+# task.py
+import re
+import time
+import threading
+import requests
+
+file = open('log.txt', 'w')
+
+# Construct headers
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+    # Copy Cookie from browser
+    "Cookie": 'xxxx'
+}
+
+
+def task():
+    # get normal coin
+    sign_url = 'https://www.pdawiki.com/forum/dsu_paulsign-sign.html'
+    r1 = requests.get(sign_url, headers=headers)
+    pat1 = re.compile('formhash=(.+)"')
+
+    data = {
+        "formhash": pat1.search(r1.text).group(1),
+        "qdxq": 'kx',
+        "qdmode": 1,
+        "todaysay": '我又来签到了',
+        "fastreply": 0,
+    }
+
+    post_url = 'https://www.pdawiki.com/forum/plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1&inajax=1'
+    r2 = requests.post(post_url, headers=headers, data=data)
+
+    if r2.text.find('恭喜你签到成功'):
+        file.write(f'心情签到成功:{time.ctime()}\n')
+        file.flush()
+
+    # get another 20 coins
+    panel_url = 'https://www.pdawiki.com/forum/plugin.php?id=nimba_days:html&formhash=8b7c3748&infloat=yes&handlekey=nimba_days&inajax=1&ajaxtarget=fwin_content_nimba_days'
+    r3 = requests.get(panel_url, headers=headers)
+    pat2 = re.compile(r"NimbaAjax\('(.+)'\);return false;")
+    coin_url = f'https://www.pdawiki.com/forum/{pat2.search(r3.text).group(1)}'
+    r4 = requests.get(coin_url, headers=headers)
+
+    if r4.text.find('积分奖励领取成功'):
+        file.write(f'20金币签到成功:{time.ctime()}\n')
+        file.flush()
+
+    # periodic task
+    threading.Timer(24*3600, task).start()
+
+task()
 ```
