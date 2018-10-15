@@ -13,6 +13,7 @@
     - [selenium](#selenium)
         - [selenium + chrome](#selenium--chrome)
         - [selenium + phantomjs](#selenium--phantomjs)
+        - [selenium keys & click](#selenium-keys--click)
     - [login with cookie](#login-with-cookie)
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
@@ -1044,6 +1045,52 @@ driver.close()
 print(page_source)
 ```
 
+### selenium keys & click
+
+> 可用于点击登陆，自动注册，也可用于普通的点击`next`翻页
+
+example1: selenium send keys
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+options = webdriver.ChromeOptions()
+options.binary_location = 'D:/Cent/chrome.exe'
+
+driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
+driver.get('https://www.baidu.com/')
+
+kw=driver.find_element_by_id('kw') # F12找到输入框的位置
+kw.send_keys('python3')
+kw.send_keys(Keys.RETURN)
+
+print(driver.page_source)
+
+driver.close()
+```
+
+example2: selenium click
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+options = webdriver.ChromeOptions()
+options.binary_location = 'D:/Cent/chrome.exe'
+
+driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
+driver.get('https://www.baidu.com/')
+kw=driver.find_element_by_id('kw')
+kw.send_keys('python3')
+
+btn=driver.find_element_by_id('su')
+btn.click()
+
+print(driver.page_source)
+driver.close()
+```
+
 ## login with cookie
 
 [requests模拟登录的原理](https://blog.csdn.net/zwq912318834/article/details/79571110)
@@ -1056,7 +1103,8 @@ print(page_source)
 ### method1: only with session
 
 > 标准做法是用Fiddler来抓取post的内容: Find: post→Inspector→TextView  
-> Fiddler也可以获取header: 一般写上User-Agent, Refer就行了
+> Fiddler也可以获取header: 一般写上User-Agent, Refer就行了  
+> Fiddler抓https的时候,同时开python爬虫，可能报错，python需要忽略ssl安全: `requests.get('xxx', verify=False)`
 
 ```python
 # method1: only with session, 不稳定
