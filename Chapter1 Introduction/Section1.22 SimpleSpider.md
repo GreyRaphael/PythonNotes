@@ -18,6 +18,7 @@
         - [method2&3: cookie with request](#method23-cookie-with-request)
     - [word cloud](#word-cloud)
     - [Periodic Sign Task](#periodic-sign-task)
+    - [XPath](#xpath)
 
 <!-- /TOC -->
 
@@ -1240,4 +1241,82 @@ def task():
     threading.Timer(24*3600, task).start()
 
 task()
+```
+
+## XPath
+
+BeautifulSoup, XPath适合于表格的数据提取; regex适合精确的提取小部分位置的数据；
+> BeautifulSoup比xpath慢，BeautifulSoup更加user-friendly
+
+example1: xpath selector
+
+```python
+from lxml import etree
+
+html='''
+<div>
+<ul>
+    <li class="item-0"><a href="link1.html">0 item</a></li>
+    <li class="item-1"><a href="link2.html">1 item</a></li>
+    <li class="item-inactive"><a href="link3.html">2 item</li>
+    <li class="item-3"><a href="link4.html">3 item</a></li>
+    <li class="item-4"><a href="link5.html">4 item</a></li>    
+</ul>
+<ul>
+    <li class="item-10"><a href="link11.html">10 item</a></li>
+    <li class="item-11"><a href="link12.html">11 item</a></li>
+    <li class="item-inactive"><a href="link13.html">12 item</li>
+    <li class="item-13"><a href="link14.html">13 item</a></li>
+    <li class="item-14"><a href="link15.html">14 item</a></li>    
+</ul>
+</div>
+'''
+
+tree=etree.HTML(html) # or lxml.etree.parse('index.html') # parse file
+
+for ul in tree.xpath('//ul'):
+    for a in ul.xpath('.//li/a'):
+        print(a.text, end=';')
+# 0 item;1 item;2 item;3 item;4 item;10 item;11 item;12 item;13 item;14 item;
+
+print(tree.xpath('//li/@class'))
+# ['item-0', 'item-1', 'item-inactive', 'item-3', 'item-4', 'item-10', 'item-11', 'item-inactive', 'item-13', 'item-14']
+
+print(tree.xpath('//li/a/@href'))
+print(tree.xpath('//ul/li//@href'))
+# ['link1.html', 'link2.html', 'link3.html', 'link4.html', 'link5.html', 'link11.html', 'link12.html', 'link13.html', 'link14.html', 'link15.html']
+
+print(tree.xpath('//li/a/text()')) # text is particular
+# ['0 item', '1 item', '2 item', '3 item', '4 item', '10 item', '11 item', '12 item', '13 item', '14 item']
+
+print(tree.xpath('//li/a/@href="link3.html"')) # True
+
+# get the first one
+print(tree.xpath('//li[1]/a/@href'))
+# ['link1.html', 'link11.html']
+
+# get the last one
+print(tree.xpath('//li[last()]'))
+# [<Element li at 0x23231e04c08>, <Element li at 0x23231e040c8>]
+print(tree.xpath('//li[last()]/a/@href'))
+# ['link5.html', 'link15.html']
+
+# match: *表示匹配所有
+tree.xpath('//*[@class="item-inactive"]/a/@href')
+# ['link3.html', 'link13.html']
+```
+
+example2: xpath get proxy ip
+
+```python
+import requests
+from lxml import etree
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+
+html=requests.get('http://www.ip3366.net/free/', headers=headers).content.decode('gbk')
+tree=etree.HTML(html)
+tree.xpath('//tr/td/text()')
 ```
