@@ -13,13 +13,16 @@
     - [selenium](#selenium)
         - [selenium + chrome](#selenium--chrome)
         - [selenium + phantomjs](#selenium--phantomjs)
+        - [selenium with firefox](#selenium-with-firefox)
         - [selenium keys & click](#selenium-keys--click)
+        - [selenium with dynamic page](#selenium-with-dynamic-page)
     - [login with cookie](#login-with-cookie)
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
     - [word cloud](#word-cloud)
     - [Periodic Sign Task](#periodic-sign-task)
     - [XPath](#xpath)
+    - [OCR vs verify code](#ocr-vs-verify-code)
 
 <!-- /TOC -->
 
@@ -1045,6 +1048,25 @@ driver.close()
 print(page_source)
 ```
 
+### selenium with firefox
+
+```python
+from selenium import webdriver
+
+options=webdriver.FirefoxOptions()
+options.add_argument('--headless')
+
+# firefox alreaddy in environment variable
+driver=webdriver.Firefox(firefox_options=options)
+
+url='https://www.baidu.com'
+driver.get(url)
+page_source = driver.page_source
+
+driver.save_screenshot('hello.png')
+driver.close()
+```
+
 ### selenium keys & click
 
 > 可用于点击登陆，自动注册，也可用于普通的点击`next`翻页
@@ -1089,6 +1111,32 @@ btn.click()
 
 print(driver.page_source)
 driver.close()
+```
+
+
+### selenium with dynamic page
+
+如果碰到frame, 需要先切换frame
+
+```python
+# qzone login
+from selenium import webdriver
+
+driver=webdriver.Firefox()
+driver.get('https://qzone.qq.com/')
+
+driver.switch_to_frame('login_frame') # switch frame
+# 动态网页必须使用css_selector, 其他的无效
+driver.find_element_by_css_selector('#switcher_plogin').click() # 账号密码登录
+
+user=driver.find_element_by_css_selector('#u')
+password=driver.find_element_by_css_selector('#p')
+login_btn=driver.find_element_by_css_selector('#login_button')
+
+user.send_keys('666666666')
+password.send_keys('999999999')
+login_btn.click()
+# driver.close()
 ```
 
 ## login with cookie
@@ -1367,4 +1415,21 @@ headers = {
 html=requests.get('http://www.ip3366.net/free/', headers=headers).content.decode('gbk')
 tree=etree.HTML(html)
 tree.xpath('//tr/td/text()')
+```
+
+## OCR vs verify code
+
+[tesseract](https://github.com/tesseract-ocr/tesseract)使用: `tesseract.exe c:\3.jpg c:\result`, 将识别的结果放到了`c:\result.txt`
+> [tesseract for chinese](https://www.cnblogs.com/wzben/p/5930538.html), 或者用[baiduAI](https://ai.baidu.com/)  
+> 人工智能: 人工训练出来的智能
+
+```python
+import subprocess
+
+p=subprocess.Popen(['C:\\Program Files (x86)\\Tesseract-OCR' 'c:\\3.jpg' 'c:\result'], 
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+p.wait()
+with open('c"\\result.txt', 'r') as file:
+    print(file.read())
 ```
