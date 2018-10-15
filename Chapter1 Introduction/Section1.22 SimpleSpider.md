@@ -15,6 +15,7 @@
         - [selenium + phantomjs](#selenium--phantomjs)
         - [selenium with firefox](#selenium-with-firefox)
         - [selenium keys & click](#selenium-keys--click)
+        - [selenium with dynamic page](#selenium-with-dynamic-page)
     - [login with cookie](#login-with-cookie)
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
@@ -1110,6 +1111,31 @@ btn.click()
 
 print(driver.page_source)
 driver.close()
+```
+
+### selenium with dynamic page
+
+如果碰到frame, 需要先切换frame
+
+```python
+# qzone login
+from selenium import webdriver
+
+driver=webdriver.Firefox()
+driver.get('https://qzone.qq.com/')
+
+driver.switch_to_frame('login_frame') # switch frame
+# 动态网页必须使用css_selector, 其他的无效
+driver.find_element_by_css_selector('#switcher_plogin').click() # 账号密码登录
+
+user=driver.find_element_by_css_selector('#u')
+password=driver.find_element_by_css_selector('#p')
+login_btn=driver.find_element_by_css_selector('#login_button')
+
+user.send_keys('666666666')
+password.send_keys('999999999')
+login_btn.click()
+# driver.close()
 ```
 
 ## login with cookie
