@@ -16,6 +16,7 @@
         - [selenium with firefox](#selenium-with-firefox)
         - [selenium keys & click](#selenium-keys--click)
         - [selenium with dynamic page](#selenium-with-dynamic-page)
+        - [selenium mobile emulation](#selenium-mobile-emulation)
     - [login with cookie](#login-with-cookie)
         - [method1: only with session](#method1-only-with-session)
         - [method2&3: cookie with request](#method23-cookie-with-request)
@@ -1136,6 +1137,45 @@ user.send_keys('666666666')
 password.send_keys('999999999')
 login_btn.click()
 # driver.close()
+```
+
+### selenium mobile emulation
+
+```python
+# firefox
+from selenium import webdriver
+
+options=webdriver.FirefoxOptions()
+options.set_preference("general.useragent.override", 'iPhone X')
+
+driver=webdriver.Firefox(options=options)
+driver.set_window_size(375, 750)
+
+driver.get('https://www.baidu.com')
+driver.close()
+```
+
+```python
+# chrome
+import time
+from selenium import webdriver
+
+options = webdriver.ChromeOptions()
+options.binary_location='D:/Cent/chrome.exe'
+options.add_experimental_option("mobileEmulation", { "deviceName": "iPhone X" })
+
+driver=webdriver.Chrome(chrome_options=options)
+
+driver.get('https://www.taobao.com')
+driver.get('https://www.jd.com')
+
+time.sleep(3)
+driver.back()
+time.sleep(3)
+driver.forward()
+time.sleep(3)
+driver.refresh()
+driver.close()
 ```
 
 ## login with cookie
