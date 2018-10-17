@@ -1114,6 +1114,104 @@ print(driver.page_source)
 driver.close()
 ```
 
+example3: selenium with action
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+driver=webdriver.Firefox()
+driver.get('https://www.baidu.com')
+
+setting_link=driver.find_element_by_link_text('设置')
+action=webdriver.ActionChains(driver)
+action.move_to_element(setting_link)
+action.perform()
+
+kw=driver.find_element_by_id('kw')
+kw.send_keys('hello')
+kw.send_keys(Keys.CONTROL, 'a')
+```
+
+example4: selenium explit wait
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+kw=WebDriverWait(ff, timeout=5, poll_frequency=0.5).until(EC.presence_of_element_located((By.ID, "kw")))
+kw.send_keys('hello')
+
+ff.close()
+```
+
+example5: selenium implicit wait
+
+> **Implicit wait** is applicable for all the web elements where as **Explicit wait** is applicable only for the element
+
+```python
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+ff.implicitly_wait(5)
+
+kw=ff.find_element_by_id('kw')
+kw.send_keys('hello')
+
+ff.close()
+```
+
+example6: find_elements
+
+```python
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+kw=ff.find_element_by_id('kw')
+kw.send_keys('hello')
+
+ff.implicitly_wait(3)
+
+for a in ff.find_elements_by_css_selector('.t a'):
+    print(a.text)
+```
+
+example7: multi-windows
+
+```python
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+login=ff.find_element_by_link_text('登录')
+login.click()
+ff.implicitly_wait(3)
+
+register=ff.find_element_by_link_text('立即注册')
+register.click()
+ff.implicitly_wait(3)
+
+ff.switch_to_window(ff.window_handles[1])
+
+user=ff.find_element_by_id('TANGRAM__PSP_3__userName')
+phone=ff.find_element_by_id('TANGRAM__PSP_3__phone')
+user.send_keys('DeltaGrey')
+phone.send_keys('110')
+
+ff.close() # close page
+ff.quit() # quit browser
+```
+
 ### selenium with dynamic page
 
 如果碰到frame, 需要先切换frame
