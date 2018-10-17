@@ -1212,6 +1212,48 @@ ff.close() # close page
 ff.quit() # quit browser
 ```
 
+example8: dropdown menu & alert window
+
+```python
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+setting_link=ff.find_element_by_link_text('设置')
+webdriver.ActionChains(ff).move_to_element(setting_link).perform()
+
+search_setting=ff.find_element_by_link_text('搜索设置')
+search_setting.click()
+ff.implicitly_wait(3)
+
+drop_menu=ff.find_element_by_id('nr')
+select=webdriver.support.select.Select(drop_menu)
+select.select_by_index(2)
+
+ff.find_element_by_link_text('保存设置').click()
+ff.switch_to_alert().accept()
+```
+
+example9: scroll window
+
+```python
+import time
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+kw=ff.find_element_by_id('kw')
+kw.send_keys('python3')
+kw.submit()
+
+time.sleep(1)
+
+# execute js
+ff.execute_script('window.scrollTo(0, 800);')
+```
+
 ### selenium with dynamic page
 
 如果碰到frame, 需要先切换frame
