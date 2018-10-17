@@ -1254,6 +1254,52 @@ time.sleep(1)
 ff.execute_script('window.scrollTo(0, 800);')
 ```
 
+example10: video
+
+```python
+from selenium import webdriver
+
+ff = webdriver.Firefox()
+ff.get('https://videojs.com/')
+ff.implicitly_wait(3)
+
+ff.find_element_by_class_name('vjs-big-play-button').click()
+# ff.execute_script('document.getElementsByClassName("vjs-big-play-button")[0].click();')
+```
+
+example11: selenium download
+
+```python
+# firefox download
+from selenium import webdriver
+
+options=webdriver.FirefoxOptions()
+options.set_preference("browser.download.dir", "c:\\") 
+options.set_preference("browser.download.folderList",2) # use lastdownload dir
+options.set_preference("browser.helperApps.neverAsk.saveToDisk", "binary/octet-stream") # specify file type
+
+ff = webdriver.Firefox(options=options)
+ff.get('https://pypi.org/project/selenium/#files')
+
+# click link to dowload
+ff.find_element_by_partial_link_text('tar.gz').click()
+```
+
+```python
+# chrome download
+from selenium import webdriver
+
+options=webdriver.ChromeOptions()
+options.add_experimental_option('prefs', {'download.prompt_for_download': False, 'download.default_directory': 'c:\\'})
+options.binary_location='D:/Cent/chrome.exe'
+
+chrome=webdriver.Chrome(chrome_options=options)
+
+chrome.get('https://pypi.org/project/selenium/#files')
+chrome.implicitly_wait(5)
+chrome.find_element_by_partial_link_text('tar.gz').click()
+```
+
 ### selenium with dynamic page
 
 如果碰到frame, 需要先切换frame
