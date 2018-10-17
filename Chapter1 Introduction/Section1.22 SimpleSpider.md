@@ -1379,6 +1379,8 @@ driver.close()
 > Fiddler也可以获取header: 一般写上User-Agent, Refer就行了  
 > Fiddler抓https的时候,同时开python爬虫，可能报错，python需要忽略ssl安全: `requests.get('xxx', verify=False)`
 
+[百度登录加密协议分析](https://www.jianshu.com/p/8e83974d2b04)
+
 ```python
 # method1: only with session, 不稳定
 import requests
