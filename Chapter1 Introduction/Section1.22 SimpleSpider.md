@@ -1221,15 +1221,14 @@ from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 dcap = dict(DesiredCapabilities.PHANTOMJS)
-dcap["phantomjs.page.settings.userAgent"] = ("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0", )
+dcap["phantomjs.page.settings.userAgent"] = ("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0")
 driver = webdriver.PhantomJS('phantomjs.exe', desired_capabilities=dcap)
 
-url = 'http://www.cmsoft.cn/'
+url='https://httpbin.org/get'
 driver.get(url)
-page_source = driver.page_source
-driver.close()
+print(driver.page_source)
 
-print(page_source)
+driver.close()
 ```
 
 ### selenium with firefox
