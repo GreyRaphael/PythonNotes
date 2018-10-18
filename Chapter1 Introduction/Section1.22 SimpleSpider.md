@@ -27,6 +27,7 @@
     - [Periodic Sign Task](#periodic-sign-task)
     - [XPath](#xpath)
     - [OCR vs verify code](#ocr-vs-verify-code)
+    - [requests vs selenium](#requests-vs-selenium)
 
 <!-- /TOC -->
 
@@ -1820,4 +1821,45 @@ p=subprocess.Popen(['C:\\Program Files (x86)\\Tesseract-OCR' 'c:\\3.jpg' 'c:\res
 p.wait()
 with open('c"\\result.txt', 'r') as file:
     print(file.read())
+```
+
+## requests vs selenium
+
+|  | selenium | requests |
+|---|----|-----|
+| 模拟登录 | 不需要复杂的加密过程 | 面对高端网站模拟登陆需要分析登陆协议 |
+| 速度 | 慢 | 快 |
+
+> 低端网站只用requests  
+> 高端网站用selenium获取cookies, 然后使用requests带着cookies访问
+
+jd, tmall存在验证码，所以需要手动，无法全自动;
+
+```python
+# baidu: selenium + requests
+from selenium import webdriver
+import requests
+
+ff=webdriver.Firefox()
+ff.get('https://www.baidu.com')
+
+ff.find_element_by_link_text('登录').click()
+ff.find_element_by_id('TANGRAM__PSP_10__footerULoginBtn').click()
+
+user=ff.find_element_by_id('TANGRAM__PSP_10__userName')
+password=ff.find_element_by_id('TANGRAM__PSP_10__password')
+user.send_keys('13810455459')
+password.send_keys('1kdlsJBVguW720')
+ff.find_element_by_id('TANGRAM__PSP_10__submit').click()
+
+cookies={}
+for cookie in ff.get_cookies():
+    cookies[cookie['name']]=cookie['value']
+
+# request use selenium's cookies
+s=requests.Session()
+headers={
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/62.0",
+}
+r=s.get('https://www.baidu.com', cookies=cookies, headers=headers)
 ```
