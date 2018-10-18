@@ -1403,6 +1403,22 @@ r = s.get(url, headers=headers)
 print(r.content.decode('utf8'))
 ```
 
+example: simple login
+
+```python
+import requests
+
+s=requests.Session()
+data={'username':'Grey', 'password':'password'}
+
+# session可以记录cookie
+r=s.post('http://pythonscraping.com/pages/cookies/welcome.php', data=data)
+print(s.cookies.get_dict()) # {'loggedin': '1', 'username': 'Grey'}
+
+s.get('http://pythonscraping.com/pages/cookies/welcome.php').text
+# login success!
+```
+
 ### method2&3: cookie with request
 
 F12/Network/Headers/RequestHeaders/Cookie复制字符串
