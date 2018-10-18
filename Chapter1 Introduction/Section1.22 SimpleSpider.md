@@ -28,6 +28,7 @@
     - [XPath](#xpath)
     - [OCR vs verify code](#ocr-vs-verify-code)
     - [requests vs selenium](#requests-vs-selenium)
+    - [pyquery](#pyquery)
 
 <!-- /TOC -->
 
@@ -1862,4 +1863,74 @@ headers={
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/62.0",
 }
 r=s.get('https://www.baidu.com', cookies=cookies, headers=headers)
+```
+
+## pyquery
+
+`conda install pyquery`, [Tutorials](https://www.cnblogs.com/zhaof/p/6935473.html)
+
+4 methods:
+- re
+- xpath
+- BeautifulSoup
+- pyquery: easy
+
+
+```python
+import pyquery
+
+html='''
+<div>
+<h3>this is header</h3>
+<p id="p1">paragraph 1</p>
+<ul>
+    <li class="item-0"><a href="link1.html">0 item</a></li>
+    <li class="item-1"><a href="link2.html">1 item</a></li>
+    <li class="item-inactive"><a href="link3.html">2 item</li>
+    <li class="item-3"><a href="link4.html">3 item</a></li>
+    <li class="item-4"><a href="link5.html">4 item</a></li>    
+</ul>
+<ul>
+    <li class="item-10"><a href="link11.html">10 item</a></li>
+    <li class="item-11"><a href="link12.html">11 item</a></li>
+    <li class="item-inactive"><a href="link13.html">12 item</li>
+    <li class="item-13"><a href="link14.html">13 item</a></li>
+    <li class="item-14"><a href="link15.html">14 item</a></li>    
+</ul>
+</div>
+'''
+
+doc=pyquery.PyQuery(html)
+
+print(doc('h3')) # <h3>this is header</h3>
+print(doc('h3').text()) # this is header
+print(doc('#p1')) # <p id="p1">paragraph 1</p>
+
+print(doc('[class]')) # find tag with class attribute
+print(doc('[class=item-inactive]')) # find class=item-inactive
+
+print(doc('p').attr['id']) # p1
+print(doc('p').attr('id')) # p1
+print(doc('p').attr.id) # p1
+
+# Traversal
+for li in doc('li').items():
+    print(li.text(), end='; ')
+# 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item; 
+
+for li in doc('li'):
+    print(doc(li).text(), end='; ')
+# 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item; 
+
+for a in doc('li a'):
+    print(a.text, end='; ')
+# 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item; 
+
+for a in doc('li').find('a'):
+    print(a.text, end='; ')
+# 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item; 
+
+for li in doc('ul').children():
+    print(doc(li).text(), end='; ')
+# 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item;   
 ```
