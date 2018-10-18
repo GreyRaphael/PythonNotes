@@ -29,6 +29,8 @@
     - [OCR vs verify code](#ocr-vs-verify-code)
     - [requests vs selenium](#requests-vs-selenium)
     - [pyquery](#pyquery)
+    - [Spider Acceleration](#spider-acceleration)
+        - [协程(Coroutine)](#协程coroutine)
 
 <!-- /TOC -->
 
@@ -1964,4 +1966,84 @@ for a in doc('li').find('a'):
 for li in doc('ul').children():
     print(doc(li).text(), end='; ')
 # 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item;   
+```
+
+## Spider Acceleration
+
+Acceleration methods:
+- 多线程
+- 多进程
+- 协程
+- 分布式: 消息队列、GPU加速、分布式框架
+
+爬虫框架:
+- scrapy，分布式scrap-redis: 只能爬不加密的简单网站
+- pyspider: 可以爬简单的加密网站，因为用selenium实现
+
+> 爬虫框架经常会失效
+
+### 协程(Coroutine)
+
+```python
+import gevent
+
+def func(n):
+    for i in range(n):
+        print(f'{i}=====>{gevent.getcurrent()}')
+        gevent.sleep(1) # 碰到等待的操作，自动切换到其他上面去
+
+g1=gevent.spawn(func,3)
+g2=gevent.spawn(func,3)
+g3=gevent.spawn(func,3)
+g1.join()
+g2.join()
+g3.join()
+```
+
+```bash
+# output
+0=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
+0=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
+0=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
+1=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
+1=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
+1=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
+2=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
+2=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
+2=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
+```
+
+example: coroutine download
+
+```python
+import gevent
+from gevent import monkey
+# monkey要放在靠前的位置
+monkey.patch_all()
+
+import requests
+
+def download(url):
+    print(f'start download {url}')
+    r=requests.get(url).text
+    print(f'finish: {url}, length={len(r)}')
+
+urls=['https://www.baidu.com', 'http://www.qq.com', 'https://www.163.com']
+
+gevent_tasks=[]
+for url in urls:
+    gevent_tasks.append(gevent.spawn(download, url))
+
+
+gevent.joinall(gevent_tasks)
+```
+
+```bash
+# output
+start download https://www.baidu.com
+start download http://www.qq.com
+start download https://www.163.com
+finish: https://www.baidu.com, length=2443
+finish: https://www.163.com, length=684958
+finish: http://www.qq.com, length=231238
 ```
