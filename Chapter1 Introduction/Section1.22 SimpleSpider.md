@@ -10,6 +10,7 @@
     - [`requests`](#requests)
         - [requests HTTP Auth](#requests-http-auth)
         - [request json](#request-json)
+        - [requests session](#requests-session)
     - [`BeautifulSoup`](#beautifulsoup)
         - [BeautifulSoup selector](#beautifulsoup-selector)
     - [selenium](#selenium)
@@ -744,16 +745,50 @@ urllib.urlretrieve('https://rpic.douyucdn.cn/20180831104533_small.jpg', './image
 ## `requests`
 
 `pip install requests`, 如果对性能有要求可以采用`pip install pycurl`
-
 > [requests vs pycurl](https://github.com/yudazilian/Pycurl-vs-Requests)
 
 ```python
+# simple example
 import requests
 
 r=requests.get('https://www.python.org/')
 html=r.text
 # binary_html=r.content
 print(r.status_code) # 200
+```
+
+>使用response.text 时，Requests 会基于 HTTP 响应的文本编码自动解码响应内容，大多数 Unicode 字符集都能被无缝地解码。  
+>使用response.content 时，返回的是服务器响应数据的原始二进制字节流，可以用来保存图片等二进制文件。
+
+```python
+# request without parameter
+imprt requests
+
+headers={
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+# 这个网站的response给出的就是request的各种信息
+response=requests.get('http://httpbin.org/get', headers=headers)
+print(response.text) # utf8 decoded content
+print(response.content) # binary content
+print(response.url) # http://httpbin.org/get
+print(response.encoding) # utf-8
+print(response.status_code) # 200
+```
+
+```python
+# request with parameters
+import requests
+
+headers={
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
+}
+params={
+    'q':'hello',
+}
+response=requests.get("https://cn.bing.com/search", headers=headers, params=params)
+
+print(response.text)
 ```
 
 ```python
@@ -923,9 +958,7 @@ for item in data:
 
 > 访问网页的时候弹窗要输入user, password。比如路由器的登陆，basic auth容易破解。
 
-[Authentication](http://docs.python-requests.org/en/master/user/authentication/), [Usage](https://www.jianshu.com/p/18fb07f2f65e)
-
-Authentication:
+[Authentication](http://docs.python-requests.org/en/master/user/authentication/), [Usage](https://www.jianshu.com/p/18fb07f2f65e):
 - Basic Authentication
 - Digest Authentication
 - OAuth Authentication
@@ -940,44 +973,6 @@ r.text
 ```
 
 ### request json
-
-
-```python
-# request without parameter
-imprt requests
-
-# 一般网站
-# r=requests.get('http://www.fortunechina.com/investing/c/2018-07/30/content_312935.htm')
-headers={
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
-}
-# 这个网站的response给出的就是request的各种信息
-response=requests.get('http://httpbin.org/get', headers=headers)
-print(response.text) # utf8 decoded content
-print(response.content) # binary content
-print(response.url) # http://httpbin.org/get
-print(response.encoding) # utf-8
-print(response.status_code) # 200
-```
-
->使用response.text 时，Requests 会基于 HTTP 响应的文本编码自动解码响应内容，大多数 Unicode 字符集都能被无缝地解码。
->
->使用response.content 时，返回的是服务器响应数据的原始二进制字节流，可以用来保存图片等二进制文件。
-
-```python
-# request with parameters
-import requests
-
-headers={
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
-}
-params={
-    'q':'hello',
-}
-response=requests.get("https://cn.bing.com/search", headers=headers, params=params)
-
-print(response.text)
-```
 
 ```python
 # get请求
@@ -1028,6 +1023,8 @@ response=requests.post(url, files=myfile)
 print(response.text)
 ```
 
+### requests session
+
 模拟用户登陆;
 
 >在 requests 里，session对象是一个非常常用的对象，这个对象代表一次用户会话：从客户端浏览器连接服务器开始，到客户端浏览器与服务器断开。
@@ -1037,15 +1034,16 @@ print(response.text)
 ```python
 import requests
 
-url='https://www.yunpanjingling.com/'
-user={'email':'vip.gewei@foxmail.com', 'password':'xQfheYU9HRPVMX'}
-headers={
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:61.0) Gecko/20100101 Firefox/61.0",
-}
-session=requests.Session()
-response=session.post(url, data=user, headers=headers)
+s=requests.Session()
+data={'username':'Grey', 'password':'password'}
 
-print(response.text)
+# session可以记录cookie
+r=s.post('http://pythonscraping.com/pages/cookies/welcome.php', data=data)
+print(s.cookies.get_dict()) # {'loggedin': '1', 'username': 'Grey'}
+
+# visit another site
+s.get('http://pythonscraping.com/pages/cookies/welcome.php').text
+# login success!
 ```
 
 [proxy](https://blog.csdn.net/qq_37616069/article/details/80376776)
@@ -1564,22 +1562,6 @@ s.post(login_url, headers=headers, data=raw_post)
 url = 'https://www.baidu.com/'
 r = s.get(url, headers=headers)
 print(r.content.decode('utf8'))
-```
-
-example: simple login
-
-```python
-import requests
-
-s=requests.Session()
-data={'username':'Grey', 'password':'password'}
-
-# session可以记录cookie
-r=s.post('http://pythonscraping.com/pages/cookies/welcome.php', data=data)
-print(s.cookies.get_dict()) # {'loggedin': '1', 'username': 'Grey'}
-
-s.get('http://pythonscraping.com/pages/cookies/welcome.php').text
-# login success!
 ```
 
 ### method2&3: cookie with request
