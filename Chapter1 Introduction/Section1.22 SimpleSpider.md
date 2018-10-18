@@ -1546,6 +1546,18 @@ driver.refresh()
 driver.close()
 ```
 
+> Tips: selenium doesn't load picture
+
+```python
+from selenium import webdriver
+
+options=webdriver.FirefoxOptions()
+options.set_preference('permissions.default.image', 2)
+ff=webdriver.Firefox(options=options)
+
+ff.get('https://www.baidu.com')
+```
+
 ## login with cookie
 
 [requests模拟登录的原理](https://blog.csdn.net/zwq912318834/article/details/79571110)
