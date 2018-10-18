@@ -1014,6 +1014,26 @@ res=res.json()
 print(res)
 ```
 
+```python
+# simple example
+import requests
+
+r=requests.get('https://www.lagou.com/lbs/getAllCitySearchLabels.json').json()
+print(type(r)) # <class 'dict'>
+```
+
+[jsonpath](https://github.com/json-path/JsonPath)类似xpath,语法不同
+
+```python
+import requests
+import jsonpath
+
+r=requests.get('https://www.lagou.com/lbs/getAllCitySearchLabels.json').json()
+jsonpath.jsonpath(r, '$..name')  # 找出根节点下所有的key='name'的value
+jsonpath.jsonpath(r, '$..allCitySearchLabels.A') # allCity下面的所有A节点
+jsonpath.jsonpath(r, '$..A.*') # A下面所有的节点
+```
+
 上传文件
 
 ```python
