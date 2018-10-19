@@ -11,6 +11,7 @@
     - [python project directory structure](#python-project-directory-structure)
         - [examples](#examples)
     - [Python code stype](#python-code-stype)
+    - [Python in environment](#python-in-environment)
 
 <!-- /TOC -->
 
@@ -141,3 +142,10 @@ main.main()
 `pip install autopep8`
 - vscode: **Shift+Alt+F**
 - pycharm: **Ctrl+Alt+L**
+
+## Python in environment
+
+```bash
+# use python3 in command line instead of python3.6.5
+ln -s /usr/bin/python3.6.5 /usr/bin/python3
+```
