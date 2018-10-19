@@ -2047,3 +2047,86 @@ finish: https://www.baidu.com, length=2443
 finish: https://www.163.com, length=684958
 finish: http://www.qq.com, length=231238
 ```
+
+example: 挖掘老赖数据
+
+```python
+# with coroutine
+import requests
+from jsonpath import jsonpath
+import pandas as pd
+
+total_pages=101
+headers={
+    "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0",
+    "Referer": "https://www.baidu.com/s?wd=%E8%80%81%E8%B5%96"
+}
+
+age=[]
+sexy=[]
+areaName=[]
+duty=[]
+iname=[]
+publishDateStamp=[]
+regDate=[]
+
+for i in range(total_pages+1):
+    url=f'https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?resource_id=6899&query=老赖&pn={i*10}&rn=10&ie=utf-8&oe=utf-8&format=json'
+    r=requests.get(url, headers=headers).json()
+    age.extend(jsonpath(r, '$..age')[:10])
+    sexy.extend(jsonpath(r, '$..sexy')[:10])
+    areaName.extend(jsonpath(r, '$..areaName')[:10])
+    duty.extend(jsonpath(r, '$..duty')[:10])
+    iname.extend(jsonpath(r, '$..iname')[:10])
+    publishDateStamp.extend(jsonpath(r, '$..publishDateStamp')[:10])
+    regDate.extend(jsonpath(r, '$..regDate')[:10])
+
+# save to DataFrame for later analysis
+df=pd.DataFrame({'age':age, 'sexy':sexy, 'areaName': areaName, 'duty':duty, 'iname':iname, 'publishDateStamp':publishDateStamp, 'regDate': regDate})
+```
+
+```python
+# with coroutine
+from jsonpath import jsonpath
+import pandas as pd
+import gevent
+from gevent import monkey
+monkey.patch_all()
+
+import requests
+
+total_pages=101
+headers={
+    "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:62.0) Gecko/20100101 Firefox/62.0",
+    "Referer": "https://www.baidu.com/s?wd=%E8%80%81%E8%B5%96"
+}
+
+age=[]
+sexy=[]
+areaName=[]
+duty=[]
+iname=[]
+publishDateStamp=[]
+regDate=[]
+
+def download(start, end):
+    for i in range(start, end):
+        url=f'https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?resource_id=6899&query=老赖&pn={i*10}&rn=10&ie=utf-8&oe=utf-8&format=json'
+        r=requests.get(url, headers=headers).json()
+        age.extend(jsonpath(r, '$..age')[:10])
+        sexy.extend(jsonpath(r, '$..sexy')[:10])
+        areaName.extend(jsonpath(r, '$..areaName')[:10])
+        duty.extend(jsonpath(r, '$..duty')[:10])
+        iname.extend(jsonpath(r, '$..iname')[:10])
+        publishDateStamp.extend(jsonpath(r, '$..publishDateStamp')[:10])
+        regDate.extend(jsonpath(r, '$..regDate')[:10])
+
+gevent_tasks=[]
+for i in range(0, 100, 10):
+    gevent_tasks.append(gevent.spawn(download, i, i+10))
+gevent_tasks.append(gevent.spawn(download, 100, total_pages+1))
+gevent.joinall(gevent_tasks)
+
+# save to DataFrame for later analysis
+df=pd.DataFrame({'age':age, 'sexy':sexy, 'areaName': areaName, 'duty':duty, 'iname':iname, 'publishDateStamp':publishDateStamp, 'regDate': regDate})
+```
