@@ -2585,6 +2585,7 @@ if __name__ == '__main__':
 ## Distributed Spider
 
 Distributed:
+- 分布式计算
 - 分布式控制
 - 分布式爬虫
 
@@ -2592,6 +2593,8 @@ Distributed:
 > 要分成Server, Client  
 > Server: 将任务put到task_queue中，从result_queue中get结果  
 > Client: 从task_queue中get任务，计算得到结果，将结果put到result_queue中
+
+example1: 分布式计算
 
 ```python
 # Server
@@ -2602,6 +2605,7 @@ class Worker(Process):
     def __init__(self, tq, rq):
         self.tq = tq
         self.rq = rq
+        super().__init__()
 
     def run(self):
         for i in range(3):
@@ -2653,3 +2657,77 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+example2: 分布式控制
+
+```python
+# Server在example1基础上修改
+class Worker(Process):
+    def __init__(self, tq, rq):
+        self.tq = tq
+        self.rq = rq
+        super().__init__()
+
+    def run(self):
+        self.tq.put('notepad')
+        self.tq.put('mspaint')
+        self.tq.put('explorer')
+        print('waiting for ...')
+        for _ in range(3):
+            print(self.rq.get())
+````
+
+```python
+# Client
+from multiprocessing.managers import BaseManager
+import os
+
+class QueueManager(BaseManager): pass
+
+def main():
+    QueueManager.register('task_queue')
+    QueueManager.register('result_queue')
+    
+    m = QueueManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.connect()
+
+    tq=m.task_queue()
+    rq=m.result_queue()
+
+    for i in range(3):
+        cmd=tq.get()
+        os.system(cmd)
+        rq.put(i**2)
+
+if __name__ == '__main__':
+    main()
+```
+
+example3: 分布式作业系统
+
+```python
+# Server在example1基础上修改
+class Worker(Process):
+    def __init__(self, tq, rq):
+        self.tq = tq
+        self.rq = rq
+        super().__init__()
+
+    def run(self):
+        self.tq.put('python my_work1.py')
+        print('waiting for ...')
+        for _ in range(3):
+            print(self.rq.get())
+```
+
+```python
+# Client与example2相同
+# 另外写一个在client端写一个my_work1.py
+```
+
+example4: 分布式爬虫
+
+Server抓取urls并put进入task_queue, Clients get task_queue中的urls并提取data，Clients将data put进入result_queue, Server get result_queue中的data并保存。
+
+因为一般的云端的Linux没有GUI，无法用selenium，所以Server.py放在云端运行，Client.py放在windows运行。
+
