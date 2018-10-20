@@ -32,6 +32,7 @@
     - [Spider Acceleration](#spider-acceleration)
         - [协程(Coroutine)](#协程coroutine)
         - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
+    - [Distributed Spider](#distributed-spider)
 
 <!-- /TOC -->
 
@@ -2480,7 +2481,8 @@ if __name__ == '__main__':
 ```
 
 example5: simpel example with **multiprocessing**
-> 读取完毕然后一次性写入，内存压力太大，已知要get的数目，可以实现边读边写
+> 读取完毕然后一次性写入，内存压力太大，已知要get的数目，可以实现边读边写  
+> [stackoverflow Example](https://stackoverflow.com/questions/32395150)
 
 ```python
 import re
@@ -2575,6 +2577,78 @@ def main():
     for p in task_list:
         p.join()
 
+
+if __name__ == '__main__':
+    main()
+```
+
+## Distributed Spider
+
+Distributed:
+- 分布式控制
+- 分布式爬虫
+
+分布式意味着在局域网中多台电脑干活。
+> 要分成Server, Client  
+> Server: 将任务put到task_queue中，从result_queue中get结果  
+> Client: 从task_queue中get任务，计算得到结果，将结果put到result_queue中
+
+```python
+# Server
+from multiprocessing import Process, Queue
+from multiprocessing.managers import BaseManager
+
+class Worker(Process):
+    def __init__(self, tq, rq):
+        self.tq = tq
+        self.rq = rq
+
+    def run(self):
+        for i in range(3):
+            self.tq.put(i)
+        print('waiting for ...')
+        for _ in range(3):
+            print(self.rq.get())
+
+class QueueManager(BaseManager):pass
+
+def main():
+    tq = Queue()
+    rq = Queue()
+    w = Worker(tq, rq)
+    w.start()
+
+    QueueManager.register('task_queue', callable=lambda: tq) # lambda的return不用写
+    QueueManager.register('result_queue', callable=lambda: rq)# lambda的return不用写
+    m = QueueManager(address=('', 6666), authkey=b'666666')
+    s = m.get_server()
+    s.serve_forever()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+```python
+# Client
+from multiprocessing.managers import BaseManager
+
+class QueueManager(BaseManager): pass
+
+def main():
+    QueueManager.register('task_queue')
+    QueueManager.register('result_queue')
+    
+    m = QueueManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.connect()
+
+    tq=m.task_queue()
+    rq=m.result_queue()
+
+    for _ in range(3):
+        data=tq.get()
+        print(f'client get: {data}')
+        rq.put(data**2)
 
 if __name__ == '__main__':
     main()
