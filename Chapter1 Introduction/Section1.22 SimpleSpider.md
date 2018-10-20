@@ -31,6 +31,7 @@
     - [pyquery](#pyquery)
     - [Spider Acceleration](#spider-acceleration)
         - [协程(Coroutine)](#协程coroutine)
+        - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
 
 <!-- /TOC -->
 
@@ -1766,6 +1767,7 @@ task()
 
 BeautifulSoup, XPath适合于表格的数据提取; regex适合精确的提取小部分位置的数据；
 > BeautifulSoup比xpath慢，BeautifulSoup更加user-friendly
+> xpath对[empty string](https://stackoverflow.com/questions/2420705)支持不好
 
 example1: xpath selector
 
@@ -2048,10 +2050,9 @@ finish: https://www.163.com, length=684958
 finish: http://www.qq.com, length=231238
 ```
 
-example: 挖掘老赖数据
+example: 挖掘老赖数据, without coroutine
 
 ```python
-# with coroutine
 import requests
 from jsonpath import jsonpath
 import pandas as pd
@@ -2085,8 +2086,9 @@ for i in range(total_pages+1):
 df=pd.DataFrame({'age':age, 'sexy':sexy, 'areaName': areaName, 'duty':duty, 'iname':iname, 'publishDateStamp':publishDateStamp, 'regDate': regDate})
 ```
 
+example: 挖掘老赖数据, with coroutine
+
 ```python
-# with coroutine
 from jsonpath import jsonpath
 import pandas as pd
 import gevent
@@ -2129,4 +2131,451 @@ gevent.joinall(gevent_tasks)
 
 # save to DataFrame for later analysis
 df=pd.DataFrame({'age':age, 'sexy':sexy, 'areaName': areaName, 'duty':duty, 'iname':iname, 'publishDateStamp':publishDateStamp, 'regDate': regDate})
+```
+
+### coroutine, threading, multiprocessing
+
+example1: simple example
+
+```python
+import re
+import requests
+from bs4 import BeautifulSoup
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def capture_data(html):
+    soup=BeautifulSoup(html)
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download_write(urls, file):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        for line in data:
+            file.write(line)
+            file.write('\n')
+            file.flush()
+
+def main():
+    total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+    urls=make_urls(total_numbers)
+
+    with open('test.csv', 'w', encoding='utf8') as file:
+        file.write('id;type;title;location;status;person;time\n')
+        download_write(urls, file)
+
+if __name__ == '__main__':
+    main()
+```
+
+example2: simple example with **coroutine**
+
+```python
+import re
+import gevent
+from bs4 import BeautifulSoup
+from gevent import monkey
+monkey.patch_all()
+
+import requests
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def capture_data(html):
+    soup=BeautifulSoup(html, features='lxml')
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download_write(urls, file):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        for line in data:
+            file.write(line)
+            file.write('\n')
+            file.flush()
+
+def main():
+    total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+    # total_numbers=105*30+5 # test
+    urls=make_urls(total_numbers)
+    segment_N=10
+
+    file=open('test.csv', 'w', encoding='utf8')
+    file.write('id;type;title;location;status;person;time\n')
+
+    url_seg=[[] for _ in range(segment_N)]
+    for i, url in enumerate(urls):
+        url_seg[i % segment_N].append(url)
+
+    task_list=[]
+    for i in range(segment_N):
+        task_list.append(gevent.spawn(download_write, url_seg[i], file))
+    gevent.joinall(task_list)
+
+    file.close()
+
+if __name__ == '__main__':
+    main()
+```
+
+example3: simple example with **threading**
+
+```python
+import re
+from bs4 import BeautifulSoup
+import requests
+import threading
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def capture_data(html):
+    soup=BeautifulSoup(html, features='lxml')
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download_write(urls, file):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        with g_lock:
+            for line in data:
+                file.write(line)
+                file.write('\n')
+                file.flush()
+
+def main():
+    total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+    # total_numbers=105*30+5 # test
+    urls=make_urls(total_numbers)
+    segment_N=10
+
+    file=open('test.csv', 'w', encoding='utf8')
+    file.write('id;type;title;location;status;person;time\n')
+
+    url_seg=[[] for _ in range(segment_N)]
+    for i, url in enumerate(urls):
+        url_seg[i % segment_N].append(url)
+
+    task_list=[]
+    for i in range(segment_N):
+        th=threading.Thread(target=download_write, args=(url_seg[i], file))
+        task_list.append(th)
+        th.start()
+
+    for th in task_list:
+        th.join()
+
+    file.close()
+
+if __name__ == '__main__':
+    g_lock=threading.Lock()
+    main()
+```
+
+example4: simpel example with **multiprocessing**
+> 读取完毕然后一次性写入，边读边写可能会丢数据
+
+```python
+import re
+from bs4 import BeautifulSoup
+import requests
+import multiprocessing
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def capture_data(html):
+    soup=BeautifulSoup(html, features='lxml')
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download_write(urls, q):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        q.put(data)
+    print(f'{multiprocessing.current_process().name} finished')
+
+def main():
+    # total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+    total_numbers=105*30+5 # test
+    urls=make_urls(total_numbers)
+    segment_N=10
+
+    url_seg=[[] for _ in range(segment_N)]
+    for i, url in enumerate(urls):
+        url_seg[i % segment_N].append(url)
+
+    q=multiprocessing.Manager().Queue()
+    task_list=[]
+    for i in range(segment_N):
+        p=multiprocessing.Process(target=download_write, args=(url_seg[i], q))
+        p.start()
+        task_list.append(p)
+
+    for p in task_list:
+        p.join()
+    
+    with open('test.csv', 'w', encoding='utf8') as file:
+        file.write('id;type;title;location;status;person;time\n')
+        while not q.empty():
+            data=q.get()
+            for line in data:
+                file.write(line)
+                file.write('\n')
+                file.flush()
+
+if __name__ == '__main__':
+    main()
+```
+
+example5: simpel example with **multiprocessing**
+> 读取完毕然后一次性写入，内存压力太大，已知要get的数目，可以实现边读边写
+
+```python
+import re
+from bs4 import BeautifulSoup
+import requests
+import multiprocessing
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def capture_data(html):
+    soup=BeautifulSoup(html, features='lxml')
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download(urls, q):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        q.put(data)
+    print(f'{multiprocessing.current_process().name} finished')
+
+def write_data(q, total_pages):
+    with open('test.csv', 'w', encoding='utf8') as file:
+        file.write('id;type;title;location;status;person;time\n')
+        for _ in range(total_pages):
+            data=q.get(timeout=30)
+            for line in data:
+                file.write(line)
+                file.write('\n')
+                file.flush()
+    print('finish writting...')
+
+def main():
+    # total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+    total_numbers=105*30+5 # test
+    urls=make_urls(total_numbers)
+    total_pages=len(urls) # 很重要，便于得到等待的次数
+    segment_N=10
+
+    url_seg=[[] for _ in range(segment_N)]
+    for i, url in enumerate(urls):
+        url_seg[i % segment_N].append(url)
+
+    q=multiprocessing.Manager().Queue()
+    task_list=[]
+    for i in range(segment_N):
+        p=multiprocessing.Process(target=download, args=(url_seg[i], q))
+        p.start()
+        task_list.append(p)
+    
+    read_process=multiprocessing.Process(target=write_data, args=(q, total_pages))
+    read_process.start()
+    task_list.append(read_process)
+
+    for p in task_list:
+        p.join()
+
+
+if __name__ == '__main__':
+    main()
 ```
