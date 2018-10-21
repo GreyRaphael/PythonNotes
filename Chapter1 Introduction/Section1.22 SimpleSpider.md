@@ -2457,6 +2457,7 @@ def main():
     for i, url in enumerate(urls):
         url_seg[i % segment_N].append(url)
 
+    # multiprocessing.Queue()无法pickle，建议使用下面的
     q=multiprocessing.Manager().Queue()
     task_list=[]
     for i in range(segment_N):
@@ -2545,7 +2546,7 @@ def write_data(q, total_pages):
     with open('test.csv', 'w', encoding='utf8') as file:
         file.write('id;type;title;location;status;person;time\n')
         for _ in range(total_pages):
-            data=q.get(timeout=30)
+            data=q.get()
             for line in data:
                 file.write(line)
                 file.write('\n')
@@ -2731,3 +2732,142 @@ Server抓取urls并put进入task_queue, Clients get task_queue中的urls并提�
 
 因为一般的云端的Linux没有GUI，无法用selenium，所以Server.py放在云端运行，Client.py放在windows运行。
 
+```python
+# Server
+import re
+import multiprocessing
+from multiprocessing.managers import BaseManager
+import requests
+
+def get_total_numbers(url):
+    html=requests.get(url).content.decode('gbk')
+    total_numbers=re.search(r'共(\d+)条记录', html).group(1)
+    return eval(total_numbers)
+
+def make_urls(N):
+    urls=[]
+    if N % 30 ==0:
+        for i in range(N//30):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    else:
+        for i in range(N//30+1):
+            urls.append(f'http://wz.sun0769.com/index.php/question/report?page={i*30}')
+    return urls
+
+def write_data(q, total_pages):
+    print('Server begins writing...')
+    with open('test.csv', 'w', encoding='utf8') as file:
+        file.write('id;type;title;location;status;person;time\n')
+        for _ in range(total_pages):
+            data=q.get()
+            for line in data:
+                file.write(line)
+                file.write('\n')
+                file.flush()
+    print('Server finishes writting!')
+
+class Worker(multiprocessing.Process):
+    def __init__(self, tq, rq):
+        self.tq = tq
+        self.rq = rq
+        super().__init__()
+
+    def run(self):
+        # total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
+        total_numbers=105*30+5 # test
+        urls=make_urls(total_numbers)
+        total_pages=len(urls) # 很重要，便于得到等待的次数        
+
+        for url in urls:
+            self.tq.put(url)
+        print('Server finishes putting urls in task_queue...')
+        write_data(self.rq, total_pages)
+
+
+class QueueManager(BaseManager):pass
+
+def main():
+    # 分布式爬虫，下面两种都可以
+    # tq = multiprocessing.Manager().Queue()
+    # rq = multiprocessing.Manager().Queue()
+    tq = multiprocessing.Queue()
+    rq = multiprocessing.Queue()
+    
+    w = Worker(tq, rq)
+    w.start()
+
+    QueueManager.register('task_queue', callable=lambda: tq) # lambda的return不用写
+    QueueManager.register('result_queue', callable=lambda: rq)# lambda的return不用写
+    m = QueueManager(address=('', 6666), authkey=b'666666')
+    s = m.get_server()
+    s.serve_forever()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+```python
+# Client
+from multiprocessing.managers import BaseManager
+from bs4 import BeautifulSoup
+import requests
+
+def capture_data(html):
+    soup=BeautifulSoup(html, features='html5lib')
+
+    id_list=[]
+    type_list=[]
+    title_list=[]
+    location_list=[]
+    status_list=[]
+    person_list=[]
+    time_list=[]
+
+    for tr in soup.select('table[bgcolor="#FBFEFF"] tr'):
+        id_list.append(tr.select_one('td:nth-of-type(1)').text)
+        type_list.append(tr.select_one('td a:nth-of-type(1)').text)
+        title_list.append(tr.select_one('td a:nth-of-type(2)').text)
+        location_list.append(tr.select_one('td a:nth-of-type(3)').text)
+        status_list.append(tr.select_one('td:nth-of-type(3)').text)
+        person_list.append(tr.select_one('td:nth-of-type(4)').text)
+        time_list.append(tr.select_one('td:nth-of-type(5)').text)
+
+    data=[]
+    for item in zip(id_list, type_list, title_list, location_list, status_list, person_list, time_list):
+        data.append(';'.join(item))
+    return data
+
+def download(urls, q):
+    for url in urls:
+        try:
+            html=requests.get(url).content.decode('gbk', errors='ignore')
+            data=capture_data(html)
+        except Exception as e:
+            print(e, url)
+        
+        print('Clients finishes:', url)
+        q.put(data)
+
+
+class QueueManager(BaseManager): pass
+
+def main():
+    QueueManager.register('task_queue')
+    QueueManager.register('result_queue')
+    
+    m = QueueManager(address=('222.29.69.149', 6666), authkey=b'666666')
+    m.connect()
+
+    tq=m.task_queue()
+    rq=m.result_queue()
+
+    urls=[]
+    while not tq.empty():
+        urls.append(tq.get())
+    print(f'client gets: {len(urls)} urls')
+    download(urls, rq)
+
+if __name__ == '__main__':
+    main()
+```
