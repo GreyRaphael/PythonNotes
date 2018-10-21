@@ -2457,8 +2457,8 @@ def main():
     for i, url in enumerate(urls):
         url_seg[i % segment_N].append(url)
 
-    # multiprocessing.Queue()无法pickle，建议使用下面的
-    q=multiprocessing.Manager().Queue()
+    # python2中multiprocessing.Queue()无法pickle，建议使用multiprocessing.Manager().Queue()；python3都行
+    q=multiprocessing.Queue()
     task_list=[]
     for i in range(segment_N):
         p=multiprocessing.Process(target=download_write, args=(url_seg[i], q))
@@ -2480,6 +2480,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+> python2 [multiprocessing.Queue() vs multiprocessing.Manager().Queue()](https://stackoverflow.com/questions/43439194)
 
 example5: simpel example with **multiprocessing**
 > 读取完毕然后一次性写入，内存压力太大，已知要get的数目，可以实现边读边写  
@@ -2564,7 +2565,7 @@ def main():
     for i, url in enumerate(urls):
         url_seg[i % segment_N].append(url)
 
-    q=multiprocessing.Manager().Queue()
+    q=multiprocessing.Queue()
     task_list=[]
     for i in range(segment_N):
         p=multiprocessing.Process(target=download, args=(url_seg[i], q))
@@ -2787,9 +2788,6 @@ class Worker(multiprocessing.Process):
 class QueueManager(BaseManager):pass
 
 def main():
-    # 分布式爬虫，下面两种都可以
-    # tq = multiprocessing.Manager().Queue()
-    # rq = multiprocessing.Manager().Queue()
     tq = multiprocessing.Queue()
     rq = multiprocessing.Queue()
     
