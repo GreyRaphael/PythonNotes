@@ -1852,7 +1852,7 @@ tree.xpath('//tr/td/text()')
 ```python
 import subprocess
 
-p=subprocess.Popen(['C:\\Program Files (x86)\\Tesseract-OCR' 'c:\\3.jpg' 'c:\result'], 
+p=subprocess.Popen(['C:\\Program Files (x86)\\Tesseract-OCR', 'c:\\3.jpg', 'c:\result'], 
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
 p.wait()
