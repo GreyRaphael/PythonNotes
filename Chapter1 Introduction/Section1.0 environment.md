@@ -12,6 +12,7 @@
         - [examples](#examples)
     - [Python code stype](#python-code-stype)
     - [Python in environment](#python-in-environment)
+    - [Python3 encoding](#python3-encoding)
 
 <!-- /TOC -->
 
@@ -149,3 +150,7 @@ main.main()
 # use python3 in command line instead of python3.6.5
 ln -s /usr/bin/python3.6.5 /usr/bin/python3
 ```
+
+## Python3 encoding
+
+[python3编码之美](https://thief.one/2017/04/18/1/)
