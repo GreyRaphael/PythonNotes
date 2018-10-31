@@ -215,8 +215,9 @@ run('D:\\pythonfiles')
 
 ## generate verify code
 
+example1: simple code
+
 ```python
-# a simple example
 import random
 checkcode = ''
 for i in range(4):
@@ -228,6 +229,8 @@ for i in range(4):
     checkcode += str(temp)
 print checkcode
 ```
+
+example2: simple english code
 
 ```python
 import string, random
@@ -270,8 +273,9 @@ draw.line((0,0,50,100), fill=get_random_color())
 draw.arc((0,0,50,50),0,360,fill=get_random_color())
 ```
 
+example3: complex english code
+
 ```python
-# complex example
 import string
 import random
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -326,6 +330,20 @@ def get_verify_code():
 
 
 get_verify_code()
+```
+
+example4: chinese code
+
+```python
+# 一般将常用字存在一个list，这种方法不推荐
+def get_random_string(character_number):
+    # 汉字unicode编码范围
+    string_list = [chr(random.randint(0x4E00, 0x9FFF))
+                   for _ in range(character_number)]
+    return ''.join(string_list)
+
+# 同时要修改为带有中文的字体
+font = ImageFont.truetype('simfang.ttf', 40)
 ```
 
 ## network
