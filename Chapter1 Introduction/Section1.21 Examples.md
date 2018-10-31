@@ -257,7 +257,73 @@ def get_verify_code():
     # blur image
     img=im.filter(ImageFilter.BLUR)
     
+    # img.show()
     img.save(''.join(code_string)+'.png', 'png')
+
+get_verify_code()
+```
+
+```python
+# draw line
+draw.line((0,0,50,100), fill=get_random_color())
+# draw arc
+draw.arc((0,0,50,50),0,360,fill=get_random_color())
+```
+
+```python
+# complex example
+import string
+import random
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+# another method draw text
+def get_random_string(character_number):
+    string_list = [random.choice(string.ascii_letters+string.digits)
+                   for _ in range(character_number)]
+    return ''.join(string_list)
+
+def draw_random_line(draw, width, height):
+    begin = (random.randint(0, width), random.randint(0, height))
+    end = (random.randint(0, width), random.randint(0, height))
+    draw.line([begin, end], fill=get_random_color(), width=3)
+
+def get_random_color():
+    return (random.randint(30, 100), random.randint(30, 100), random.randint(30, 100))
+
+def get_verify_code():
+    width, height = 240, 60
+    # RGBA可以显示透明
+    im = Image.new('RGBA', (width, height), (180, 180, 180))
+    draw = ImageDraw.Draw(im)
+
+    # draw text
+    text = get_random_string(4)
+    font = ImageFont.truetype('arial.ttf', 40)
+    font_width, font_height = font.getsize(text)
+    draw.text(((width-font_width)/2, (height-font_height)/2),
+              text, font=font, fill=get_random_color())
+
+    # draw lines
+    line_numbers = random.randint(1, 6)
+    for _ in range(line_numbers):
+        draw_random_line(draw, width, height)
+
+    # add noise
+    for _ in range(random.randint(1500, 3000)):
+        draw.point((random.randint(0, width), random.randint(
+            0, height)), fill=get_random_color())
+
+    # blur image
+    img = im.filter(ImageFilter.BLUR)
+    # transform
+    image = img.transform((width+30, height+20),
+                          Image.AFFINE,
+                          (1, -0.5, 0, -0.2, 0.9, 0),
+                          Image.BILINEAR)
+
+    # img.show()
+    image.save(''.join(text)+'.png', 'png')
+
 
 get_verify_code()
 ```
