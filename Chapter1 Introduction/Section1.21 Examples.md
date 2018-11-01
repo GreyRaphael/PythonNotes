@@ -346,6 +346,17 @@ def get_random_string(character_number):
 font = ImageFont.truetype('simfang.ttf', 40)
 ```
 
+example5: 3rd captcha
+> `pip install captcha`
+
+```python
+from captcha.image import ImageCaptcha
+
+text='我和阿下'
+image = ImageCaptcha(fonts=['simfang.ttf',])
+image.write(text,'out.png')
+```
+
 ## network
 
 一般要么是基于原生socket请求, 要么就是http请求;
