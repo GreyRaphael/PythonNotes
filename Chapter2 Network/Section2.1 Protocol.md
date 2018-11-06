@@ -733,7 +733,7 @@ while True:
     new_socket, client_info = tcp_socket.accept()
     print('new client connected')
     while True:
-        # 假装一次能够收10k
+        # 假装一次能够收10k，实际并不能
         recv_data = new_socket.recv(10240).decode('utf-8')
         if recv_data:
             # Linux下如果客户端Ctrl+C断开，那么recv_data为""，并且死循环
@@ -747,6 +747,65 @@ while True:
         new_socket.send(('>>'+send_data).encode('utf-8'))
         print('<<'+send_data)
     new_socket.close()
+tcp_socket.close()
+```
+
+example: updated ssh server & client
+> 解决总数据量超过1024bytes的情况
+
+```python
+# ssh server
+import os
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
+tcp_socket.listen(10)
+while True:
+    new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
+    while True:
+        recv_data = new_socket.recv(10240).decode('utf8')
+        if recv_data:
+            # Linux下如果客户端Ctrl+C断开，那么recv_data为""，并且死循环
+            # windows下会假死
+            print(f'>>{recv_data}')
+        else:
+            # 如果Client挂了，那么结束这个new_socket
+            print('client has lost')
+            break
+        send_data = os.popen(recv_data).read() or 'no output'
+        print(len(send_data))
+        new_socket.send(f'{len(send_data)}'.encode('utf8'))
+        new_socket.send(send_data.encode('utf8'))
+        print('<<'+send_data)
+    new_socket.close()
+tcp_socket.close()
+```
+
+```python
+# ssh client
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.connect(('localhost', 7788))
+while True:
+    send_data = input("<<")
+    if send_data:
+        tcp_socket.send(send_data.encode('utf8'))
+    else:
+        # 发不了""，所以干脆continue或者break
+        print('you send empty! will continue')
+        continue
+    length_data = eval(tcp_socket.recv(1024).decode('utf8'))
+    print(f'receiving length: {length_data}')
+    received_size = 0
+    while received_size < length_data:
+        data = tcp_socket.recv(1024).decode('utf8')
+        print(data)
+        received_size += len(data)
+    else:
+        print('final received size:', received_size)
 tcp_socket.close()
 ```
 
