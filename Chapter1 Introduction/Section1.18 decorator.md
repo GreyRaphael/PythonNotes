@@ -1386,3 +1386,22 @@ else:
 ```
 
 > 如果没有Reflection， 只能用大量if不断判断，代码冗长；使用Relection之后，代码精简，而且程序根据用户输入，动态装配不同的功能。
+
+example3: 根据字符串，动态导入模块
+> [`__import__` usage](https://docs.lvrui.io/2017/10/13/Python%E4%B8%AD-import-%E7%9A%84fromlist%E5%8F%82%E6%95%B0%E7%94%A8%E6%B3%95/)
+
+```python
+# not recommended
+module=__import__('time')
+
+print(module.ctime()) # Tue Nov  6 18:47:50 2018
+```
+
+```python
+# recommended
+import importlib
+
+module=importlib.import_module('PIL.Image')# 相当于from PIL import Image
+img=module.open('rabbit.jpg')
+img.show()
+```
