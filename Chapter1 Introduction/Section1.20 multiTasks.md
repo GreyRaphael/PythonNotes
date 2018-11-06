@@ -65,8 +65,11 @@ print("hahah")
 
 进程池一开始就建立，最后才销毁，避免频繁分配，提高了效率；
 
+
+> 线程用semaphore来锁定线程的数量，进程用pool或者barrier来锁定进程数量
+
 ```python
-# simple example
+# simple example, 进程锁定一次只能10个进程
 from multiprocessing import Pool
 
 def func(x):
@@ -75,11 +78,54 @@ def func(x):
 if __name__ == '__main__':
     p = Pool() # Pool()的默认个数是cpu core number
     data = [x for x in range(10)]
-    res = p.map(func, data)
+    res = p.map(func, data) # 获取结果
 
     p.close()
     p.join()
     print(res)
+```
+
+```python
+# Barrier进程锁定
+import multiprocessing
+
+def func(x, barrier):
+    print(x, '*****')
+    barrier.wait()
+    print(x**3)
+
+if __name__ == '__main__':
+    b = multiprocessing.Barrier(3)
+    p_list = []
+    for i in range(10):
+        p = multiprocessing.Process(target=func, args=(i, b))
+        p.start()
+        p_list.append(p)
+    for p in p_list:
+        p.join()
+```
+
+```bash
+# output
+2 *****
+0 *****
+3 *****
+27
+0
+8
+6 *****
+5 *****
+8 *****
+512
+125
+216
+1 *****
+7 *****
+4 *****
+64
+343
+1
+9 ***** # 凑够3个才能运行，所以这里卡住了
 ```
 
 ```python
