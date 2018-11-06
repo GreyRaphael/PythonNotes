@@ -318,6 +318,18 @@ print(myAdd("grey",10))
 AssertionError: two argument type must be the same
 ```
 
+```python
+data=eval(input('enter a number:'))
+assert type(data) is int, 'must be int'
+print(data**3)
+```
+
+```python
+# 或者直接exit
+data=eval(input('enter a number:'))
+if type(data) is not int: exit('must be int')
+print(data**3)
+```
 
 ## 爆库
 
