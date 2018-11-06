@@ -357,6 +357,15 @@ image = ImageCaptcha(fonts=['simfang.ttf',])
 image.write(text,'out.png')
 ```
 
+```python
+from captcha.image import ImageCaptcha
+
+text='what'
+img = ImageCaptcha()
+image = img.generate_image(text)
+image.show()
+```
+
 ## network
 
 一般要么是基于原生socket请求, 要么就是http请求;
