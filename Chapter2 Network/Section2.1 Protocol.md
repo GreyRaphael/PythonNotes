@@ -809,6 +809,33 @@ while True:
 tcp_socket.close()
 ```
 
+ssh粘包问题: 连续的两次发送，可能数据会组合在一起一次性发送
+
+```python
+# server
+new_socket.send(f'{len(send_data)}'.encode('utf8'))
+new_socket.send(send_data.encode('utf8'))
+
+# client收到的数据
+456xxxxxx
+```
+
+```python
+# python2的后期版本以及python3一般不存在粘包的问题
+# 普通python2解决粘包
+
+# ssh server
+new_socket.send(f'{len(send_data)}'.encode('utf8'))
+client_ack=new_socket.recv(1024)
+new_socket.send(send_data.encode('utf8'))
+
+# ssh client
+length_data = eval(tcp_socket.recv(1024).decode('utf8'))
+tcp_socket.send('client received length data'.encode('utf8'))
+print(f'receiving length: {length_data}')
+received_size = 0
+```
+
 ```python
 # 文件传输server
 import os
