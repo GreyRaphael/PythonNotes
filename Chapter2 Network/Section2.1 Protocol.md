@@ -7,7 +7,6 @@
     - [端口(port)](#端口port)
     - [ip addr](#ip-addr)
     - [socket](#socket)
-    - [SocketServer](#socketserver)
     - [wireshark](#wireshark)
     - [tftp](#tftp)
     - [udp brodcast](#udp-brodcast)
@@ -384,32 +383,6 @@ sys.stdout.write('\n')
 #output, 强制退出的结果
 49.00%|#########
 Process finished with exit code 1
-```
-
-## SocketServer
-
-```python
-import socketserver
-
-class MySock(socketserver.BaseRequestHandler):
-    def handle(self):
-        print('got a new connection from:', self.client_address)
-        while True:
-            data=self.request.recv(1024).decode('utf8')
-            if data:
-                print('received:', data)
-            else:
-                print('client has host...')
-                break
-            self.request.send(data.upper().encode('utf8'))
-
-def main():
-    addr=('localhost', 9999)
-    s=socketserver.ThreadingTCPServer(addr, MySock)
-    s.serve_forever()
-
-if __name__ == '__main__':
-    main()
 ```
 
 ## wireshark

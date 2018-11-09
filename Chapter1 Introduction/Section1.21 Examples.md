@@ -414,59 +414,6 @@ while True:
 
 查看端口占用情况`netstat -apn|grep 999`
 
-单客户端服务器(断开client的时候有bug)
-
-```python
-# python已经封装的服务器
-from socketserver import TCPServer, BaseRequestHandler
-# 出错处理
-import traceback
-
-class my_string_request_handler(BaseRequestHandler):
-    def handle(self):
-        while True:
-            # 客户端端口时，抛出异常
-            try:
-                # 读取1024Bytes，去掉前后的空白
-                data=self.request.recv(1024).strip()
-                if not data:
-                    break
-                print(f'{self.client_address}: {data}')
-                self.request.sendall(data.upper())
-            except:
-                traceback.print_exc()
-                break
-
-addr=('', 9990)
-server=TCPServer(addr, my_base_request_handler)
-server.serve_forever()
-```
-
-多客户端服务器(多线程并发服务器)
-
-```python
-from socketserver import ThreadingTCPServer, StreamRequestHandler
-import traceback
-
-class my_base_request_handler(StreamRequestHandler):
-    def handle(self):
-        while True:
-            # 客户端端口时，抛出异常
-            try:
-                data=self.rfile.readline().strip()
-                if not data:
-                    break
-                print(f'{self.client_address}: {data}')
-                self.wfile.write(data.upper())
-            except:
-                traceback.print_exc()
-                break
-
-addr=('', 9990)
-server=ThreadingTCPServer(addr, my_string_request_handler)
-server.serve_forever()
-```
-
 ## python extending
 
 why:

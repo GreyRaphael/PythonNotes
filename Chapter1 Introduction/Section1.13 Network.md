@@ -10,6 +10,7 @@
         - [udp远程控制](#udp远程控制)
     - [tcp client & tcp server](#tcp-client--tcp-server)
     - [ftp攻击](#ftp攻击)
+    - [SocketServer](#socketserver)
 
 <!-- /TOC -->
 
@@ -407,4 +408,81 @@ try:
     print("密码正确")
 except:
     print("密码不正确")
+```
+
+## SocketServer
+
+socketserver用法:
+
+1. you must create a request handler class by subclassing the `BaseRequestHandler` class and overriding its `handle()` method; this method will process incoming requests. 　　
+1. you must instantiate one of the server classes, passing it the server’s address and the request handler class.
+1. Then call the `handle_request()` or `serve_forever()` method of the server object to process one or many requests.
+1. Finally, call `server_close()` to close the socket.
+
+example1: 单客户端服务器
+> 来一个request就会实例化一个MyHandler
+
+```python
+import socketserver
+
+class MyHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        while True:
+            data = self.request.recv(1024)
+            if not data:
+                print('client lost')
+                break
+            print(f'{self.client_address}: {data}')
+            self.request.send(data.upper())
+
+if __name__ == "__main__":
+    # 如果server所在的电脑有多个ip地址; 
+    # 采用如下addr, client可以任意连接多个ip中的一个
+    addr = ('', 9999)
+    server = socketserver.TCPServer(addr, MyHandler)
+    server.serve_forever()
+```
+
+example2: 多客户端服务器(多线程并发服务器)
+
+```python
+import socketserver
+
+class MyHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        while True:
+            data = self.request.recv(1024)
+            if not data:
+                print('client lost')
+                break
+            print(f'{self.client_address}: {data}')
+            self.request.send(data.upper())
+
+if __name__ == "__main__":
+    addr = ('', 9999)
+    # 只修改一个地方
+    server = socketserver.ThreadingTCPServer(addr, MyHandler)
+    server.serve_forever()
+```
+
+example3: 多进程并行服务器
+
+```python
+import socketserver
+
+class MyHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        while True:
+            data = self.request.recv(1024)
+            if not data:
+                print('client lost')
+                break
+            print(f'{self.client_address}: {data}')
+            self.request.send(data.upper())
+
+if __name__ == "__main__":
+    addr = ('', 9999)
+    # 之修改这一句，因为windows没有fork, 所以只用于linux
+    server = socketserver.ForkingTCPServer(addr, MyHandler)
+    server.serve_forever()
 ```
