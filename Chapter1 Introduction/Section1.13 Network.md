@@ -11,6 +11,9 @@
     - [tcp client & tcp server](#tcp-client--tcp-server)
     - [ftp攻击](#ftp攻击)
     - [SocketServer](#socketserver)
+    - [File Transfer](#file-transfer)
+        - [1Server 1Client](#1server-1client)
+        - [1Server N Clients](#1server-n-clients)
 
 <!-- /TOC -->
 
@@ -485,4 +488,256 @@ if __name__ == "__main__":
     # 之修改这一句，因为windows没有fork, 所以只用于linux
     server = socketserver.ForkingTCPServer(addr, MyHandler)
     server.serve_forever()
+```
+
+
+## File Transfer
+
+### 1Server 1Client
+
+FTP server:
+1. 读取文件名
+1. 检测文件是否存在，检测文件大小
+1. 打开文件
+1. 发送文件大小给client
+1. 等待client确认(防止粘包)
+1. 开始边读边发数据
+1. 发送md5给client
+
+```python
+import hashlib
+import os
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.bind(('localhost', 7788))
+tcp_socket.listen(10)
+while True:
+    new_socket, client_info = tcp_socket.accept()
+    print('new client connected')
+    while True:
+        recv_data = new_socket.recv(1024).decode('utf8')
+        if recv_data:
+            print(f'>>{recv_data}')
+        else:
+            print('client has lost')
+            break
+
+        cmd, filename = recv_data.split()
+        if cmd == 'download':
+            if os.path.isfile(filename):
+                m = hashlib.md5()
+                file_size = os.stat(filename).st_size
+                with open(filename, 'rb') as file:
+                    new_socket.send(f'{file_size}'.encode('utf8'))
+                    new_socket.recv(1024)  # wait for ack: 防粘包
+                    for line in file:
+                        m.update(line)
+                        new_socket.send(line)
+                    server_md5 = m.hexdigest()
+                    print(f'MD5={server_md5}')
+                new_socket.send(f'{server_md5}'.encode('utf8'))
+        elif cmd == 'upload':
+            pass
+        else:
+            print('some err')
+    new_socket.close()
+tcp_socket.close()
+```
+
+FTP client:
+1. 发送命令
+2. 接收文件大小
+3. 写入文件
+4. 对比MD5
+
+```python
+import hashlib
+import socket
+
+tcp_socket = socket.socket()
+tcp_socket.connect(('localhost', 7788))
+while True:
+    send_data = input("<<")
+    if not send_data:
+        print('you send empty! will continue')
+        continue
+
+    try:
+        cmd, filename = send_data.split()
+    except Exception as e:
+        print('only one command argument')
+        continue
+
+    if cmd == 'download':
+        tcp_socket.send(send_data.encode('utf8'))
+        length_data = eval(tcp_socket.recv(1024).decode('utf8'))
+        tcp_socket.send(b'ready to recv file')
+
+        m = hashlib.md5()
+        received_size = 0
+        with open(f'new-{filename}', 'wb') as file:
+            while received_size < length_data:
+                # 防止md5粘在文件上
+                size = 1024 if length_data-received_size > 1024 else length_data-received_size
+                line = tcp_socket.recv(size)
+                m.update(line)
+                received_size += len(line)
+                file.write(line)
+            else:
+                print(f'{received_size/1024:.2f}kB/{length_data/1024:.2f}kB')
+                client_md5 = m.hexdigest()
+                print(f'client MD5={client_md5}')
+
+        server_md5 = tcp_socket.recv(1024).decode('utf8')
+        print(f'server MD5={server_md5}')
+        if client_md5 == server_md5:
+            print('right file')
+    elif cmd == 'upload':
+        pass
+    else:
+        print('download/upload file like: cmd filename')
+
+tcp_socket.close()
+```
+
+### 1Server N Clients
+
+FTP Server
+
+```python
+import json
+import os
+import socketserver
+
+
+class MyHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        while True:
+            msg_str = self.request.recv(1024).decode('utf8')
+            if not msg_str:
+                print('client lost')
+                break
+            msg = json.loads(msg_str)
+            action = msg['action']
+            if hasattr(self, action):
+                func = getattr(self, action)
+                func(msg)
+            else:
+                print('action error')
+
+    def put(self, *args):
+        '''receive client file'''
+        msg = args[0]
+        file_name = msg['filename']
+        file_size = msg['size']
+
+        self.request.send(b'server ready to write')
+        if os.path.isfile(file_name):
+            # override old file
+            f = open(f'new-{file_name}', 'wb')
+        else:
+            f = open(file_name, 'wb')
+        received_size = 0
+        while received_size < file_size:
+            line = self.request.recv(1024)
+            received_size += len(line)
+            f.write(line)
+        else:
+            print(f'{file_name} uploaded!')
+
+    def chdir(self, *args):
+        # 服务器上不能切换目录，要不然影响server.py运行
+        # 如果切换到/，轻易被攻击
+        # 将客户端cd后的路径发送给服务器即可，服务器据此存取文件
+        # 配合变量 user_current_dir = "/home/user/XXX"来实现
+        pass
+
+if __name__ == "__main__":
+    addr = ('', 9999)
+    server = socketserver.ThreadingTCPServer(addr, MyHandler)
+    server.serve_forever()
+```
+
+FTP Client
+
+```python
+import json
+import os
+import socket
+
+
+class FtpClient(object):
+    def __init__(self):
+        self.s = socket.socket()
+
+    def connect(self, ip, port):
+        self.s.connect((ip, port))
+
+    def auth(self, parameter_list):
+        '''authentication'''
+        pass
+
+    def interactive(self):
+        # login
+        # self.auth()
+        while True:
+            data_in = input('>>:')
+            if not data_in:
+                continue
+            print(data_in)
+            cmd = data_in.split()[0]
+            if hasattr(self, f'cmd_{cmd}'):
+                func = getattr(self, f'cmd_{cmd}')
+                func(data_in)
+            else:
+                self.help()
+
+    def cmd_ls(self, parameter_list):
+        pass
+
+    def cmd_pwd(self, parameter_list):
+        pass
+
+    def cmd_cd(self, parameter_list):
+        pass
+
+    def cmd_get(self, parameter_list):
+        pass
+
+    def cmd_put(self, *args):
+        try:
+            _, filename = args[0].split()
+        except:
+            print('cmd like: put filename')
+
+        if os.path.isfile(filename):
+            msg = {
+                'action':'put',
+                'filename': filename,
+                'size': os.stat(filename).st_size
+            }
+            self.s.send(json.dumps(msg).encode('utf8'))
+            self.s.recv(1024)  # wait ack
+            with open(filename, 'rb') as file:
+                for line in file:
+                    self.s.send(line)
+                else:
+                    print('upload success!')
+        else:
+            print('file not exist!')
+
+    def help(self):
+        info = '''
+        ls
+        pwd
+        cd
+        get filename
+        put filename
+        '''
+
+if __name__ == "__main__":
+    client=FtpClient()
+    client.connect('localhost', 9999)
+    client.interactive()
 ```
