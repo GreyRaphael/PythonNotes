@@ -75,6 +75,19 @@ for i in range(5):
     t1.start()
 ```
 
+```python
+import threading
+from win32api import MessageBox
+
+
+for i in range(5):
+    t1=threading.Thread(target=MessageBox, args=(0, "this is content", f"caption{i+1}", 1))
+    t1.start()
+
+print(threading.current_thread().name) # MainThread
+print(threading.active_count()) # 6
+```
+
 Example2: 继承调用
 
 ```python
@@ -86,6 +99,7 @@ from win32api import MessageBox
 class MyThread(threading.Thread):
     def __init__(self, caption):
         # threading.Thread.__init__(self)
+        # super(Mythread, self).__init__()
         super().__init__()
         self.caption = caption
 
@@ -1416,7 +1430,7 @@ for i in range(5):
 ## 前台进程&后台进程
 
 - 前台进程：主线程必须等我；
-- 后台进程：主线程不用等我；
+- 后台进程：主线程不用等我；或者叫做守护进程，主人死了，仆人殉葬。
 
 `threading.Thread`默认是前台进程，主线程必须等待前台线程；`_thread`默认是后台进程；
 
