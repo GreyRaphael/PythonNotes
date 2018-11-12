@@ -153,6 +153,16 @@ print(os.getppid(), os.getpid(), sub_pid)
 #其中2545是vscode
 ```
 
+[Understanding GIL](http://www.dabeaz.com/python/UnderstandingGIL.pdf)
+> ![](res/gil01.png)  
+> 无论CPU多少核心，同一时刻只有一个线程执行
+
+因为python是调用OS的原生线程，直接在N个CPU上启动N个线程，这N个线程共用同一片内存，如果要对num进行+1操作，就会存在线程冲突问题，然而由于python只是调用OS的原生线程(不是自己实现的)，相当于只是传递上下文给该原生线程，解释器无法在该原生线程内部解决线程冲突，所以为了保证线程安全，就造了GIL在原生线程外部统一管理，同一时刻只让某一个线程能够接触num，那么Python多线程就是并发，不是并行。
+
+因为Java, C#自己实现了多线程，没有调用OS原生线程，所以JPython, IronPython不存在GIL; 
+
+Pypy运行速度快的原因采用了JIT(提前预编译一部分), Pypy去掉GIL只是顺带的优点;有人将CPython去掉GIL结果性能降低。
+
 ## multiprocess global varibale
 
 父子进程虽然可以拷贝使用全局变量，但是不共享，互相独立；
