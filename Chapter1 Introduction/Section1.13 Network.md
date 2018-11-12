@@ -14,6 +14,7 @@
     - [File Transfer](#file-transfer)
         - [1Server 1Client](#1server-1client)
         - [1Server N Clients](#1server-n-clients)
+    - [Paramiko](#paramiko)
 
 <!-- /TOC -->
 
@@ -603,6 +604,8 @@ tcp_socket.close()
 
 ### 1Server N Clients
 
+FTP [Example](https://github.com/triaquae/py_training/tree/master/sample_code)
+
 FTP Server
 
 ```python
@@ -740,4 +743,98 @@ if __name__ == "__main__":
     client=FtpClient()
     client.connect('localhost', 9999)
     client.interactive()
+```
+
+## Paramiko
+
+`conda install paramiko`
+
+Paramiko is a Python (2.7, 3.4+) implementation of the SSHv2 protocol [1], providing both client and server functionality
+> 执行命令，分发文件，主要用于批量管理集群
+
+example1: SSH Client
+
+```python
+import paramiko
+
+client = paramiko.SSHClient()
+# not found in known_hosts: 第一次连接的时候需要放入known_hosts文件中，该文件位于~/.ssh/know_hosts
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect(hostname='xxx.xxx.xxx.xxx', port=22, username='grey', password='666666')
+stdin, stdout, stderr = client.exec_command('ls') # stdout, stderr两个中只有一个有结果
+
+print(stdout.read().decode())
+```
+
+```bash
+# output
+anaconda3
+JupyterWork
+markdowns
+nohup.out
+server_rabbit.png
+Test
+```
+
+example2: File Transfer
+> scp基于SFTP协议(ssh的FTP协议)，所以ssh可以传文件
+
+```python
+import paramiko
+
+transport=paramiko.Transport(('xxx.xxx.xxx.xxx', 22))
+transport.connect(username='grey', password='666666')
+
+sftp=paramiko.SFTPClient.from_transport(transport)
+
+# upload file
+sftp.put('rabbit.jpg', 'server_rabbit.png')
+
+# download file
+sftp.get('nohup.out', 'local_nohup.out')
+
+transport.close()
+```
+
+example3: 不使用password来连接，采用密钥key来连接
+
+- A机器user1: `ssh-keygen`生成`id_rsa`, `id_rsa.pub`两个文件，`id_rsa`不要给任何人; `id_rsa.pub`可以copy给任何想要不通过password来通信的电脑上，比如B机器user2
+- B机器user2: 在`~/.ssh/authorized_keys`文件中写入刚才的`id_rsa.pub`的文件内容，`chmod 600 authorized_keys`
+- 然后A机器就可以不用密码连接B机器`ssh B_user2@xxx.xxx.xxx.xxx`
+  > A机器user1将id_rsa.pub给B机器的authorized_keys: `ssh-copy-id "B_user2@xxx.xxx.xxx.xxx"`  
+  > A_user1已经登录B_user2, 无法从B_user2用ssh连接A_user1; 这是单向的，B_user2需要``ssh-copy-id "A_user1@yyy.yyy.yyy.yyy"``
+
+```python
+# A_user1
+import paramiko
+
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+private_key=paramiko.RSAKey.from_private_key_file('~/.ssh/id_rsa')
+client.connect(hostname='xxx.xxx.xxx.xxx', port=22, username='B_user2', pkey=private_key)
+stdin, stdout, stderr = client.exec_command('ls')
+
+print(stdout.read().decode())
+```
+
+example4: 不使用password用SFTP来传输文件
+
+```python
+import paramiko
+
+transport=paramiko.Transport(('xxx.xxx.xxx.xxx', 22))
+
+private_key=paramiko.RSAKey.from_private_key_file('~/.ssh/id_rsa')
+transport.connect(username='grey', pkey=private_key)
+
+sftp=paramiko.SFTPClient.from_transport(transport)
+
+# upload file
+sftp.put('rabbit.jpg', 'server_rabbit.png')
+
+# download file
+sftp.get('nohup.out', 'local_nohup.out')
+
+transport.close()
 ```
