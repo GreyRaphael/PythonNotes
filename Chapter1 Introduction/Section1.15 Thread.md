@@ -766,6 +766,98 @@ Thread-4 ends
 Thread-3 ends
 ```
 
+example: traffic light vs cars
+
+```python
+import threading
+import time
+import random
+
+
+def light():
+    if not event.is_set():
+        event.set() # 绿灯
+
+    count = 0
+    while True:
+        if count < 10:
+            print('\033[42;1m--green light on---\033[0m')
+        elif count < 13:
+            print('\033[43;1m--yellow light on---\033[0m')
+        elif count < 20:
+            event.clear()
+            print('\033[41;1m--red light on---\033[0m')
+        else:
+            count = 0
+            event.set()  # 打开绿灯
+        time.sleep(1)
+        count += 1
+
+
+def car(n):
+    while True:
+        time.sleep(random.randrange(10))
+        if event.is_set():  # 绿灯
+            print(f"car{n}  is running..")
+        else:
+            print(f"car{n} sees the red light..")
+            event.wait()
+            print(f'\033[34;1m green light is on, car{n} start going...\033[0m')
+
+
+if __name__ == '__main__':
+    event = threading.Event()
+    Light = threading.Thread(target=light)
+    Light.start()
+    for i in range(3):
+        t = threading.Thread(target=car, args=(i,))
+        t.start()
+```
+
+example: 自动门
+
+```python
+import threading
+import time
+import random
+
+
+def door():
+    while True:
+        if door_swiping_event.is_set(): 
+            time.sleep(1.5) # 门被打开，保持1.5s
+            print("\033[31;1mdoor closed...., swipe to open.\033[0m")
+            door_swiping_event.clear()
+        else:
+            door_swiping_event.wait() # 门关着，刷卡可以打开
+            print("\033[32;1mdoor opening....\033[0m")
+
+
+def staff(n):
+    time.sleep(random.randrange(5))
+    print(f"staff{n} is comming...")
+
+    while not door_swiping_event.is_set(): # 门关着
+        print(f"staff{n} sees door got closed, swipping the card.....")
+        door_swiping_event.set()
+        time.sleep(0.5)
+    else:
+        print(f"\033[34;1mstaff{n} passing.....\033[0m")
+        
+
+if __name__ == "__main__":
+    door_swiping_event = threading.Event()  # 设置事件
+
+    # 自动门
+    door_thread = threading.Thread(target=door)
+    door_thread.start()
+
+    # 员工
+    for i in range(10):
+        p = threading.Thread(target=staff, args=(i,))
+        p.start()
+```
+
 ## Condition
 
 这个是最常用的，既解决通信，也解决同步; 除了提供与Lock类似的acquire和release方法外，还提供了wait和notify方法。可以看作是Lock/RLock与Event的合体。
