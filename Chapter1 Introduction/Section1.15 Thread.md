@@ -1,24 +1,20 @@
 # python threads
 
-<!-- TOC -->
-
 - [python threads](#python-threads)
     - [Introduction](#introduction)
     - [Thread Synchronization](#thread-synchronization)
         - [threading.Lock()](#threadinglock)
         - [threading.RLock()](#threadingrlock)
-    - [semaphore(信号量)](#semaphore信号量)
-    - [凑几个然后执行](#凑几个然后执行)
-    - [线程通信 Event](#线程通信-event)
+    - [semaphore(信号量)](#semaphore%E4%BF%A1%E5%8F%B7%E9%87%8F)
+    - [凑几个然后执行](#%E5%87%91%E5%87%A0%E4%B8%AA%E7%84%B6%E5%90%8E%E6%89%A7%E8%A1%8C)
+    - [线程通信 Event](#%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1-event)
     - [Condition](#condition)
-        - [线程调度](#线程调度)
+        - [线程调度](#%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6)
     - [Productor & Customer](#productor--customer)
     - [Thread pool](#thread-pool)
-    - [定时线程](#定时线程)
+    - [定时线程](#%E5%AE%9A%E6%97%B6%E7%BA%BF%E7%A8%8B)
     - [`with`](#with)
-    - [前台进程&后台进程](#前台进程后台进程)
-
-<!-- /TOC -->
+    - [前台进程&后台进程](#%E5%89%8D%E5%8F%B0%E8%BF%9B%E7%A8%8B%E5%90%8E%E5%8F%B0%E8%BF%9B%E7%A8%8B)
 
 ## Introduction
 
@@ -324,6 +320,10 @@ threading.Thread(target=modify_num).start()
 1293707
 ```
 
+> Problem: 既然已经有GIL，同一时刻只有一个线程在运行，为何还会出现线程冲突  
+> ![](res/gil02.png)  
+> GIL保证同一时刻只有一个线程在运行；thread Lock保证同一时刻只有一个线程修改被Lock的数据。
+
 ### threading.Lock()
 
 ```python
@@ -336,10 +336,10 @@ mutex = threading.Lock()
 class MyThread(threading.Thread):
     def run(self):
         global num
-        if mutex.acquire():  # 表示独占，没有acquire的thread，都等着
-            for i in range(1000000):
-                num += 1
-            mutex.release()
+        mutex.acquire()  # 表示独占，没有acquire的thread，都等着
+        for _ in range(1000000):
+            num += 1
+        mutex.release()
         print(num)
 
 thread_list = [MyThread() for _ in range(5)]
@@ -449,7 +449,8 @@ boy say sorry-2
 
 ### threading.RLock()
 
-RLock内部维护着一个Lock和一个counter变量，counter记录了acquire的次数，从而使得资源可以被多次acquire。直到一个线程所有的acquire都被release，其他的线程才能获得资源。
+递归锁: recursive lock
+> RLock内部维护着一个Lock和一个counter变量，counter记录了acquire的次数，从而使得资源可以被多次acquire。直到一个线程所有的acquire都被release，其他的线程才能获得资源。
 
 ```python
 import threading
@@ -529,6 +530,53 @@ for i in range(5):
 4004 Thread-4
 4005 Thread-5
 5005 Thread-5
+```
+
+```python
+import threading
+import time
+
+
+def run1():
+    print("grab the first part data")
+    lock.acquire()
+    global num
+    num += 1
+    lock.release()
+    return num
+
+
+def run2():
+    print("grab the second part data")
+    lock.acquire()
+    global num2
+    num2 += 1
+    lock.release()
+    return num2
+
+
+def run3():
+    lock.acquire()
+    res = run1()
+    print('--------between run1 and run2-----')
+    res2 = run2()
+    lock.release()
+    print(res, res2)
+
+
+if __name__ == '__main__':
+
+    num, num2 = 0, 0
+    lock = threading.RLock()
+    for i in range(10):
+        t = threading.Thread(target=run3)
+        t.start()
+
+while threading.active_count() != 1:
+    print(threading.active_count())
+else:
+    print('----all threads done---')
+    print(num, num2)
 ```
 
 ## semaphore(信号量)
