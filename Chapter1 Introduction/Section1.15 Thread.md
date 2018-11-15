@@ -322,7 +322,7 @@ threading.Thread(target=modify_num).start()
 
 > Problem: 既然已经有GIL，同一时刻只有一个线程在运行，为何还会出现线程冲突  
 > ![](res/gil02.png)  
-> GIL保证同一时刻只有一个线程在运行；thread Lock保证同一时刻只有一个线程修改被Lock的数据。
+> GIL保证同一时刻只有一个线程在运行；互斥锁保证只有获取mutex的线程能够修改数据。
 
 ### threading.Lock()
 
@@ -582,10 +582,32 @@ else:
 ## semaphore(信号量)
 
 semaphore通过一个计数器限制可以同时运行的线程数量。计数器表示的是还可以运行的数量，acquire()减小计数，release()增加计数。
+> 互斥锁只是信号量的特殊情况   
+> 因为CPython存在GIL(同一时刻只有一个线程运行)，所以CPython的semaphore并不是表示允许N个线程并行运行，表示运行N个线程并发运行。
 
 一个服务器假设只能处理1000个线程(假设一个线程服务一个人)，那么超过1000的人就要排队；
 
 比如，每个page有100个url; 那么第二层就是10000个url了；每个url创建一个thread去玩，就不现实了(内存有限)；要限定线程的数量，也就是**信号量**
+
+```python
+import threading
+import time
+
+sem = threading.Semaphore(2)
+
+
+def task():
+    sem.acquire()
+    for i in range(10):
+        print(threading.current_thread().name, i)
+        time.sleep(1)
+    sem.release()
+
+
+if __name__ == "__main__":
+    for i in range(4):
+        threading.Thread(target=task).start()
+```
 
 ```python
 import threading
