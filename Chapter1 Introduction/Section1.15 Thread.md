@@ -10,8 +10,9 @@
     - [线程通信 Event](#%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1-event)
     - [Condition](#condition)
         - [线程调度](#%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6)
+    - [Queue](#queue)
     - [Productor & Customer](#productor--customer)
-    - [Thread pool](#thread-pool)
+    - [Thread Pool](#thread-pool)
     - [定时线程](#%E5%AE%9A%E6%97%B6%E7%BA%BF%E7%A8%8B)
     - [`with`](#with)
     - [前台进程&后台进程](#%E5%89%8D%E5%8F%B0%E8%BF%9B%E7%A8%8B%E5%90%8E%E5%8F%B0%E8%BF%9B%E7%A8%8B)
@@ -1332,6 +1333,35 @@ for i in range(len(list1)):
 ABCD , DCBA , ABCD , DCBA , ABCD , DCBA , ABCD , DCBA , ABCD , DCBA , 
 ```
 
+## Queue
+
+队列的作用：解耦、提高效率
+
+队列与列表的区别：列表一般读取数据后，列表本身不变；队列读取一个数据之后，队列就少了一个数据
+> 列表也可以通过`pop()`来实现队列的功能
+
+python的queue模块提供了`Queue`(first in first out), `LifoQueue`(last in first out), `PriorityQueue`都是线程安全的，可用于多线程。
+
+example1: priority Queue
+
+```python
+import queue
+
+pq=queue.PriorityQueue()
+
+pq.put((3, 'james'))
+pq.put((1, 'grey'))
+pq.put((10, 'moris'))
+
+print(pq.get()) # (1, 'grey')
+print(pq.get()) # (3, 'james')
+print(pq.get()) # (10, 'moris')
+```
+
+Queue常用的方法：
+- `put()`: 如果`q.full()==True`,   `put()`就会卡住, 如果强行用`put_nowait()`就会报错`queue.Full`
+- `get()`：如果`q.empty()==True`, `get()`就会卡住, 如果强行行`get_nowait()`就会报错`queue.Empty`
+> `q.put_nowait()`等价于`q.put(block=False)`; `q.get_nowait()`等价于`q.get(block=False)`
 ## Productor & Customer
 
 ![](res/productorCustomer01.png)
@@ -1409,8 +1439,6 @@ Consumer 3 get:Producer 2's 78167
 ......
 ```
 
-python的queue模块提供了`Queue`(first in first out), `LifoQueue`(last in first out), `PriorityQueue`都是线程安全的，可用于多线程。
-
 ```python
 # mainthread as producer
 import queue
@@ -1475,41 +1503,172 @@ main thread ends
 
 应用：创建多个线程抓邮箱，将邮箱用标签标记，然后生产者端，用多个线程根据标签写入文件；不用考虑线程冲突，十分方便；
 
-## Thread pool
-
-使用**线程池**的前提是，它们之间没有冲突；
+example3: normal producer&consumer
 
 ```python
+import queue
+import threading
 import time
-import threadpool #要另外pip安装
 
+q = queue.Queue(3)
 
-def show(name):
-    print(f"Hello, {name}")
-    time.sleep(3)
+def Producer(name):
+    count = 1
+    while True:
+        for i in range(5):
+            q.put(f"{name}'s Bread{i}")
+            print(f'Batch{count}: {name} product Bread{i}')
+        count += 1
 
+def Consumer(name):
+    while True:
+        time.sleep(1)
+        print(f'{name} get {q.get()}')
 
-name_list = ["grey", "chris", "moris", "james", "jane"]
-pool = threadpool.ThreadPool(10)  # volume=10
-request_list = threadpool.makeRequests(show, name_list)
-
-start_time = time.time()
-# begin run in pool
-for item in request_list:
-    pool.putRequest(item)
-pool.wait()
-end_time = time.time()
-print(end_time - start_time)
+threading.Thread(target=Producer, args=('Grey', )).start()
+threading.Thread(target=Consumer, args=('James', )).start()
 ```
 
 ```bash
-#ouput
-Hello, grey
-Hello, chris
-Hello, moris
-Hello, james
-Hello, jane
-3.0023624897003174
+Batch1: Grey product Bread0
+Batch1: Grey product Bread1
+Batch1: Grey product Bread2 # q is full
+James get Grey's Bread0
+Batch1: Grey product Bread3
+James get Grey's Bread1
+Batch1: Grey product Bread4
+James get Grey's Bread2
+Batch2: Grey product Bread0
+James get Grey's Bread3
+Batch2: Grey product Bread1
+James get Grey's Bread4
+Batch2: Grey product Bread2
+James get Grey's Bread0
+Batch2: Grey product Bread3
+James get Grey's Bread1
+Batch2: Grey product Bread4
+James get Grey's Bread2
+```
+
+example4: `q.task_done()` and `q.join()`
+
+```python
+import queue
+import threading
+import time
+
+q = queue.Queue(3)
+
+def Producer(name):
+    count = 1
+    while True:
+        for i in range(5):
+            q.put(f"{name}'s Bread{i}")
+            print(f'Batch{count}: {name} product Bread{i}')
+        q.join() # put完毕之后调用join(), 等待所有的put都被掏空
+        count += 1
+
+def Consumer(name):
+    while True:
+        time.sleep(1)
+        print(f'{name} get {q.get()}')
+        q.task_done() # get一个就调用一次task_done()
+
+threading.Thread(target=Producer, args=('Grey', )).start()
+threading.Thread(target=Consumer, args=('James', )).start()
+```
+
+```bash
+Batch1: Grey product Bread0
+Batch1: Grey product Bread1
+Batch1: Grey product Bread2 # q is full
+James get Grey's Bread0
+Batch1: Grey product Bread3
+James get Grey's Bread1
+Batch1: Grey product Bread4 # producer join, wait all data be done
+James get Grey's Bread2
+James get Grey's Bread3
+James get Grey's Bread4
+Batch2: Grey product Bread0
+Batch2: Grey product Bread1
+Batch2: Grey product Bread2
+James get Grey's Bread0
+Batch2: Grey product Bread3
+James get Grey's Bread1
+Batch2: Grey product Bread4
+James get Grey's Bread2
+James get Grey's Bread3
+James get Grey's Bread4
+```
+
+example5: `q.task_done()` and `q.join()` in multi-threadings
+
+```python
+# 修改example3为多线程
+for i in range(2):
+    threading.Thread(target=Producer, args=(f'Pro{i}',)).start()
+for j in range(5):
+    threading.Thread(target=Consumer, args=(f'Con{j}',)).start()
+```
+
+```bash
+Batch1: Pro0 product Bread0
+Batch1: Pro0 product Bread1
+Batch1: Pro0 product Bread2
+Con1 get Pro0's Bread0
+Con0 get Pro0's Bread1
+Batch1: Pro1 product Bread0
+Batch1: Pro1 product Bread1
+Con2 get Pro0's Bread2
+Con3 get Pro1's Bread0
+Con4 get Pro0's Bread3
+Batch1: Pro1 product Bread2
+Batch1: Pro1 product Bread3
+Batch1: Pro0 product Bread3
+Con1 get Pro1's Bread1
+Con3 get Pro1's Bread2
+Batch1: Pro1 product Bread4
+Batch1: Pro0 product Bread4
+Con2 get Pro0's Bread4
+Con0 get Pro1's Bread3
+Con4 get Pro1's Bread4
+Batch2: Pro1 product Bread0
+Batch2: Pro1 product Bread1
+Batch2: Pro1 product Bread2
+```
+
+## Thread Pool
+
+example1: python3 ThreadPoolExecutor
+> 并发
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+def task(i):
+    return i**3
+
+if __name__ == "__main__":
+    po=ThreadPoolExecutor(max_workers=2)
+    result=po.map(task, range(10)) # type is generator
+
+    for i in result:
+        print(i, end=',')
+```
+
+example2: python3 ThreadPool
+> 并行
+
+```python
+from multiprocessing.pool import ThreadPool
+
+def task(i):
+    return i**3
+
+if __name__ == "__main__":
+    po=ThreadPool(processes=2)
+    result=po.map(task, range(10))
+    print(result)
 ```
 
 ## 定时线程
