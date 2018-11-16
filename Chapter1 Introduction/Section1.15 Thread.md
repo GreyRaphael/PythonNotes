@@ -1337,7 +1337,7 @@ ABCD , DCBA , ABCD , DCBA , ABCD , DCBA , ABCD , DCBA , ABCD , DCBA ,
 
 ## Queue
 
-队列的作用：解耦、提高效率；缓冲；
+队列的作用：解耦、提高效率；缓冲；[OtherEffect](https://blog.csdn.net/chenvast/article/details/78120702)
 
 队列与列表的区别：列表一般读取数据后，列表本身不变；队列读取一个数据之后，队列就少了一个数据
 > 列表也可以通过`pop()`来实现队列的功能
