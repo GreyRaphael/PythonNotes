@@ -29,6 +29,8 @@ _thread 提供了低级的、原始的线程以及一个简单的锁。threading
 - 函数调用：用于较为简单的多线程
 - 继承调用：用于较为复杂的多线程
 
+可以通过任意线程启动新的线程，他们之间没有从属关系，是平权的。
+
 Example1: single-thread vs multi-threads
 
 ```python
