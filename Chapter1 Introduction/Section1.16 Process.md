@@ -12,7 +12,7 @@
         - [process `join()`](#process-join)
     - [进程同步(Lock, RLock)](#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5lock-rlock)
     - [进程共享](#%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB)
-    - [Queue()](#queue)
+    - [`multiprocessing.Queue()`](#multiprocessingqueue)
         - [两个队列，可以实现双向共享](#%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97%E5%8F%AF%E4%BB%A5%E5%AE%9E%E7%8E%B0%E5%8F%8C%E5%90%91%E5%85%B1%E4%BA%AB)
         - [进程队列高级用法](#%E8%BF%9B%E7%A8%8B%E9%98%9F%E5%88%97%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
@@ -566,7 +566,7 @@ Linux进程间通信方式:
 
 > 多进程共享资源必然会带来进程间相互竞争。而这种竞争又会造成race condition，我们的结果有可能被竞争的不确定性所影响。如果需要，我们依然可以通过共享内存和Manager对象这么做
 
-python进程通信的方式:
+python进程通信的方式: 因为是两片内存，所以本质都是需要第三方的
 - `Pipe()`: 用于两个进程之间通信
 - `Queue()`: 在Pipe()基础上发展而来，用于多个进程通信，比Pipe()慢
 - `Value()`, `Array()`,  `Manage()`: 内存共享
@@ -666,60 +666,109 @@ if __name__ == '__main__':
 ['subprocess-0'] 2413416340936
 ```
 
-## Queue()
+## `multiprocessing.Queue()`
 
-Queue允许多个进程放入，多个进程从中取出对象。
+`multiprocessing.Queue()`允许多个进程`put()`，多个进程从中`get()`对象
+> `multiprocessing.Queue()`只能单向共享，即一端`put()`, 一端`get()`
 
-这个队列进行了特殊的加工，队列只有一个方向(单向共享)：
+`multiprocessing.Queue()`进程共享的原理：
+> 父进程有一个Queue()，将Queue()克隆一份传入子进程，两个进程的Queue()分别对应各自的内存。  
+> 如果要通信(交换数据)，必须通过第三方，一般是通过pickle序列化的方式实现  
+> 比如父进程put, 子进程get：父进程先put之后，数据被`multiprocessing.Queue()`序列化到第三方，然后子进程中的`multiprocessing.Queue()`将第三方的数据反序列化，然后子进程才能get
 
-- 父进程插入， 子进程取出
-- 子进程插入，父进程取出
+example: 父进程`put()`， 子进程`get()`
+> 因为不同进程内存不共享，所有Queue()必须作为参数传入子进程  
+> `queue.Queue()`不能传递给子进程的，会报`pickle`错误；必须是`multiprocessing.Queue()`
+> 如果Queue()作为全局变量进入子进程，`q.get()`就会卡住  
+> 如果Queue()不能作为外部变量传入子进程，因为不是同一片内存  
 
 ```python
-import multiprocessing
+import multiprocessing as mp
 
-
-def func(myq):
-    print("this is subprocess", id(myq))
-    print(myq.get())
-
+def func(q):
+    print(f'{mp.current_process().name}, {id(q)}, {q.get()}')
 
 if __name__ == '__main__':
-    queue = multiprocessing.Queue()
-    queue.put(['a', 'b', 'c'])
-    p1 = multiprocessing.Process(target=func, args=(queue,))
+    q = mp.Queue()
+    q.put(['a', 'b', 'c'])
+    print(f'{mp.current_process().name}, {id(q)}')
+    p1 = mp.Process(target=func, args=(q,))
     p1.start()
     p1.join()
 ```
 
 ```bash
-#父进程插入，子进程取出
-this is subprocess 1855322249424
-['a', 'b', 'c']
+MainProcess, 2317838698816
+Process-1, 1653170021656, ['a', 'b', 'c']
 ```
 
+example: 线程`Queue()`内存共享，作为外部变量传入线程
+
 ```python
-import multiprocessing
+import threading
+import queue
 
+def task():
+    print(f'{threading.current_thread().name}, {id(q)}, {q.get()}')
 
-def func(myq):
-    print("this is subprocess", id(myq))
-    myq.put([1, 2, 3])
-
-
-if __name__ == '__main__':
-    queue = multiprocessing.Queue()
-    p1 = multiprocessing.Process(target=func, args=(queue,))
-    p1.start()
-    p1.join()
-    print(queue.get())
+if __name__ == "__main__":
+    q=queue.Queue()
+    q.put([1, 2, 3])
+    print(f'{threading.current_thread().name}, {id(q)}')
+    t=threading.Thread(target=task)
+    t.start()
+    t.join()
 ```
 
 ```bash
-#outpout
-#子进程插入，父进程取出
-this is subprocess 2014321694928
-[1, 2, 3]
+MainThread, 2160337471360
+Thread-1, 2160337471360, [1, 2, 3]
+```
+
+example: 子进程`put()`，父进程`get()`
+> 进程`Queue()`，不是同一片内存，所以id不同
+
+```python
+import multiprocessing as mp
+
+def func(q):
+    print(f'{mp.current_process().name}, {id(q)}')
+    q.put([1, 2, 3])
+
+if __name__ == '__main__':
+    q=mp.Queue()
+    p = mp.Process(target=func, args=(q,))
+    p.start()
+    p.join()
+    print(q.get(), id(q))
+```
+
+```bash
+Process-1, 2505827656984
+[1, 2, 3] 2091788978328
+```
+
+example: 线程`Queue()`, 同一片内存中，所以id先相同
+
+```python
+import threading
+import queue
+
+def task(q):
+    print(f'{threading.current_thread().name}, {id(q)}')
+    q.put([1, 2, 3])
+
+if __name__ == "__main__":
+    q=queue.Queue()
+    t=threading.Thread(target=task, args=(q, ))
+    t.start()
+    t.join()
+    print(q.get(), id(q))
+```
+
+```bash
+Thread-1, 1748042524544
+[1, 2, 3] 1748042524544
 ```
 
 ### 两个队列，可以实现双向共享
