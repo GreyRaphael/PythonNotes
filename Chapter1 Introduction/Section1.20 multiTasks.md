@@ -4,16 +4,16 @@
 
 - [python multiTasks](#python-multitasks)
     - [about CPU](#about-cpu)
-    - [process pool](#process-pool)
+    - [`multiprocessing.Pool()`](#multiprocessingpool)
     - [processing communication](#processing-communication)
         - [Queue](#queue)
         - [pool Queue](#pool-queue)
     - [Thread](#thread)
-    - [线程(tid) vs 进程(pid)](#线程tid-vs-进程pid)
-        - [利用lock来协调线程的顺序](#利用lock来协调线程的顺序)
+    - [线程(tid) vs 进程(pid)](#%E7%BA%BF%E7%A8%8Btid-vs-%E8%BF%9B%E7%A8%8Bpid)
+        - [利用lock来协调线程的顺序](#%E5%88%A9%E7%94%A8lock%E6%9D%A5%E5%8D%8F%E8%B0%83%E7%BA%BF%E7%A8%8B%E7%9A%84%E9%A1%BA%E5%BA%8F)
     - [Producer & Consumer](#producer--consumer)
     - [`threading.local()`](#threadinglocal)
-    - [异步](#异步)
+    - [异步](#%E5%BC%82%E6%AD%A5)
     - [GIL](#gil)
 
 <!-- /TOC -->
@@ -53,36 +53,32 @@ while True:
 print("hahah")
 ```
 
-## process pool
+## `multiprocessing.Pool()`
 
-既然有thread pool那么也会有process pool
-
-- apply_async(func[, args[, kwds]]) ：使用非阻塞方式调用func（并行执行，堵塞方式必须等待上一个进程退出才能执行下一个进程），args为传递给func的参数列表，kwds为传递给func的关键字参数列表；
-- apply(func[, args[, kwds]])：使用阻塞方式调用func
+- apply_async(func[, args[, kwds]]) ：使用非阻塞方式调用func（并行执行，堵塞方式必须等待上一个进程退出才能执行下一个进程），args为传递给func的参数列表，kwds为传递给func的关键字参数列表；需要`join()`, 否则直接结束
+- apply(func[, args[, kwds]])：使用阻塞方式调用func。可以不join()， 反正是串行。
 - close()：关闭Pool，使其不再接受新的任务；
 - terminate()：不管任务是否完成，立即终止；
 - join()：主进程阻塞，等待子进程的退出， 必须在close或terminate之后使用；
 
 进程池一开始就建立，最后才销毁，避免频繁分配，提高了效率；
 
-
 > 线程用semaphore来锁定线程的数量，进程用pool或者barrier来锁定进程数量
 
+> `imap()`比`map()`高效, [details](https://stackoverflow.com/questions/26520781/multiprocessing-pool-whats-the-difference-between-map-async-and-imap)
+
 ```python
-# simple example, 进程锁定一次只能10个进程
-from multiprocessing import Pool
+import multiprocessing as mp
 
-def func(x):
-    return x**3
+def func(x): return x**3
 
-if __name__ == '__main__':
-    p = Pool() # Pool()的默认个数是cpu core number
-    data = [x for x in range(10)]
-    res = p.map(func, data) # 获取结果
-
-    p.close()
-    p.join()
-    print(res)
+if __name__ == "__main__":
+    data=range(10)
+    po=mp.Pool() # 进程数目为cpu core的数目
+    # res=po.map(func, data) # type is list
+    res=po.imap(func, data) # type is IMapIterator, 不支持lambda expr
+    for item in res:
+        print(item, end=';') # 0;1;8;27;64;125;216;343;512;729;
 ```
 
 ```python
@@ -161,6 +157,40 @@ process-3 waits...
 27
 process-4 waits...
 64
+```
+
+example: `apply_async()`收集结果
+
+```python
+from multiprocessing import Pool
+import time
+
+
+def func(name, x):
+    print(f'{name} waits...')
+    time.sleep(2)
+    return x**3
+
+
+if __name__ == '__main__':
+    p = Pool()
+    r_list=[]
+    for i in range(5):
+        res = p.apply_async(func, args=(f'process-{i}', i))
+        r_list.append(res)
+    p.close()
+    p.join()
+    for r in r_list:
+        print(r.get(), end=';')
+```
+
+```bash
+process-0 waits...
+process-1 waits...
+process-2 waits...
+process-3 waits...
+process-4 waits...
+0;1;8;27;64;
 ```
 
 ```python
@@ -1334,6 +1364,13 @@ if __name__ == '__main__':
     po.join()  # 主进程卡在这里
     print(f'{multiprocessing.current_process().name},{threading.current_thread().name} end!')
 ```
+
+如果调用callback的是子进程那么就毫无意义，因为完全可以直接在子进程中做；所以callback肯定是mainprocess调用的；
+
+> callback的好处：  
+> 方案1：主进程已经连接了数据库，那么子进程完成一个任务就callback一次，写log  
+> 方案2：子进程完成一个任务，直接自己再连接数据库写入log  
+> 采用方案1， 因为只需要连接一次数据库，不用子进程频繁连接数据库
 
 ```bash
 #output
