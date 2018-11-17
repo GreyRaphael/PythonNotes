@@ -10,16 +10,16 @@
     - [multiprocess global varibale](#multiprocess-global-varibale)
     - [multiprocessing](#multiprocessing)
         - [process `join()`](#process-join)
-    - [进程同步(Lock, RLock)](#进程同步lock-rlock)
-    - [进程共享](#进程共享)
+    - [进程同步(Lock, RLock)](#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5lock-rlock)
+    - [进程共享](#%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB)
     - [Queue()](#queue)
-        - [两个队列，可以实现双向共享](#两个队列可以实现双向共享)
-        - [进程队列高级用法](#进程队列高级用法)
+        - [两个队列，可以实现双向共享](#%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97%E5%8F%AF%E4%BB%A5%E5%AE%9E%E7%8E%B0%E5%8F%8C%E5%90%91%E5%85%B1%E4%BA%AB)
+        - [进程队列高级用法](#%E8%BF%9B%E7%A8%8B%E9%98%9F%E5%88%97%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
     - [``Manager()``](#manager)
     - [csv related](#csv-related)
-    - [多线程，多进程应用](#多线程多进程应用)
-    - [常见问题](#常见问题)
+    - [多线程，多进程应用](#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%BA%94%E7%94%A8)
+    - [常见问题](#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)
 
 <!-- /TOC -->
 
@@ -104,6 +104,9 @@ Python多进程，多线程应用场景:
 - 计算密集：计算、深度学习训练、科学计算、内存检索开房数据
 - IO密集: 网络下载、网络等待、文件操作; 因为没有获得GIL的线程如果是在等待IO的话，也是可以节约时间的。
 
+> CPython的多线程只是调用OS的原生线程，CPython的多进程也只是调用OS的原生进程；  
+> CPython多进程的坏处在于多个进程数据不共享，用Queue, Pipe来进程通信，效率也是低的。
+
 注意:
 - 一个无法并行的程序，去掉GIL也无法提升性能。比如一个单线程死循环，python代码占用cpu与cpp代码占用cpu差别不大；多线程死循环，python代码占用cpu还是1/8，cpp代码占用就可以到100%。
 - 一个无法并行的程序，Python代码提升性能只能靠更高频率的cpu
@@ -151,6 +154,40 @@ print(os.getppid(), os.getpid(), sub_pid)
 2545 2562 2563
 2562 2563 0
 #其中2545是vscode
+```
+
+example: process start thread
+
+```python
+import multiprocessing as mp
+import threading
+import os
+
+def go():
+    print(f'{mp.current_process().name},thread No.{threading.get_ident()}')  # 线程号
+
+def task():
+    print(f'{os.getpid()}:{mp.current_process().name}, Parent PID={os.getppid()}')
+    threading.Thread(target=go).start()
+
+if __name__ == "__main__":
+    print(os.getpid())
+    for i in range(4):
+        mp.Process(target=task).start()
+```
+
+> Linux所以的进程都是根进程PID=1的进程直接或者间接启动的
+
+```bash
+6448
+5012:Process-1, Parent PID=6448
+2848:Process-3, Parent PID=6448
+5500:Process-4, Parent PID=6448
+Process-3,thread No.3404
+Process-1,thread No.5740
+Process-4,thread No.3456
+6288:Process-2, Parent PID=6448
+Process-2,thread No.6340
 ```
 
 [Understanding GIL](http://www.dabeaz.com/python/UnderstandingGIL.pdf)
