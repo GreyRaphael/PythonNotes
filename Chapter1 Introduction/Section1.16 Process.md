@@ -9,12 +9,10 @@
         - [CPython GIL](#cpython-gil)
     - [multiprocess global varibale](#multiprocess-global-varibale)
     - [multiprocessing](#multiprocessing)
-        - [process `join()`](#process-join)
     - [进程同步(Lock, RLock)](#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5lock-rlock)
     - [进程共享](#%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB)
+    - [`multiprocessing.Pipe()`](#multiprocessingpipe)
     - [`multiprocessing.Queue()`](#multiprocessingqueue)
-        - [两个队列，可以实现双向共享](#%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97%E5%8F%AF%E4%BB%A5%E5%AE%9E%E7%8E%B0%E5%8F%8C%E5%90%91%E5%85%B1%E4%BA%AB)
-        - [进程队列高级用法](#%E8%BF%9B%E7%A8%8B%E9%98%9F%E5%88%97%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95)
     - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
     - [``Manager()``](#manager)
     - [csv related](#csv-related)
@@ -471,8 +469,6 @@ if __name__ == '__main__':
     p1.join()#等待子线程完成，主线程再执行后面的代码
 ```
 
-### process `join()`
-
 一般的情况下，主线程会等待子线程执行完毕之后再执行；也就是默认是前台进程；但是要汇总数据的时候必须要用到`join()`,换了一个地方提前等；
 
 process的`terminate()`不管怎样，直接结束进程；
@@ -520,6 +516,7 @@ if __name__ == '__main__':
 ## 进程同步(Lock, RLock)
 
 当10个进程往一个文件写数据，就需要同步，一个一个来；
+> 无法通过Lock来实现，只能使用`multiprocessing.Pool()`
 
 ```python
 import os
@@ -528,7 +525,7 @@ import time
 
 
 def printInfo(myStr, lock):
-    with lock:
+    with lock: # 如果没有lock，就是一下都打印出来
         print(myStr, os.getppid(), os.getpid())
         time.sleep(1)
 
@@ -571,7 +568,9 @@ python进程通信的方式: 因为是两片内存，所以本质都是需要第
 - `Queue()`: 在Pipe()基础上发展而来，用于多个进程通信，比Pipe()慢
 - `Value()`, `Array()`,  `Manage()`: 内存共享
 
-Example1: Pipe()
+## `multiprocessing.Pipe()`
+
+Pipe本质上类似socket, 一个`send()`一个`recv()`
 
 ```python
 import multiprocessing
@@ -771,13 +770,9 @@ Thread-1, 1748042524544
 [1, 2, 3] 1748042524544
 ```
 
-### 两个队列，可以实现双向共享
+两个队列，可以实现双向共享,但是会卡住，出现意外
 
-但是会卡住，出现意外
-
-### 进程队列高级用法
-
-汇总多个进程的结果，需要队列
+进程队列高级用法：汇总多个进程的结果，需要队列
 
 ```python
 import multiprocessing
