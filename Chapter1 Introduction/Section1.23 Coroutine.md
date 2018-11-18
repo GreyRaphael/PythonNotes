@@ -3,6 +3,8 @@
 - [Coroutine](#coroutine)
     - [Introduction](#introduction)
     - [greenlet](#greenlet)
+    - [gevent](#gevent)
+    - [event driven & asyncIO](#event-driven--asyncio)
 
 ## Introduction
 
@@ -88,3 +90,133 @@ gr1.switch()
 34
 78
 ```
+
+## gevent
+
+gevent是对greenlet进一步封装得到的可以自动IO切换的Coroutine
+
+
+example: gevent.sleep()导致的自动切换
+
+```python
+import gevent
+
+def func1():
+    print('func1 begins')
+    gevent.sleep(2)
+    print('func1 ends')
+
+def func2():
+    print('func2 begins')
+    gevent.sleep(1)
+    print('func2 ends')
+
+def func3():
+    print('func3 begins')
+    gevent.sleep(0) # 只是为了触发切换
+    print('func3 ends')
+
+task_list=[gevent.spawn(func1), gevent.spawn(func2), gevent.spawn(func3)]
+gevent.joinall(task_list)
+```
+
+```bash
+func1 begins
+func2 begins
+func3 begins
+func3 ends # 这里卡住1s
+func2 ends # 这里卡住<1s
+func1 ends
+```
+
+example: IO导致的自动切换
+> 首先需要gevent检测到IO操作, `monkey.patch_all()`将程序的所有IO标记，相当于`gevent.sleep()`
+
+```python
+import time
+import gevent
+from gevent import monkey
+
+# 标记所有IO操作，为了实现碰到IO自动gevent.sleep()
+monkey.patch_all()
+
+import requests
+
+def downloader(url):
+    r=requests.get(url).content
+    print(f'Recv {len(r)}bytes from {url}')
+
+url_list=['https://m.huxiu.com/', 'http://www.10tiao.com/', 'https://www.423down.com/']
+
+# Async
+t1=time.clock()
+task_list=[gevent.spawn(downloader, url) for url in url_list]
+gevent.joinall(task_list)
+t2=time.clock()
+print('async time: ', t2-t1)
+
+# Sync
+for url in url_list:
+    downloader(url)
+print('sync time: ', time.clock()-t2)
+```
+
+example: gevent server
+
+```python
+import gevent
+# gevent重写的socket
+from gevent import socket
+
+client_dict = {}
+
+def handle_request(sock):
+    while True:
+        # 当这个函数耗时的时候，就切换给tcp_server()
+        recv_data = sock.recv(1024).decode('gbk')
+        if not recv_data:
+            print(f'{client_dict[sock]} disconnected!')
+            sock.close()
+            break
+        print(f'>>{client_dict[sock]}:{recv_data}')
+        sock.send((recv_data+' checked').encode('gbk'))
+
+
+def tcp_server(port):
+    server_socket = socket.socket()
+    server_socket.bind(('', port))
+    server_socket.listen(10)
+    while True:
+        # 重写了的socket, 一旦耗时就切换，如果只有一个协程，就不切换，死等
+        client_socket, client_info = server_socket.accept()
+        client_dict[client_socket] = client_info
+        print(f'{client_info} connected!')
+        # 如果是socketserver模块，这里是新建线程
+        gevent.spawn(handle_request, client_socket)
+
+
+if __name__ == '__main__':
+    tcp_server(9999)
+```
+
+```python
+# client
+import socket
+import threading
+
+def client():
+    s = socket.socket()
+    s.connect(("localhost", 9999))
+    for i in range(3):
+        s.send(f"hello {i}".encode('utf8'))
+        data = s.recv(1024)
+        print(f"{threading.get_ident()} Recv", data.decode('utf8'))
+    else:
+        s.close()
+
+for _ in range(10): # 并发10个client
+    threading.Thread(target=client).start()
+```
+
+## event driven & asyncIO
+
