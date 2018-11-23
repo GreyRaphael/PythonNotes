@@ -3,7 +3,7 @@
 - [HTML](#html)
     - [introduction](#introduction)
     - [some tags](#some-tags)
-    - [pic & link](#pic-link)
+    - [pic & link](#pic--link)
     - [list](#list)
     - [table](#table)
     - [about传统布局](#about%E4%BC%A0%E7%BB%9F%E5%B8%83%E5%B1%80)
@@ -16,6 +16,100 @@
 - 专门做页面的整体布局，页面效果(动态效果、前后台数据交互)：前端开发工程师
 
 ## introduction
+
+> 不管是nginx, apache本质上就是socket server；而Browser本质上是socket client；clent发起socket connect，然后进行数据传输；Browser特殊的地方在于建立tcp链接之后，传输数据之后然后就断开了，然后发起第二个连接(一次请求，一次响应，链接断开)。HTTP是建立在TCP之上的，因为一次响应链接断开，所以是无状态的，是短链接。
+
+example: 用Browser连接的server。nginx, apache本质都是这个，只是优化不同而已。
+> `localhost:9999`可以访问
+
+```python
+import socket
+
+def handle_request(client):
+    buf = client.recv(1024).decode('utf8')
+    client.send("HTTP/1.1 200 OK\r\n\r\n".encode('utf8'))
+    client.send(f"Hello, Grey\n{buf}".encode('utf8'))
+    # 或者采用这种方式
+    # # client.send(bytes('Hello, James', encoding='utf8'))
+
+if __name__ == '__main__':
+    server = socket.socket()
+    server.bind(('', 9999))
+    server.listen(5)
+
+    while True:
+        connection, addr = server.accept()
+        handle_request(connection)
+        connection.close()
+```
+
+将`client.send(f"Hello, Grey\n{buf}".encode('utf8'))`修改为`client.send(f'<h1 style="background-color:red">Hello, Grey</h1>\n{buf}'.encode('utf8'))`就会出现样式。所以html的本质就是一套规则，根据这套规则写的字符串能够被Browser渲染。
+> 为了方便，一般讲这套规则写的字符串放到一个文件里面，这个文件以`.html`结尾。
+
+example: html file
+
+```python
+import socket
+
+def handle_request(client):
+    buf = client.recv(1024).decode('utf8')
+    client.send("HTTP/1.1 200 OK\r\n\r\n".encode('utf8'))
+    with open('test.html', 'rb') as file:
+        data=file.read()
+        client.send(data)
+
+if __name__ == '__main__':
+    server = socket.socket()
+    server.bind(('', 9999))
+    server.listen(5)
+
+    while True:
+        connection, addr = server.accept()
+        handle_request(connection)
+        connection.close()
+```
+
+example: 模板的本质，常常出现在web框架中，比如django
+> 在html里面加一下特殊标记，然后发送前进行替换，那么重复部分就不用重复写了
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Time is :@@@@</h1>    
+</body>
+</html>
+```
+
+```python
+# 网页显示时钟
+import socket
+import time
+
+def handle_request(client):
+    buf = client.recv(1024).decode('utf8')
+    client.send("HTTP/1.1 200 OK\r\n\r\n".encode('utf8'))
+    with open('test.html', 'r') as file:
+        data=file.read()
+        data=data.replace('@@@@', time.ctime())
+        client.send(data.encode('utf8'))
+
+if __name__ == '__main__':
+    server = socket.socket()
+    server.bind(('', 9999))
+    server.listen(5)
+
+    while True:
+        connection, addr = server.accept()
+        handle_request(connection)
+        connection.close()
+```
+
+一般测试本地html的结果，不用像上面那样写server，直接在vscode中用live server扩展即可。
 
 `<!DOCTYPE html>`没有的话，会以最低版本的浏览器解析，各种不兼容
 
