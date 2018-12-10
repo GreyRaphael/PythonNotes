@@ -153,7 +153,7 @@ body标签: so many
 
 tag分类:
 - block标签:h1~h6(默认属性是加大加粗), p(默认段落之间有间距), div(没有特性)
-- inline标签: span(没有特性), input
+- inline标签: span(没有特性), input, a
 
 meta:
 - `<meta http-equiv="refresh" content="3">`: 3s自动刷新
@@ -260,10 +260,11 @@ dl>(dt+dd*2)*3
 </dl>
 ```
 
-
-
-
 ## pic & link
+
+a标签作用：
+- 超链接
+- 锚：当前html的位置
 
 ```html
 <!DOCTYPE html>
@@ -274,7 +275,7 @@ dl>(dt+dd*2)*3
 </head>
 <body>
     <!-- 要用相对路径 -->
-    <img src="res/funny.png" alt="funny"/>
+    <img src="res/funny.png" alt="no exist show" title="float to show"/>
     <!-- <img src="H:/Pictures/Head/Pig.png" alt="pig"/> -->
 </body>
 </html>
