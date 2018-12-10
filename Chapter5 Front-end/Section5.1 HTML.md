@@ -8,6 +8,7 @@
   - [table](#table)
   - [about传统布局](#about%E4%BC%A0%E7%BB%9F%E5%B8%83%E5%B1%80)
   - [form(表单)](#form%E8%A1%A8%E5%8D%95)
+  - [submitable tags](#submitable-tags)
   - [inline frame(iframe, 内嵌框架)](#inline-frameiframe-%E5%86%85%E5%B5%8C%E6%A1%86%E6%9E%B6)
 
 早期的美工分化成两个：
@@ -924,6 +925,150 @@ if __name__ == "__main__":
 
 > get,post本质上没有区别，仅仅是一个表现为地址栏，一个藏了起来，都是提交的同样dict格式的数据  
 > get提交的时候数据在请求头中，post提交的时候数据在请求体中; 所以post并不会比get更加安全，抓包都能弄出来
+
+example: 利用sogou来submit
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <form action="https://www.sogou.com/web" method="get">
+        <input type="text" name="query" value="hello"> 
+        <!-- 默认值是hello -->
+        <input type="submit" value="Search">
+    </form>
+</body>
+</html>
+```
+
+## submitable tags
+
+```html
+<!-- form表单里面可以随便写其他标签，但是submit的时候只提交input中的内容 -->
+<form action="https://www.sogou.com/web" method="get">
+    <div>A Block</div>
+    <p>A paragraph</p>
+    <input type="text" name="query">
+    <input type="submit" value="Get Submit">
+</form>
+```
+
+可以submit的标签:
+- input: button无法提交
+- textarea
+- select
+
+input系列:
+- text
+- password
+- button
+- submit
+- radio
+- checkbox
+- file
+- reset
+
+example: radio & checkbox
+
+```html
+<form action="http://localhost:5500/test.html" method="get">
+    <p>选择性别：
+        女: <input type="radio" name="gender" value="0">
+        男：<input type="radio" name="gender" value="1" checked="checked">
+        <!-- checked是默认值 -->
+    </p>
+    <p>爱好：
+        Basketball: <input type="checkbox" name="hobby" value="0">
+        Badmintoon: <input type="checkbox" name="hobby" value="1">
+        Football: <input type="checkbox" name="hobby" value="2">
+    </p>
+    <input type="submit" value="Submit">
+</form>
+<!-- 提交之后地址栏变成 http://localhost:5500/test.html?gender=0&hobby=0&hobby=1 -->
+```
+
+example: get_arguments()
+> 如果checkbox是多选，那么后台需要`get_arguments()`得到一个list
+
+```python
+gender=self.get_argument('gender')
+hobbies=self.get_argument('hobby')
+self.write(f'by GET: gender={gender}, hobbies={hobbies}')
+```
+
+example: file upload
+
+```html
+<form action="http://localhost:5500/test.html" method="get" enctype="multipart/form-data">
+<!-- 加上enctype才能上传文件 -->
+    <input type="file" name="filename">
+</form>
+```
+
+example: textarea
+
+```html
+<form action="http://localhost:5500/test.html" method="get">
+    <textarea name="txt" cols="30" rows="10">默认值</textarea>
+    <input type="submit" value="Submit">
+</form>
+<!-- 提交之后地址栏: http://localhost:5500/test.html?txt=你好 -->
+```
+
+example: select
+
+```html
+<form action="http://localhost:5500/test.html" method="get">
+    <select name="city" size="2">
+        <!-- size默认显示两个，size常常配合多选 -->
+        <option value="0">Beijing</option>
+        <option value="1" selected="selected">Shanghai</option>
+        <!-- selected是默认值 -->
+        <option value="2">Shenzhen</option>
+    </select>
+    <input type="submit" value="Submit">
+</form>
+```
+
+example: option group
+
+```html
+<form action="http://localhost:5500/test.html" method="get">
+    <select name="city" size="5">
+        <optgroup label="湖北省">
+            <option value="0">武汉</option>
+            <option value="1">荆州</option>
+            <option value="2">咸宁</option>
+        </optgroup>
+        <optgroup label="吉林省">
+            <option value="3">长春</option>
+            <option value="4">四平</option>
+            <option value="5">吉林</option>
+        </optgroup>
+    </select>
+    <input type="submit" value="Submit">
+</form>
+```
+
+example: multiselect
+
+```html
+<form action="http://localhost:5500/test.html" method="get">
+    <select name="city" multiple="multiple" size="5">
+        <option value="0">Beijing</option>
+        <option value="1" selected="selected">Shanghai</option>
+        <!-- selected是默认值 -->
+        <option value="2">Shenzhen</option>
+        <option value="3">Hangzhou</option>
+    </select>
+    <input type="submit" value="Submit">
+</form>
+<!-- 提交之后地址栏变成： http://localhost:5500/test.html?city=1&city=2 -->
+```
 
 ## inline frame(iframe, 内嵌框架)
 
