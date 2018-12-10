@@ -530,6 +530,30 @@ a标签作用：
 - td: table data
 - caption: table caption
 
+example: 浏览器会自动添加tbody这个标签
+
+```html
+<table border="1">
+    <!-- table head -->
+    <thead>
+        <tr>
+            <th>IP</th>
+            <th>Port</th>
+            <th>Operation</th>
+        </tr>
+    </thead>
+
+    <!-- table body -->
+    <tbody>
+        <tr>
+            <td>localhost</td>
+            <td>8888</td>
+            <td>delete</td>
+        </tr>
+    </tbody>
+</table>
+```
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -658,6 +682,32 @@ a标签作用：
     </table>
 </body>
 </html>
+```
+
+example: table merge cell
+
+```html
+<table border="1">
+    <thead>
+        <th>IP</th>
+        <th>Port</th>
+        <th>Operation</th>
+    </thead>
+
+    <tr>
+        <td>1</td>
+        <td colspan="2">1</td>
+    </tr>
+    <tr>
+        <td rowspan="2">2</td>
+        <td>2</td>
+        <td>2</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>3</td>
+    </tr>
+</table>
 ```
 
 ## about传统布局
