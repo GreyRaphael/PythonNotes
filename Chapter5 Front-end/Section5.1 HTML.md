@@ -1,14 +1,14 @@
 # HTML
 
 - [HTML](#html)
-    - [introduction](#introduction)
-    - [some tags](#some-tags)
-    - [pic & link](#pic--link)
-    - [list](#list)
-    - [table](#table)
-    - [about传统布局](#about%E4%BC%A0%E7%BB%9F%E5%B8%83%E5%B1%80)
-    - [form(表单)](#form%E8%A1%A8%E5%8D%95)
-    - [inline frame(iframe, 内嵌框架)](#inline-frameiframe-%E5%86%85%E5%B5%8C%E6%A1%86%E6%9E%B6)
+  - [introduction](#introduction)
+  - [some tags](#some-tags)
+  - [pic & link](#pic--link)
+  - [list](#list)
+  - [table](#table)
+  - [about传统布局](#about%E4%BC%A0%E7%BB%9F%E5%B8%83%E5%B1%80)
+  - [form(表单)](#form%E8%A1%A8%E5%8D%95)
+  - [inline frame(iframe, 内嵌框架)](#inline-frameiframe-%E5%86%85%E5%B5%8C%E6%A1%86%E6%9E%B6)
 
 早期的美工分化成两个：
 
@@ -136,6 +136,31 @@ html书写规范:
 - img必须要加alt属性(对图片的描述)`<img src="res/001.png" alt="a person pic"/>`, alt属性是给百度或者google的爬虫查看的
 
 ## some tags
+
+tag分类:
+- 自闭合tag: `<meta charset="UTF-8">`
+- 主动闭合tag: `<title>Document</title>`
+
+head标签:
+- `<meta/>`:编码，跳转，刷新，关键字，描述，IE兼容
+- `<title>Document</title>`:title
+- `<link/>`:图标
+- `<style/>`: css
+- `<script/>`: js
+
+body标签: so many
+
+tag分类:
+- block标签:h1~h6(默认属性是加大加粗), p(默认段落之间有间距), div(没有特性)
+- inline标签: span(没有特性), input
+
+meta:
+- `<meta http-equiv="refresh" content="3">`: 3s自动刷新
+- `<meta http-equiv="refresh" content="3; url=http://www.baidu.com">`: 3s自动跳转
+- `<meta name="keywords" content="汽车,俱乐部" />`: 关键字给搜索引擎用的
+- `<meta http-equiv="X-UA-Compatible" content="ie=ie9;ie=ie8;">`: ie兼容性，比如现在是ie8浏览器，那么用不了ie9自动到ie8
+
+icon: `<link rel="shortcut icon" href="rabbit.jpg" type="image/JPEG">`
 
 搜索引擎会根据结构做索引；
 
@@ -843,6 +868,62 @@ HTML中的属性是没有单位的，比如没有类似px的东西
 `https://www.baidu.com/?uname=admin&upwd=123456&gender=0&hometown=0&avatar=&self_description=&my_hidden=`
 
 这种是`get`方式提交(**通过地址栏提交**，即默认就是**method="GET"**): 通过地址栏把输入的数据的名称(`name`)和值(`value`)直接传到网址里面去(`?`隔开)；这么提交之后，可以通过后台程序读取地址栏数据，将提交的`name-value`存到数据库中；
+
+example: tornado with submit
+> pip install tornado
+
+```python
+# Server
+import tornado.ioloop
+import tornado.web
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        user=self.get_argument('user')
+        password=self.get_argument('password')
+        self.write(f'by GET: user={user}, password={password}')
+    
+    def post(self):
+        user=self.get_argument('user')
+        password=self.get_argument('password')
+        self.write(f'by POST: user={user}, password={password}')
+
+application = tornado.web.Application([
+    (r"/index", MainHandler),
+])
+
+if __name__ == "__main__":
+    application.listen(9999)
+    tornado.ioloop.IOLoop.instance().start()
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 必须有name属性，才能被后台Server得到数据 -->
+    <form action="http://localhost:9999/index" method="get">
+        <input type="text" name="user">
+        <input type="password" name="password">
+        <input type="submit" value="Get Submit">
+    </form>
+    <!-- 点击的时候会将user, password打包成dict提交给后台 -->
+    <!-- {'user':'grey', 'password': '123'} -->
+    <form action="http://localhost:9999/index" method="post">
+        <input type="text" name="user">
+        <input type="password" name="password">
+        <input type="submit" value="Post Submit">
+    </form>
+</body>
+</html>
+```
+
+> get,post本质上没有区别，仅仅是一个表现为地址栏，一个藏了起来，都是提交的同样dict格式的数据  
+> get提交的时候数据在请求头中，post提交的时候数据在请求体中; 所以post并不会比get更加安全，抓包都能弄出来
 
 ## inline frame(iframe, 内嵌框架)
 
