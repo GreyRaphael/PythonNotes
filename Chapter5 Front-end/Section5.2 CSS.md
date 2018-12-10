@@ -1,23 +1,24 @@
 # CSS
 
 - [CSS](#css)
-    - [CSS add to HTML](#css-add-to-html)
-    - [CSS Text Style](#css-text-style)
-    - [CSS Color](#css-color)
-    - [CSS Selectors](#css-selectors)
-    - [CSS Table Style](#css-table-style)
-    - [CSS Box Model](#css-box-model)
-        - [box example](#box-example)
-    - [CSS element overflow](#css-element-overflow)
-    - [CSS elements](#css-elements)
-        - [inline](#inline)
-        - [inline-block](#inline-block)
-        - [compare block|inline|inline-block](#compare-blockinlineinline-block)
-        - [css inline-block example](#css-inline-block-example)
-    - [CSS Float](#css-float)
-    - [CSS Position](#css-position)
-    - [CSS background](#css-background)
-        - [float and background examples](#float-and-background-examples)
+  - [CSS add to HTML](#css-add-to-html)
+  - [CSS Text Style](#css-text-style)
+  - [CSS Color](#css-color)
+  - [CSS Selectors](#css-selectors)
+  - [CSS Table Style](#css-table-style)
+  - [CSS Box Model](#css-box-model)
+    - [box example](#box-example)
+  - [CSS element overflow](#css-element-overflow)
+  - [CSS elements](#css-elements)
+    - [inline](#inline)
+    - [inline-block](#inline-block)
+    - [compare block|inline|inline-block](#compare-blockinlineinline-block)
+    - [css inline-block example](#css-inline-block-example)
+  - [CSS Float](#css-float)
+  - [CSS Position](#css-position)
+  - [CSS background](#css-background)
+    - [float and background examples](#float-and-background-examples)
+  - [layout](#layout)
 
 Cascading Style Sheets: 为了让网页元素的样式更加丰富，也为了让网页的内容和样式能拆分开；
 
@@ -254,9 +255,14 @@ CSS选择器种类：
 - id selector：不推荐，就是上面的`div#special`
 - class selector: 用的最多，可以把1个样式运用到多个元素；1个元素可以运用多个样式；`div.myfont`,`.myfont`
 - 层级选择器: `.list li`, `.list li .partial_link`, `.list li a`
-- 组选择器(grouping selector)
+- 组选择器(grouping selector): `#h1,#h2,#h3`
 - 伪类及伪元素选择器: 表示状态
 - CSS3中更加花哨的选择器
+  - 属性选择器: `div[myattr='txt']`, `.c1[myattr='txt']`
+
+优先级：
+- 标签内部的`style`优先；其他按照编写顺序来，后面覆盖前面的
+- `<link rel="stylesheet" href="style.css">`的本质是将style.css贴到这个位置
 
 ```html
 <!-- 标签选择器、id选择器、class选择器 -->
@@ -1056,6 +1062,11 @@ margin-top 塌陷, margin-left,margin-right,margin-bottom没有这个现象；
 
 ![](res/css-box05.png)
 
+example: margin vs padding
+
+- margin: 外边距，当数值改变，外部发生变化
+- padding: 内边距，当数值改变，自身发生变化
+
 ## CSS element overflow
 
 当子元素的尺寸超过父元素的尺寸时，需要设置父元素显示溢出的子元素的方式，设置的方法是通过overflow属性来设置。
@@ -1297,9 +1308,11 @@ overflow的设置项：
 display属性是用来设置元素的类型及隐藏的，常用的属性有：
 
 - none 元素隐藏且不占位置
-- block 元素以块元素显示
-- inline 元素以内联元素显示
-- inline-block 元素以内联块元素显示
+- block 元素以块元素显示, 可以设置height,width,margin,padding
+- inline 元素以内联元素显示, 无法设置height,width,margin,padding
+- inline-block 元素以内联块元素显示: 既有inline的特性又有block特性
+  - 默认自己有多少就占多少
+  - 可以设置height,width,margin,padding
 
 ```html
 <!DOCTYPE html>
@@ -1704,6 +1717,33 @@ display属性是用来设置元素的类型及隐藏的，常用的属性有：
 - 浮动、非浮动混合使用，实现文字绕图
 - 浮动元素之间没有垂直margin的合并(因为inline-block不合并)
 
+example: simple float
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        .box1{
+            width: 20%;
+            background-color: red;
+            float: left;
+        }
+        .box2{
+            width: 60%;
+            background: black;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="box1">1</div>
+    <div class="box2">2</div>
+</body>
+</html>
+```
 
 ```html
 <!DOCTYPE html>
@@ -1872,6 +1912,9 @@ display属性是用来设置元素的类型及隐藏的，常用的属性有：
 ```
 
 ![](res/css-float03.png)
+
+example: 清除浮动
+> 因为子标签float而父标签没有float导致的
 
 ```html
 <!DOCTYPE html>
@@ -2810,6 +2853,31 @@ background-attachment：滚动页面的时候，background是否跟着一起滚;
             </ul>
         </div>
     </div>
+</body>
+</html>
+```
+
+## layout
+
+- 一般最外层是固定宽度(1020px)，内部是百分比
+- 自适应的本质都是用的`media`来控制的
+
+example: a标签里面的img在IE下会有1px的边框，需要修改
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        img{
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="https://www.baidu.com"><img src="rabbit.jpg"></a>
 </body>
 </html>
 ```
