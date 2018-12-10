@@ -855,6 +855,7 @@ HTML中的属性是没有单位的，比如没有类似px的东西
             <!-- for与input的id一致，点击label文字，会激活input -->
             <!-- 单选、多选用的多 -->
             <label for="username">账户：</label>
+            <!-- for的作用是，点击这个label能够聚焦到下面的input -->
             <!-- 输入的时候得到的就是value,默认设置value为admin -->
             <input type="text" name="uname" id="username" value="admin">
         </div>
@@ -994,6 +995,19 @@ example: 利用sogou来submit
     </form>
 </body>
 </html>
+```
+
+example: fiedlset
+
+```html
+<fieldset>
+    <legend>Login</legend>
+    <form action="" method="get">
+        <input type="text" name="user"><br>
+        <input type="password" name="password"><br>
+        <input type="submit" value="Submit">
+    </form>
+</fieldset>
 ```
 
 ## submitable tags
