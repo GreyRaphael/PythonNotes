@@ -430,3 +430,10 @@ while True:
 
 example: selectors实现ftp文件上传、下载，即两个client同时在下载、上传
 
+summary:
+
+coroutine与select, poll, epoll都是单线程;
+
+epoll在linux底层通过libevent.so实现; gevent在linux底层也是通过libevent.so实现;
+
+游戏后端有些用twisted这个异步网络框架，一般用不到
