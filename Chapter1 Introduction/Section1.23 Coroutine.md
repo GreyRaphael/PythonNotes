@@ -7,6 +7,7 @@
   - [event driven & asyncIO](#event-driven--asyncio)
   - [IO模式](#io%E6%A8%A1%E5%BC%8F)
   - [IO Multiplexing](#io-multiplexing)
+  - [RabbitMQ](#rabbitmq)
 
 ## Introduction
 
@@ -437,3 +438,93 @@ coroutine与select, poll, epoll都是单线程;
 epoll在linux底层通过libevent.so实现; gevent在linux底层也是通过libevent.so实现;
 
 游戏后端有些用twisted这个异步网络框架，一般用不到
+
+## RabbitMQ
+
+[RabbitMQ](https://github.com/rabbitmq/rabbitmq-server/releases): Rabit Message Queue，是使用Erlang开发的，[RabbitMQ原理](https://www.jianshu.com/p/ff665a17473a), 默认端口5671, 5672
+
+queue分类:
+- 线程queue: python普通的queue, 多个线程之间
+- 进程queue: multiprocessing中的queue, 父子进程之间或者同父的不同子进程之间通信
+- RabbitMQ: 两个陌生进程之间通信需要中间代理broker，也就是RabbitMQ。比如不同的python程序之间，java与python程序之间通信。
+
+![](res/RabbitMQ01.png)
+
+陌生进程通信:
+- socket
+  - 两个进程之间直接socket
+  - 两个进程分别与中间代理建立socket
+- 一个进程写入磁盘文件，另一个读取磁盘文件
+
+![](res/RabbitMQ02.png)
+
+RabbitMQ+Python: [devtools](https://www.rabbitmq.com/devtools.html), [tutorials](https://www.rabbitmq.com/getstarted.html)
+> pip install pika
+
+RabbitMQ configuration:
+- `sudo apt install rabbitmq-server`
+- 配置管理用户
+  - `sudo rabbitmq-plugins enable rabbitmq_management`
+  - 添加admin用户: `sudo rabbitmqctl add_user admin admin`,`sudo rabbitmqctl set_user_tags admin administrator`
+  - 登录`http://127.0.0.1:15672`
+- 配置remote access(为了安全一般不这么干)
+  - `vim /etc/rabbitmq/rabbitmq.config`添加`[{rabbit, [{loopback_users, []}]}].`
+  - `sudo service rabbbitmq-server restart`
+
+example: Producer
+
+```python
+import pika
+
+# 建立socket
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
+# 声明一个管道
+channel = connection.channel()
+# 声明queue，给queue一个名字
+channel.queue_declare(queue='hello')
+
+channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
+print(" [x] Sent 'Hello World!'")
+connection.close()
+```
+
+example: Consumer
+
+```python
+import pika
+
+def callback(ch, method, properties, body):
+    # ch就是channel对象; body是内容
+    print(" [x] Received %r" % body)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
+channel = connection.channel()
+# 因为不清楚Consumer,Producer哪个先启动，所以重新声明了queue
+channel.queue_declare(queue='hello')
+ 
+channel.basic_consume('hello', callback)
+
+print(' [*] Waiting for messages. To exit press CTRL+C')
+channel.start_consuming()  # 一直收消息，没有就卡住
+```
+
+```bash
+# Consumer output
+[*] Waiting for messages. To exit press CTRL+C
+[x] Received b'Hello World!'
+[x] Received b'Hello World!'
+[x] Received b'Hello World!'
+[x] Received b'Hello World!'
+```
+
+RabbitMQ消费分发模式
+- 1 Producer N Consumers: 生产者生产的消息被轮询的分别发给不同消费者
+- 1 Producer N Consumers: 当`basic_consumer()`默认值`auto_ack=False`, 如果Consumer没有处理完消息，而socket断了，那么RabbitMQ会将消息给下一个Consumer，一直轮询下去，如果所有的Consumer都没有处理完这个消息而断了，那么消息丢失
+
+```python
+# 演示Consumer没有处理完消息
+def callback(ch, method, properties, body):
+    print('******')
+    time.sleep(10)
+    print(" [x] Received %r" % body)
+```
