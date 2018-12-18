@@ -529,7 +529,7 @@ def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
 ```
 
-Linux查看Rabbitmq中的queue中有多少消息: `sudo rabbitmqctl list_queues`
+Linux查看Rabbitmq中的queue中有多少消息: `sudo rabbitmqctl list_queues`; 删除queue: `rabbitmqadmin delete queue name='hello'`
 
 ```bash
 $ sudo rabbitmqctl list_queues
@@ -555,3 +555,64 @@ step1: 让队列持久化:
 
 step2: 让消息持久化
 > Producer修改`channel.basic_publish(exchange='', routing_key='hello', body='Hello World!', properties=pika.BasicProperties(delivery_mode=2))`
+
+example: RabbitMQ负载均衡
+> server给Consumer发消息的时候，先检查现在还有多少消息: 如果queue中的消息>1，server就不给consumer发消息; 如果没有消息，server就给consumer发消息  
+> Producer在`basic_consumer()`添加`channel.basic_qos(prefetch_count=1)`
+
+演示: consumerA `time.sleep(10)`, consumerB `time.sleep(30)`; 如果有源源不断的message, consumerB没有处理完，就会反复给consumerA发; 而不是默认的轮询的方式
+
+example: RabbitMQ不是轮询地发消息，而是所有人收到同样的消息
+
+RabbitMQ的exchange模式
+- fanout: 所有bind到此exchange的queue都可以接收消息
+- direct: 通过routingKey和exchange决定的那个唯一的queue可以接收消息
+- topic:所有符合routingKey(此时可以是一个表达式)的routingKey所bind的queue可以接收消息
+- headers: 通过headers 来决定把消息发给哪些queue
+
+example: Broadcast
+> server为每个consumer生成临时queue, 绑定到某个exchange, 然后producer将消息发到所有临时queue就实现了广播  
+> 广播的临时queue中不保留消息，consumer错过就错过了，和听广播类似的原理
+
+```python
+# Producer
+import sys
+import pika
+
+# 建立socket
+connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+# 声明一个管道
+channel = connection.channel()
+# 广播不需要queue_declare, 随机生成queue
+# 声明exchange，给exchange一个名字
+channel.exchange_declare(exchange='ex1', exchange_type='fanout')
+message = ' '.join(sys.argv[1:]) or "info: Hello World!"
+
+channel.basic_publish(exchange='ex1', routing_key='', body=message)
+print(f" [x] Sent '{message}'")
+connection.close()
+```
+
+```python
+# Consumer
+import pika
+
+
+def callback(ch, method, properties, body):
+    print('******')
+    print(" [x] Received %r" % body)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+channel = connection.channel()
+channel.exchange_declare(exchange='ex1', exchange_type='fanout')
+# exclusive=True会在使用此queue的消费者断开后,自动将queue删除
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name=result.method.queue
+
+channel.queue_bind(queue_name, exchange='ex1')
+print(' [*] Waiting for ex1. To exit press CTRL+C')
+
+channel.basic_consume(queue_name, callback)
+channel.start_consuming()  # 一直收消息，没有就卡住
+```
