@@ -570,6 +570,8 @@ RabbitMQ的exchange模式
 - topic:所有符合routingKey(此时可以是一个表达式)的routingKey所bind的queue可以接收消息
 - headers: 通过headers 来决定把消息发给哪些queue
 
+[RabbitMQ mode](http://www.cnblogs.com/alex3714/articles/5248247.html)
+
 example: Broadcast
 > server为每个consumer生成临时queue, 绑定到某个exchange, 然后producer将消息发到所有临时queue就实现了广播  
 > 广播的临时queue中不保留消息，consumer错过就错过了，和听广播类似的原理
@@ -665,4 +667,69 @@ print(' [*] Waiting for ex2. To exit press CTRL+C')
 
 channel.basic_consume(queue_name, callback)
 channel.start_consuming()
+```
+
+example: detail filter
+> 可以使用关键词来过滤
+
+```python
+# Producer
+import sys
+import pika
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+channel = connection.channel()
+channel.exchange_declare(exchange='ex3', exchange_type='topic')
+routing_key = sys.argv[1] if len(sys.argv) > 1 else 'anonymous.info'
+message = ' '.join(sys.argv[2:]) or "Hello World!"
+
+channel.basic_publish(exchange='ex3', routing_key=routing_key, body=message)
+print(f" [x] Sent {routing_key}:'{message}'")
+connection.close()
+```
+
+
+```python
+# Consumer
+import sys
+import pika
+
+def callback(ch, method, properties, body):
+    print('******')
+    print(" [x] Received %r" % body)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+channel = connection.channel()
+channel.exchange_declare(exchange='ex3', exchange_type='topic')
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = result.method.queue
+
+binding_keys = sys.argv[1:]
+if not binding_keys:
+    sys.stderr.write(f"Usage: {sys.argv[0]} [binding key]\n")
+    sys.exit(1)
+
+for binding_key in binding_keys:
+    channel.queue_bind(queue_name, exchange='ex3', routing_key=binding_key)
+
+print(' [*] Waiting for ex3. To exit press CTRL+C')
+
+channel.basic_consume(queue_name, callback)
+channel.start_consuming()
+```
+
+```bash
+# Producer
+$ python producer.py
+[x] Sent anonymous.info:'Hello World!'
+
+# Consumer
+$ python consumer.py *.info
+[*] Waiting for ex3. To exit press CTRL+C
+******
+[x] Received b'Hello World!'
+
+# Consumer receive all
+$ python consumer.py #
 ```
