@@ -819,6 +819,9 @@ print(" [x] Awaiting RPC requests")
 channel.start_consuming()
 ```
 
+work: 一个client发送命令给多个server, 然后server返回给client;
+> 使用`direct`, `topic`模式
+
 ## Cache
 
 ![](res/cache01.png)
@@ -912,6 +915,7 @@ pipe.execute()
 ```
 
 example: publish-subscribe
+> publish-subscribe本质就是广播
 
 ```python
 # RedisHelper
