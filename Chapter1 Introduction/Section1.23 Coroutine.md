@@ -465,7 +465,7 @@ RabbitMQ configuration:
 - `sudo apt install rabbitmq-server`
 - 配置管理用户
   - `sudo rabbitmq-plugins enable rabbitmq_management`
-  - 添加admin用户: `sudo rabbitmqctl add_user admin admin`,`sudo rabbitmqctl set_user_tags admin administrator`
+  - 添加admin用户: `sudo rabbitmqctl add_user admin admin`, `sudo rabbitmqctl set_user_tags admin administrator`
   - 登录`http://127.0.0.1:15672`
 - 配置remote access(为了安全一般不这么干)
   - `vim /etc/rabbitmq/rabbitmq.config`添加`[{rabbit, [{loopback_users, []}]}].`
@@ -528,3 +528,30 @@ def callback(ch, method, properties, body):
     time.sleep(10)
     print(" [x] Received %r" % body)
 ```
+
+Linux查看Rabbitmq中的queue中有多少消息: `sudo rabbitmqctl list_queues`
+
+```bash
+$ sudo rabbitmqctl list_queues
+Listing queues
+# 消息数量为1
+hello	1
+```
+
+```python
+def callback(ch, method, properties, body):
+    print('******')
+    time.sleep(10)
+    print(" [x] Received %r" % body)
+    # 手动确认，保证sudo rabbitmqctl list_queues中的queue消息数量为0
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+```
+
+example: list_queue里面里面的queue还有消息，但是server重启
+> 一般情况，消息在server的内存中，server挂了，消息就丢了
+
+step1: 让队列持久化:
+> Producer, Consumer都修改`channel.queue_declare(queue='hello', durable=True)`
+
+step2: 让消息持久化
+> Producer修改`channel.basic_publish(exchange='', routing_key='hello', body='Hello World!', properties=pika.BasicProperties(delivery_mode=2))`
