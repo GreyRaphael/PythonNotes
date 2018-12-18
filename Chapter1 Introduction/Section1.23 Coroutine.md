@@ -8,6 +8,7 @@
   - [IO模式](#io%E6%A8%A1%E5%BC%8F)
   - [IO Multiplexing](#io-multiplexing)
   - [RabbitMQ](#rabbitmq)
+  - [RabbitMQ RPC](#rabbitmq-rpc)
   - [Cache](#cache)
 
 ## Introduction
@@ -737,6 +738,87 @@ $ python consumer.py #
 
 OpenStack默认使用RabbitMQ, SaltStack可以从ZeroMQ修改为RabbitMQ
 
+## RabbitMQ RPC
+
+RPC:Remote Procedure Call
+> client发一条指令，server执行，返回client结果  
+> 实现: client和server既是Producer又是Consumer, 并且有两个queue
+
+![](res/rpc01.png)
+
+```python
+# Client
+import time
+import pika
+import uuid
+
+class FibonacciRpcClient(object):
+    def __init__(self):
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters('xx.xx.xx.xx'))
+        self.channel = self.connection.channel()
+        result = self.channel.queue_declare(queue='', exclusive=True)
+        self.callback_queue = result.method.queue
+        # 这里只是register
+        self.channel.basic_consume(self.callback_queue, self.on_response)
+
+    def on_response(self, ch, method, props, body):
+        # 高并发的时候区分不同的request
+        if self.corr_id == props.correlation_id:
+            self.response = body
+
+    def call(self, n):
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        self.channel.basic_publish(exchange='', routing_key='rpc_queue', properties=pika.BasicProperties(
+            reply_to=self.callback_queue, correlation_id=self.corr_id,), body=str(n))
+        while self.response is None:
+            # 非阻塞的start_consuming(), 没有消息直接通过，有消息触发on_response
+            self.connection.process_data_events()
+            print('no msg....')
+            time.sleep(1)
+        return int(self.response)
+
+fibonacci_rpc = FibonacciRpcClient()
+print(" [x] Requesting fib(30)")
+response = fibonacci_rpc.call(30)
+print(f" [.] Got {response}")
+```
+
+```python
+# Server
+import pika
+
+
+def fib(n):
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fib(n-1) + fib(n-2)
+
+
+def on_request(ch, method, props, body):
+    n = int(body)
+    print(f" [.] fib({n})")
+    response = fib(n)
+
+    ch.basic_publish(exchange='', routing_key=props.reply_to, properties=pika.BasicProperties(
+        correlation_id=props.correlation_id), body=str(response))
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+conn = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
+channel = conn.channel()
+channel.queue_declare(queue='rpc_queue')
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume('rpc_queue', on_request)
+
+print(" [x] Awaiting RPC requests")
+channel.start_consuming()
+```
+
 ## Cache
 
 ![](res/cache01.png)
@@ -838,7 +920,7 @@ import redis
 
 class RedisHelper:
     def __init__(self):
-        self.__conn = redis.Redis(host='39.106.18.97')
+        self.__conn = redis.Redis(host='xx.xx.xx.xx')
         self.chan_sub = 'fm104.5'
         self.chan_pub = 'fm104.5'
 
