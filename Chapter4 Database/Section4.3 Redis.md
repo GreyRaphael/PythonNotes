@@ -1,20 +1,20 @@
 # Python with Redis
 
 - [Python with Redis](#python-with-redis)
-    - [Introduction](#introduction)
-    - [remote redis](#remote-redis)
-        - [redis with auth](#redis-with-auth)
-    - [string](#string)
-    - [key](#key)
-    - [hash](#hash)
-    - [list](#list)
-    - [set](#set)
-    - [zset](#zset)
-    - [发布、订阅](#%E5%8F%91%E5%B8%83%E3%80%81%E8%AE%A2%E9%98%85)
-    - [主从配置](#%E4%B8%BB%E4%BB%8E%E9%85%8D%E7%BD%AE)
-    - [redis with python](#redis-with-python)
-        - [封装](#%E5%B0%81%E8%A3%85)
-    - [用户登录](#%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
+  - [Introduction](#introduction)
+  - [remote redis](#remote-redis)
+    - [redis with auth](#redis-with-auth)
+  - [string](#string)
+  - [key](#key)
+  - [hash](#hash)
+  - [list](#list)
+  - [set](#set)
+  - [zset](#zset)
+  - [发布、订阅](#%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85)
+  - [主从配置](#%E4%B8%BB%E4%BB%8E%E9%85%8D%E7%BD%AE)
+  - [redis with python](#redis-with-python)
+    - [封装](#%E5%B0%81%E8%A3%85)
+  - [用户登录](#%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
 
 ## Introduction
 
@@ -293,6 +293,11 @@ redis_test:0>lrange list1 0 1
 - 元素具有唯一性，不重复
 
 ```bash
+sadd set0 grey grey james james 3 3 3
+(integer) 3 # 唯一性
+```
+
+```bash
 redis_test:0>smembers set1
  1)  "10"
  2)  "20"
@@ -342,12 +347,41 @@ redis_test:0>zrange z1 0 -1
  1)  "hello"
  2)  "world"
  3)  "james"
+ZRANGE z1 0 -1 withscores
+1) "hello"
+2) "1.1000000000000001"
+3) "world"
+4) "2.2000000000000002"
+5) "james"
+6) "3.2000000000000002"
+
 redis_test:0>zcard z1
 "3"
 redis_test:0>zcount z1 0 3
 "2"
 redis_test:0>zscore z1 world
 "2.2000000000000002"
+
+127.0.0.1:6379> zadd z1 4.2 world
+(integer) 0
+127.0.0.1:6379> zrange z1 0 -1
+1) "hello"
+2) "james"
+3) "world"
+
+127.0.0.1:6379> zadd math 10 grey 87 james 55 alpha
+(integer) 3
+127.0.0.1:6379> zadd physics 88 grey 89 james 25 alpha
+(integer) 3
+127.0.0.1:6379> zinterstore total_score 2 math physics
+(integer) 3
+127.0.0.1:6379> zrange total_score 0 -1 withscores
+1) "alpha"
+2) "80"
+3) "grey"
+4) "98"
+5) "james"
+6) "176"
 ```
 
 ## 发布、订阅

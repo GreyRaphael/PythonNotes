@@ -8,6 +8,7 @@
   - [IO模式](#io%E6%A8%A1%E5%BC%8F)
   - [IO Multiplexing](#io-multiplexing)
   - [RabbitMQ](#rabbitmq)
+  - [Cache](#cache)
 
 ## Introduction
 
@@ -677,7 +678,7 @@ example: detail filter
 import sys
 import pika
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
 channel = connection.channel()
 channel.exchange_declare(exchange='ex3', exchange_type='topic')
 routing_key = sys.argv[1] if len(sys.argv) > 1 else 'anonymous.info'
@@ -699,7 +700,7 @@ def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
 channel = connection.channel()
 channel.exchange_declare(exchange='ex3', exchange_type='topic')
 result = channel.queue_declare(queue='', exclusive=True)
@@ -732,4 +733,142 @@ $ python consumer.py *.info
 
 # Consumer receive all
 $ python consumer.py #
+```
+
+OpenStack默认使用RabbitMQ, SaltStack可以从ZeroMQ修改为RabbitMQ
+
+## Cache
+
+![](res/cache01.png)
+> Redis默认存内存，配置后可以存在磁盘  
+> Memcached比较轻量级
+
+Redis是通过异步IO epoll实现的高并发: 单线程, get/set: 80000 requests/second
+
+```bash
+$ redis-cli
+127.0.0.1:6379> set name grey
+OK
+127.0.0.1:6379> keys *
+1) "name"
+127.0.0.1:6379> get name
+"grey"
+# 2s expire
+127.0.0.1:6379> set age 22 ex 2
+OK
+127.0.0.1:6379> get age
+(nil)
+```
+
+example: connect redis with python
+
+```python
+import redis
+
+r=redis.Redis(host='xx.xx.xx.xx')
+r.set('name', 'moriaty')
+print(r.get('name')) # b'moriaty'
+```
+
+example: redis pool
+
+```python
+import redis
+
+po = redis.ConnectionPool(host='xx.xx.xx.xx')
+r = redis.Redis(connection_pool=po)
+r.set('age', 22)
+print(r.get('age')) # b'22'
+````
+
+[Redis Operation](http://www.cnblogs.com/alex3714/articles/6217453.html)
+- `string` operation
+- `hash` operation
+- `list` operation
+- `set` operation
+- `sort set` operation
+
+MySQL数据库超过500w条就会变慢，需要分表；假设从14亿数据统计在线的用户数，如下操作
+
+```bash
+# 比如id为1000和55的用户上线，那么
+setbit N 1000 1
+setbit N 55 1
+bitcount N # 2
+```
+
+```bash
+# 或者当用户登录的时候
+incr N
+incr N
+incr N
+# 当用户下线的时候
+decr N
+get N 2
+```
+
+`brpoplpush`: redis有timeout的时候，可以用一个进程往redis的list中放入数据，另一个进程从该list中get数据并放入自己的redis的list
+> 类似生产者-消费者
+
+example: pipeline
+
+```python
+import time
+import redis
+
+po = redis.ConnectionPool(host='xx.xx.xx.xx')
+r = redis.Redis(connection_pool=po)
+
+pipe = r.pipeline(transaction=True)
+
+pipe.set('name', 'grey')
+time.sleep(5)
+pipe.set('age', 22)
+
+# 最后一次性执行
+pipe.execute()
+```
+
+example: publish-subscribe
+
+```python
+# RedisHelper
+import redis
+
+
+class RedisHelper:
+    def __init__(self):
+        self.__conn = redis.Redis(host='39.106.18.97')
+        self.chan_sub = 'fm104.5'
+        self.chan_pub = 'fm104.5'
+
+    def public(self, msg):
+        self.__conn.publish(self.chan_pub, msg)
+        return True
+
+    def subscribe(self):
+        pub = self.__conn.pubsub()
+        pub.subscribe(self.chan_sub)
+        pub.parse_response()
+        return pub
+```
+
+```python
+# Publisher
+from MyRedisHelper import RedisHelper
+
+obj=RedisHelper()
+obj.public('hello')
+```
+
+```python
+# Subscriber
+from MyRedisHelper import RedisHelper
+
+obj=RedisHelper()
+subscriber=obj.subscribe()
+
+while True:
+    msg=subscriber.parse_response()
+    print(msg)
 ```
