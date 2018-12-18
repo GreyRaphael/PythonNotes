@@ -580,7 +580,7 @@ import sys
 import pika
 
 # 建立socket
-connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
 # 声明一个管道
 channel = connection.channel()
 # 广播不需要queue_declare, 随机生成queue
@@ -603,7 +603,7 @@ def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('39.106.18.97'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
 channel = connection.channel()
 channel.exchange_declare(exchange='ex1', exchange_type='fanout')
 # exclusive=True会在使用此queue的消费者断开后,自动将queue删除
@@ -615,4 +615,54 @@ print(' [*] Waiting for ex1. To exit press CTRL+C')
 
 channel.basic_consume(queue_name, callback)
 channel.start_consuming()  # 一直收消息，没有就卡住
+```
+
+example: direct mode, 具有过滤作用
+
+```python
+# Producer
+import sys
+import pika
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
+channel = connection.channel()
+channel.exchange_declare(exchange='ex2', exchange_type='direct')
+severity = sys.argv[1] if len(sys.argv) > 1 else 'info'
+message = ' '.join(sys.argv[2:]) or "Hello World!"
+
+channel.basic_publish(exchange='ex2', routing_key=severity, body=message)
+print(f" [x] Sent {severity}:'{message}'")
+connection.close()
+```
+
+```python
+# Consumer
+import sys
+import pika
+
+
+def callback(ch, method, properties, body):
+    print('******')
+    print(" [x] Received %r" % body)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('xx.xx.xx.xx'))
+channel = connection.channel()
+channel.exchange_declare(exchange='ex2', exchange_type='direct')
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = result.method.queue
+
+severities = sys.argv[1:]
+if not severities:
+    sys.stderr.write(f"Usage: {sys.argv[0]} [info] [warning] [error]\n")
+    sys.exit(1)
+
+for severity in severities:
+    channel.queue_bind(queue_name, exchange='ex2', routing_key=severity)
+
+print(' [*] Waiting for ex2. To exit press CTRL+C')
+
+channel.basic_consume(queue_name, callback)
+channel.start_consuming()
 ```
