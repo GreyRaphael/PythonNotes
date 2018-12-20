@@ -1,52 +1,43 @@
 # python with MySQL
 
-<!-- TOC -->
-
 - [python with MySQL](#python-with-mysql)
-    - [数据类型、约束](#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E3%80%81%E7%BA%A6%E6%9D%9F)
-    - [Ubuntu使用MySQL](#ubuntu%E4%BD%BF%E7%94%A8mysql)
-        - [install mysql](#install-mysql)
-        - [config mysql](#config-mysql)
-        - [navicat](#navicat)
-        - [another host to connect MySQL](#another-host-to-connect-mysql)
-        - [Operation](#operation)
-            - [database operation](#database-operation)
-            - [table operation](#table-operation)
-            - [record operation](#record-operation)
-        - [backup and recovery](#backup-and-recovery)
-    - [query](#query)
-        - [聚合](#%E8%81%9A%E5%90%88)
-        - [分组](#%E5%88%86%E7%BB%84)
-        - [排序](#%E6%8E%92%E5%BA%8F)
-        - [分页](#%E5%88%86%E9%A1%B5)
-        - [query summary](#query-summary)
-    - [关系relationship](#%E5%85%B3%E7%B3%BBrelationship)
-        - [外键(foreign key)](#%E5%A4%96%E9%94%AEforeign-key)
-        - [外键的级联操作(作为了解，实际上没什么卵用)](#%E5%A4%96%E9%94%AE%E7%9A%84%E7%BA%A7%E8%81%94%E6%93%8D%E4%BD%9C%E4%BD%9C%E4%B8%BA%E4%BA%86%E8%A7%A3%EF%BC%8C%E5%AE%9E%E9%99%85%E4%B8%8A%E6%B2%A1%E4%BB%80%E4%B9%88%E5%8D%B5%E7%94%A8)
-        - [外键summary](#%E5%A4%96%E9%94%AEsummary)
-    - [连接查询](#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2)
-    - [自关联查询](#%E8%87%AA%E5%85%B3%E8%81%94%E6%9F%A5%E8%AF%A2)
-    - [视图(view)](#%E8%A7%86%E5%9B%BEview)
-    - [事务(Transaction)](#%E4%BA%8B%E5%8A%A1transaction)
-    - [索引](#%E7%B4%A2%E5%BC%95)
-        - [示例](#%E7%A4%BA%E4%BE%8B)
-    - [final example](#final-example)
-    - [常用内置函数](#%E5%B8%B8%E7%94%A8%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0)
-        - [字符串函数](#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0)
-    - [MySQL与python交互](#mysql%E4%B8%8Epython%E4%BA%A4%E4%BA%92)
-        - [封装](#%E5%B0%81%E8%A3%85)
-        - [python交互实例-用户登录](#python%E4%BA%A4%E4%BA%92%E5%AE%9E%E4%BE%8B-%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
-
-<!-- /TOC -->
+  - [Datatype & Constraint](#datatype--constraint)
+  - [MySQL on Ubuntu](#mysql-on-ubuntu)
+    - [navicat](#navicat)
+    - [another host to connect MySQL](#another-host-to-connect-mysql)
+    - [Operation](#operation)
+      - [database operation](#database-operation)
+      - [table operation](#table-operation)
+      - [record operation](#record-operation)
+    - [backup and recovery](#backup-and-recovery)
+  - [query](#query)
+    - [聚合](#%E8%81%9A%E5%90%88)
+    - [分组](#%E5%88%86%E7%BB%84)
+    - [排序](#%E6%8E%92%E5%BA%8F)
+    - [分页](#%E5%88%86%E9%A1%B5)
+    - [query summary](#query-summary)
+  - [relationship](#relationship)
+    - [外键(foreign key)](#%E5%A4%96%E9%94%AEforeign-key)
+    - [外键的级联操作(作为了解，实际上没什么卵用)](#%E5%A4%96%E9%94%AE%E7%9A%84%E7%BA%A7%E8%81%94%E6%93%8D%E4%BD%9C%E4%BD%9C%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%AE%9E%E9%99%85%E4%B8%8A%E6%B2%A1%E4%BB%80%E4%B9%88%E5%8D%B5%E7%94%A8)
+    - [外键summary](#%E5%A4%96%E9%94%AEsummary)
+  - [连接查询](#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2)
+  - [自关联查询](#%E8%87%AA%E5%85%B3%E8%81%94%E6%9F%A5%E8%AF%A2)
+  - [view](#view)
+  - [事务(Transaction)](#%E4%BA%8B%E5%8A%A1transaction)
+  - [索引](#%E7%B4%A2%E5%BC%95)
+  - [final example](#final-example)
+  - [常用内置函数](#%E5%B8%B8%E7%94%A8%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0)
+    - [字符串函数](#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0)
+  - [MySQL with Python](#mysql-with-python)
+    - [封装](#%E5%B0%81%E8%A3%85)
+    - [python交互实例-用户登录](#python%E4%BA%A4%E4%BA%92%E5%AE%9E%E4%BE%8B-%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
 
 数据库:
-
 - 目的: 存储数据
 - 优点: 优化读写
-- 都是基于E-R关系模型, 不同的数据库的优化读写方式不同;
+- 大多DB是基于E-R关系模型, 不同的数据库的优化读写方式不同;
 
 E-R模型三范式:后一个范式，都是在前一个范式的基础上建立的
-
 - 第一范式（1NF)：列不可拆分
 - 第二范式（2NF)：唯一标识
 - 第三范式（3NF)：引用主键
@@ -54,15 +45,14 @@ E-R模型三范式:后一个范式，都是在前一个范式的基础上建立�
 数据库的数据操作:CRUD(C: Create, R: Retrive, U: Update, D: Delete)
 
 SQLite: 轻量级的数据库; 读写数据比文本文件快；用于移动端;
+> 数据量少怎么存取都无所谓；当数据量大了，就需要组织数据，更加有效的存取数据
 
 数据库分类:
-
 - 文档型: 如sqlite，就是一个文件，通过对文件的复制完成数据库的复制
 - 服务型: 如mysql、postgre，数据存储在一个物理文件中，但是需要使用终端以tcp/ip协议连接，进行数据库的读写操作
+  >![](res/database01.png)
 
-![](res/database01.png)
-
-## 数据类型、约束
+## Datatype & Constraint
 
 ```bash
 # 数字
@@ -79,12 +69,11 @@ bit # 布尔
 
 primary key只能有一个;unique可以有多个;
 
-物理上的存储是安装primarykey来存储的，而不是按照unique来存储的;
+物理上的存储是按照primarykey来存储的，而不是按照unique来存储的;
 
-## Ubuntu使用MySQL
+## MySQL on Ubuntu
 
-### install mysql
-
+install mysql:
 1. install apt [repo](https://dev.mysql.com/downloads/repo/apt/)(`sudo dpkg -i mysql-apt-config_xxx_all.deb`)
 2. `sudo apt update`
 3. `sudo apt install mysql-server mysql-client`(按提示输入mysql的root密码)
@@ -100,7 +89,7 @@ sudo vim /etc/mysql/debian.cnf
 mysql -u debian-sys-maint -p 
 
 # 添加root账号
-mysql> update mysql.user set authentication_string=password('grey631331') where user='root'and Host = 'localhost';
+mysql> update mysql.user set authentication_string=password('xxxxxx') where user='root'and Host = 'localhost';
 # 修改plugin
 mysql> USE mysql;
 mysql> UPDATE user SET plugin='mysql_native_password' WHERE User='root';
@@ -109,14 +98,21 @@ mysql> exit;
 
 # 用root登录
 mysql -u root -p
+
+# simple test
+show databases;
+use mysql;
+show tables;
+desc user;
+select * from user \G;
 ```
 
-### config mysql
+config mysql
 
 ```bash
 # 允许远程连接
 sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
-将bind-address=127.0.0.1注释
+# 将bind-address=127.0.0.1注释
 
 # 登陆mysql
 mysql -u root -p
@@ -124,12 +120,16 @@ mysql -u root -p
 # 所有远程ip都可用13810455459访问root用户的所有数据库
 # 远程登陆的时候用13810455459登陆，而不是mysql的root密码
 # 
-grant all privileges on *.* to 'root'@'%' identified by '13810455459' with grant option;
+# grant all privileges on *.* to 'root'@'%' identified by '13810455459' with grant option;
+grant all privileges on *.* to 'grey'@'%' identified by '13810455459' with grant option;
+# show grants for grey;
 flush privileges;
 exit
 
 # 重启服务
 systemctl restart mysql
+# 查看是否运行
+ps -ef|grep mysql
 ```
 
 ```bash
@@ -139,7 +139,7 @@ systemctl restart mysql
 mysqld.exe --console
 # 登录mysql
 mysql.exe -u root -p
-# 给予权限
+# 给予权限, *.*表示所有数据库; test.*表示test数据库下的所有tables;
 grant all privileges on *.* to 'root'@'%' identified by '13810455459' with grant option;
 flush privileges;
 exit
@@ -861,7 +861,7 @@ limit star,count
 -- limit star,count
 ```
 
-## 关系relationship
+## relationship
 
 - 实体与实体之间有3种对应关系，这些关系也需要存储下来
 - 在开发中需要对存储的数据进行一些处理，用到内置的一些函数
@@ -1239,7 +1239,7 @@ mysql> select dis1.*,dis2.*
  
 ```
 
-## 视图(view)
+## view
 
 对于复杂的查询，在多次使用后，维护是一件非常麻烦的事情;
 
@@ -1371,6 +1371,7 @@ mysql> select * from students;
 当数据库数据量很大, 查询很慢,索引能够提高数据访问性能;
 
 primary key和唯一索引都是索引，可以提高速度;
+> 索引是对数据库表中一列或多列的值进行排序的一种结构; 数据库里面的索引实际上用的是B+树来实现，能较快的查找数据;
 
 选择列的数据类型:
 
@@ -1420,7 +1421,7 @@ mysql> drop index [index_name] on table_name;
 - 虽然提高查询速度，同时降低更新表的速度(update, insert, delete的时候，除了更新表，还要保持索引文件)
 - 所以占用物理空间
 
-### 示例
+example:
 
 ```bash
 # 开启运行时间检测
@@ -1569,7 +1570,7 @@ mysql> select substring('helloworld', 2, 4);
 #...见gitbook
 ```
 
-## MySQL与python交互
+## MySQL with Python
 
 安装[package](https://stackoverflow.com/questions/4960048/how-can-i-connect-to-mysql-in-python-3-on-windows?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
 
