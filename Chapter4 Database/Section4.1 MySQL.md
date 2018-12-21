@@ -23,14 +23,15 @@
   - [连接查询](#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2)
   - [自关联查询](#%E8%87%AA%E5%85%B3%E8%81%94%E6%9F%A5%E8%AF%A2)
   - [view](#view)
-  - [事务(Transaction)](#%E4%BA%8B%E5%8A%A1transaction)
-  - [索引](#%E7%B4%A2%E5%BC%95)
+  - [Transaction](#transaction)
+  - [Index](#index)
   - [final example](#final-example)
   - [常用内置函数](#%E5%B8%B8%E7%94%A8%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0)
     - [字符串函数](#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0)
   - [MySQL with Python](#mysql-with-python)
     - [封装](#%E5%B0%81%E8%A3%85)
     - [python交互实例-用户登录](#python%E4%BA%A4%E4%BA%92%E5%AE%9E%E4%BE%8B-%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
+  - [sqlalchemy](#sqlalchemy)
 
 数据库:
 - 目的: 存储数据
@@ -936,6 +937,7 @@ for example:
 **外键约束**: 建立好关系字段之后，为了保证关系字段的范围，而采用的约束(外键是外键，关系是关系); E-R图中存在关系，不存在外键; 等到了实际的表结构的时候才添加外键；
 
 外键约束只是一个约束，关系在就行了；
+> 所以使用`join`不需要建立foreign key
 
 出现`1215 - Cannot add foreign key constraint`:
 
@@ -1079,6 +1081,7 @@ mysql> select * from students right join scores on students.id=scores.stu_id;
 |    3 | 曹操   | 1999-01-01 |       |          |  5 |      3 |      2 |  89.9 |
 +------+--------+------------+--------+----------+----+--------+--------+-------+
 
+# mysql不支持full join, outer join;采用下面的方式实现
 # emulate full join
 SELECT * FROM students
 LEFT JOIN scores ON students.id=scores.stu_id;
@@ -1326,21 +1329,20 @@ mysql> alter view v_stu_score as
 - 关系数据库：一个table中的每一record的结构都是一样的;
 - noSQL: 每一个record的结构可以不一样;
 
-## 事务(Transaction)
+## Transaction
+
+事务(Transaction)主要用于处理操作量大，复杂度高的数据.
+> Innodb, bdb数据库引擎的数据库或表才支持事务  
+> 保证成批的SQL语句要么全部执行，要么全部不执行
 
 当一个业务逻辑需要多个sql完成时(insert, update, delete,即那些会影响数据的操作)，如果其中某条sql语句出错，则希望整个操作都退回; 目的是保证一次操作(一个业务逻辑，即多个操作)有效; 
 
-要求：表的类型必须是innodb或bdb类型，才可以对此表使用事务
-
 数据库引擎:
-
 - ISAM: 检索很快，写入很慢，因为写入的时候整个table加锁; 不支持事务;
 - MYISAM: 不支持事务;
 - InnoDB: 读较慢，写较快，写入的时候加锁一个record; 可以多个人同时处理一个table
 
-使用事务的情况:
-
-- 当数据被更改的时候(insert, update, delete)
+使用事务的情况: 当数据被更改的时候(insert, update, delete)
 
 事务发生的过程:
 
@@ -1406,7 +1408,7 @@ mysql> select * from students;
 
 在python(cpp, java)操作数据库的时候，操作失败，会自动rollback, 默认会启用**事务**功能所以一般不用管;
 
-## 索引
+## Index
 
 一般的应用系统，读写比例在`10:1`左右; inser, update很少出现性能问题;复杂查询容易出现问题, 所以优化查询时重中之重;
 
@@ -1416,13 +1418,11 @@ primary key和唯一索引都是索引，可以提高速度;
 > 索引是对数据库表中一列或多列的值进行排序的一种结构; 数据库里面的索引实际上用的是B+树来实现，能较快的查找数据;
 
 选择列的数据类型:
-
 - 越小的数据类型在磁盘、内存、CPU缓存中更少的空间，处理更快
 - 简单数据类型更好，`bit>int>char`
 - 避免`null`, 尽量`not null`;MySQL中含有空值的列很难进行查询优化(因为它们使得索引、索引统计、比较运算更加复杂. 一般用0, 一个特殊值、`""`来代替空值)
 
 索引: 针对现有的数据，整理出一块东西用于加速查询，这块东西就是索引;
-
 - 用于快速找到数据
 - 数据默认按照某种索引来存
 - 索引的创建会增加物理的开销
@@ -1432,7 +1432,7 @@ primary key和唯一索引都是索引，可以提高速度;
 数据库刚刚开始的时候，没有大量的数据基础，不用刻意做索引；等积累了一定的数据量，访问变慢(>100ms)就要考虑优化(分析业务逻辑的sql语句，优化where后面，给查询频繁的字段加上索引键，也可以给每个字段建立索引，也可以给多个字段建立一个索引)
 
 - 单列索引: 一个索引只包含单个列
-- 组合索引: 一个索引包含多个列
+- 组合索引: 一个索引包含多个列, 这多个列能够唯一地确定某条记录
 
 ```sql
 -- 给gender, birthday isDelete建一个索引
@@ -1451,8 +1451,8 @@ mongoDB, Redis是内存级的数据库，在内存中检索，很快；
 # 查看索引
 mysql> show index from students;
 
-# 创建索引，字符串才会写length, 其他类型一般不写
-mysql> create index_name on table_name(field1_name(length)，field1_name(length));
+# 创建索引，字符串才会写length, 其他类型一般不写; length小于字符串长度
+mysql> create index index_name on table_name(field1_name(length)，field1_name(length));
 
 # 删除索引
 mysql> drop index [index_name] on table_name;
@@ -1834,3 +1834,56 @@ def main():
 ```
 
 注册功能也是好做的，主要是要求用户名不重复；
+
+
+## sqlalchemy
+
+没有ORM使用原生的sql语句缺点: 
+- 需要拼接sql字符串; 
+- 如果数据库结构改变，源代码就要跟着修改，扩展不方便;
+- 不是专业的DBA, 拼接的原生sql语句可能不高效;
+
+sqlalchemy: SQLAlchemy是Python编程语言下的一款**ORM**框架，该框架建立在数据库API之上，使用关系对象映射进行数据库操作.
+> 将对象转换成SQL，然后使用数据API执行SQL并获取执行结果  
+> 不需要写sql语句，而是使用面向对象中的`.`来操作对象;
+
+[sqlalchemy+mysqlclient](https://docs.sqlalchemy.org/en/latest/dialects/mysql.html)
+   ```python
+   engine = create_engine("mysql+mysqldb://root:123456@localhost/world", encoding='utf8', echo=True)
+   ```
+
+example: sqlalchemy
+
+```python
+import sqlalchemy
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext import declarative
+
+Base = declarative.declarative_base()
+
+class User(Base):
+    __tablename__ = 'table_name'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+    password = Column(String(64))
+
+    def __repr__(self):
+        return f"<User(name='{self.name}', password='{self.password}')>"
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+
+# create table
+Base.metadata.create_all(engine)
+
+# insert
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+for i in range(3):
+    u = User(name=f'grey-{i+1}', password=f'pwd-{i**2}')
+    print(u)
+    s.add(u)
+s.commit()
+```
