@@ -839,6 +839,48 @@ mysql> select * from subjects limit 1,6;
 select * from students where isdelete=0 limit (n-1)*m,m
 ```
 
+example: `OFFSET`必须配合`LIMIT`使用
+
+```sql
+SELECT Name, Population FROM city LIMIT 8
+SELECT Name, Population FROM city LIMIT 5 OFFSET 3
+SELECT Name, Population FROM city LIMIT 5, 3
+```
+
+```bash
+# result1
++----------------+------------+
+| Name           | Population |
++----------------+------------+
+| Kabul          |    1780000 |
+| Qandahar       |     237500 |
+| Herat          |     186800 |
+| Mazar-e-Sharif |     127800 |
+| Amsterdam      |     731200 |
+| Rotterdam      |     593321 |
+| Haag           |     440900 |
+| Utrecht        |     234323 |
++----------------+------------+
+# result2: 3~8
++----------------+------------+
+| Name           | Population |
++----------------+------------+
+| Mazar-e-Sharif |     127800 |
+| Amsterdam      |     731200 |
+| Rotterdam      |     593321 |
+| Haag           |     440900 |
+| Utrecht        |     234323 |
++----------------+------------+
+# result3: 5~8
++-----------+------------+
+| Name      | Population |
++-----------+------------+
+| Rotterdam |     593321 |
+| Haag      |     440900 |
+| Utrecht   |     234323 |
++-----------+------------+
+```
+
 ### query summary
 
 完整的select语句:
