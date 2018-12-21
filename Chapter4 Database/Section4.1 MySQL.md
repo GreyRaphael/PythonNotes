@@ -1852,7 +1852,7 @@ sqlalchemy: SQLAlchemy是Python编程语言下的一款**ORM**框架，该框架
    engine = create_engine("mysql+mysqldb://root:123456@localhost/world", encoding='utf8', echo=True)
    ```
 
-example: sqlalchemy
+example: sqlalchemy create table & insert record
 
 ```python
 import sqlalchemy
@@ -1887,3 +1887,53 @@ for i in range(3):
     s.add(u)
 s.commit()
 ```
+
+example: sqlalchemy query
+
+```python
+# without filter
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+# query data
+u = s.query(User).all()  # object list
+print(u) # [<User(name='grey-1', password='pwd-0')>, <User(name='grey-2', password='pwd-1')>, <User(name='grey-3', password='pwd-4')>]
+
+u = s.query(User.name, User.password).all()
+print(u) # [('grey-1', 'pwd-0'), ('grey-2', 'pwd-1'), ('grey-3', 'pwd-4')]
+```
+
+```python
+# with filter
+u1 = s.query(User).filter(User.id > 11).all()
+print(u1) # [<User(name='grey-3', password='pwd-4')>]
+u2 = s.query(User).filter(User.name == 'grey-2').all()
+print(u2) # [<User(name='grey-2', password='pwd-1')>]
+u3 = s.query(User).filter(User.id > 11).filter(User.id < 13).all()
+print(u3) # [<User(name='grey-3', password='pwd-4')>]
+```
+
+example: sqlalchemy modify data
+
+```python
+# modify data
+u = s.query(User).filter(User.id > 11).filter(User.id < 13).first()
+print(u)
+u.name='james'
+u.password='hahaha'
+s.commit()
+```
+
+example: sqlalchemy groupby
+
+```python
+N = s.query(User).filter(User.name.like('Gre%')).count()
+print(N) # 2
+
+# navicat add some data, then
+from sqlalchemy import func
+u=s.query(User.name, func.count(User.name)).group_by(User.name).all()
+print(u) # [('grey-1', 1), ('grey-2', 1), ('james', 2), ('moriaty', 1)]
+```
+
+example: multiple tables
+
