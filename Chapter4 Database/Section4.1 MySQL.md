@@ -1849,7 +1849,11 @@ sqlalchemy: SQLAlchemy是Python编程语言下的一款**ORM**框架，该框架
 
 [sqlalchemy+mysqlclient](https://docs.sqlalchemy.org/en/latest/dialects/mysql.html)
    ```python
-   engine = create_engine("mysql+mysqldb://root:123456@localhost/world", encoding='utf8', echo=True)
+   engine = create_engine("mysql+mysqldb://root:123456@localhost/world", echo=True)
+
+   # 支持中文,首先要求database china支持utf8
+   engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://root:123456@localhost/china?charset=utf8mb4&binary_prefix=true", echo=True)
    ```
 
 example: sqlalchemy create table & insert record
@@ -1872,7 +1876,7 @@ class User(Base):
 
 
 engine = sqlalchemy.create_engine(
-    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", echo=True)
 
 # create table
 Base.metadata.create_all(engine)
@@ -1966,7 +1970,7 @@ class Score(Base):
 
 
 engine = sqlalchemy.create_engine(
-    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", echo=True)
 
 # create 2 tables
 Base.metadata.create_all(engine)
@@ -2019,7 +2023,7 @@ class Score(Base):
 
 
 engine = sqlalchemy.create_engine(
-    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", echo=True)
 
 Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
 s = Session_class()
@@ -2027,3 +2031,150 @@ s = Session_class()
 u1 = s.query(Student).filter(Student.name == 'Grey').first()
 print(u1.my_score) # [<subject=Math, score=100, stu=Grey>, <subject=English, score=86, stu=Grey>, <subject=Physics, score=56, stu=Grey>]
 ```
+
+example: multiple foreign keys
+
+```python
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.ext import declarative
+
+Base = declarative.declarative_base()
+
+
+class Address(Base):
+    __tablename__ = 'addresses'
+    id = Column(Integer, primary_key=True)
+    city = Column(String(32))
+
+
+class Customer(Base):
+    __tablename__ = 'customers'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+
+    billing_address_id = Column(Integer, ForeignKey("addresses.id"))
+    shipping_address_id = Column(Integer, ForeignKey("addresses.id"))
+
+    # 当存在多个外键时，foreign_keys参数是为了插入数据找到对应关系，必须要有
+    billing_address = sqlalchemy.orm.relationship("Address", foreign_keys=[billing_address_id])
+    shipping_address = sqlalchemy.orm.relationship("Address", foreign_keys=[shipping_address_id])
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", echo=True)
+# Base.metadata.create_all(engine)
+
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+# add data
+addr1=Address(city='Hongkong')
+addr2=Address(city='New York')
+addr3=Address(city='Tokyo')
+s.add_all([addr1, addr2, addr3])
+
+c1=Customer(name='xiaoming', billing_address_id=1, shipping_address_id=3)
+c2=Customer(name='lihua', billing_address_id=2, shipping_address_id=1)
+c3=Customer(name='hanmei', billing_address_id=2, shipping_address_id=3)
+s.add_all([c1, c2, c3])
+
+s.commit()
+```
+
+example: [多对多关系](http://www.cnblogs.com/alex3714/articles/5978329.html)
+
+```python
+import sqlalchemy
+from sqlalchemy import Table, Column, Integer, String, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+
+
+Base = declarative_base()
+
+
+# 通过这张中间表将authors和books的多对多关系变成两个一对多
+# 用户不用手动去管理插数据，ORM自动维护；所以用这种简单的方式来创建表；mysql数据库是真实存在的
+book_m2m_author = Table('book_m2m_author', Base.metadata,
+                        Column('book_id', Integer, ForeignKey('books.id')),
+                        Column('author_id', Integer, ForeignKey('authors.id')),
+                        )
+
+
+class Author(Base):
+    __tablename__ = 'authors'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+
+    def __repr__(self):
+        return self.name
+
+
+class Book(Base):
+    __tablename__ = 'books'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    pub_date = Column(String(32))
+
+    # secondary表示通过第三方来关联Author
+    aus = sqlalchemy.orm.relationship(
+        'Author', secondary=book_m2m_author, backref='books')
+
+    def __repr__(self):
+        return f'<book={self.name} in {self.pub_date}, authors={self.aus}>'
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", echo=True)
+Base.metadata.create_all(engine)
+
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+a1 = Author(name='Moris')
+a2 = Author(name='Jack')
+a3 = Author(name='Tom')
+s.add_all([a1, a2, a3])
+
+b1 = Book(name='Red', pub_date='2017', aus=[a1, a3])
+b2 = Book(name='Green', pub_date='2016', aus=[a2, a3])
+b3 = Book(name='Blue', pub_date='2018', aus=[a1, a3])
+s.add_all([b1, b2, b3])
+
+s.commit()
+```
+
+```python
+# query
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+b1 = s.query(Book).filter(Book.name == 'Red').first()
+print(b1) # <book=Red in 2017, authors=[Moris, Tom]>
+a1 = s.query(Author).filter(Author.name == 'Moris').first()
+print(a1, a1.books) # [<book=Red in 2017, authors=[Moris, Tom]>, <book=Blue in 2018, authors=[Moris, Tom]>]
+```
+
+```python
+# remove
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+b1 = s.query(Book).filter(Book.name == 'Red').first()
+a1 = s.query(Author).filter(Author.name == 'Moris').first()
+# 将a1作者从b1书中删除
+b1.aus.remove(a1)
+s.commit()
+```
+
+```python
+# delete所有与书有关的关联
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+b1 = s.query(Book).filter(Book.name == 'Red').first()
+s.delete(b1)
+s.commit()
+```
+
+[Homework](http://www.cnblogs.com/alex3714/articles/5978329.html)
