@@ -20,7 +20,7 @@
     - [外键(foreign key)](#%E5%A4%96%E9%94%AEforeign-key)
     - [外键的级联操作(作为了解，实际上没什么卵用)](#%E5%A4%96%E9%94%AE%E7%9A%84%E7%BA%A7%E8%81%94%E6%93%8D%E4%BD%9C%E4%BD%9C%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%AE%9E%E9%99%85%E4%B8%8A%E6%B2%A1%E4%BB%80%E4%B9%88%E5%8D%B5%E7%94%A8)
     - [外键summary](#%E5%A4%96%E9%94%AEsummary)
-  - [连接查询](#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2)
+  - [join](#join)
   - [自关联查询](#%E8%87%AA%E5%85%B3%E8%81%94%E6%9F%A5%E8%AF%A2)
   - [view](#view)
   - [Transaction](#transaction)
@@ -999,7 +999,7 @@ mysql> desc scores;
 
 外键约束只是作为一个约束，实际上关系存在就行
 
-## 连接查询
+## join
 
 性能比子查询低，但是代码比子查询工整，推荐使用连接查询；
 
@@ -1937,3 +1937,93 @@ print(u) # [('grey-1', 1), ('grey-2', 1), ('james', 2), ('moriaty', 1)]
 
 example: multiple tables
 
+```python
+# Create 2 tables
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.ext import declarative
+
+Base = declarative.declarative_base()
+
+class Student(Base):
+    __tablename__ = 'students'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(32))
+
+    def __repr__(self):
+        return f'<id={self.id},name={self.name}>'
+
+
+class Score(Base):
+    __tablename__ = 'scores'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(32), nullable=False)
+    value = Column(Integer)
+    stu_id = Column(Integer, ForeignKey('students.id'))
+
+    def __repr__(self):
+        return f'<subject={self.name}, score={self.value}>'
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+
+# create 2 tables
+Base.metadata.create_all(engine)
+```
+
+```python
+# join tables
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+# filter method: 可以不用ForeignKey
+r1 = s.query(Student.name, Score.name, Score.value).filter(Student.id==Score.stu_id).all()
+print(r1)
+# join method
+r2 = s.query(Student.name, Score.name, Score.value).join(Score).all()
+print(r2)
+```
+
+example: back reference(反查)
+
+```python
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.ext import declarative
+
+Base = declarative.declarative_base()
+
+
+class Student(Base):
+    __tablename__ = 'students'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(32))
+
+    def __repr__(self):
+        return f'<id={self.id},name={self.name}>'
+
+
+class Score(Base):
+    __tablename__ = 'scores'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(32), nullable=False)
+    value = Column(Integer)
+    stu_id = Column(Integer, ForeignKey('students.id'))
+
+    # scores表中可以通过stu字段到students, 也可以在students表中通过my_score到scores表中
+    # 这一条没有在数据库中创建,只是告诉两者的关系
+    stu = sqlalchemy.orm.relationship('Student', backref='my_score')
+
+    def __repr__(self):
+        return f'<subject={self.name}, score={self.value}, stu={self.stu.name}>'
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/world", encoding='utf8', echo=True)
+
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+u1 = s.query(Student).filter(Student.name == 'Grey').first()
+print(u1.my_score) # [<subject=Math, score=100, stu=Grey>, <subject=English, score=86, stu=Grey>, <subject=Physics, score=56, stu=Grey>]
+```
