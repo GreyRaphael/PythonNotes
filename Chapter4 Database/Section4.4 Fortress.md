@@ -88,3 +88,150 @@ source .bashrc # 接下来就会提示输入开发机的ip，用户名，密码
 
 `pip install sqlalchemy_utils`
 
+example: create tables & add data
+> ![](res/fortress01.png)
+
+```python
+import sqlalchemy
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy_utils import ChoiceType
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(32), unique=True)
+    password = Column(String(64))
+
+    group_id = Column(Integer, ForeignKey('groups.id'))
+    group = sqlalchemy.orm.relationship('Group', backref='users')
+
+    def __repr__(self):
+        return self.username
+
+
+group_m2m_remote = Table('group_m2m_remote', Base.metadata,
+                         Column('group_id', Integer, ForeignKey('groups.id')),
+                         Column('remote_id', Integer, ForeignKey('remotes.id')))
+
+
+class Group(Base):
+    __tablename__ = 'groups'
+    id = Column(Integer, primary_key=True)
+    groupname = Column(String(32))
+
+    remotes = sqlalchemy.orm.relationship(
+        'Remote', secondary=group_m2m_remote, backref='groups')
+
+    def __repr__(self):
+        return self.groupname
+
+
+class Host(Base):
+    # remote hosts
+    __tablename__ = 'hosts'
+    id = Column(Integer, primary_key=True)
+    hostname = Column(String(32))
+    ip = Column(String(40), default='localhost')
+    port = Column(String(5), default=22)
+
+    def __repr__(self):
+        return self.hostname
+
+
+class RemoteUser(Base):
+    __tablename__ = 'remote_users'
+    # 联合unique
+    __table_args__ = (UniqueConstraint(
+        'auth_type', 'username', 'password', name='auth_user_passwd_uc'),)
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(32))
+    AuthTypes = [('ssh-password', 'SSH/Password'), ('ssh-key', 'SSH/KEY')]
+    auth_type = Column(ChoiceType(AuthTypes))
+    password = Column(String(64))
+
+    def __repr__(self):
+        return f'<RemoteUser={self.username}>'
+
+
+class Remote(Base):
+    __tablename__ = 'remotes'
+    id = Column(Integer, primary_key=True)
+
+    host_id = Column(Integer, ForeignKey('hosts.id'))
+    remote_user_id = Column(Integer, ForeignKey('remote_users.id'))
+
+    host = sqlalchemy.orm.relationship('Host')
+    remote_user = sqlalchemy.orm.relationship('RemoteUser')
+
+    def __repr__(self):
+        return f'<{self.remote_user.username}@{self.host.ip}:{self.host.port}>'
+
+
+engine = sqlalchemy.create_engine(
+    "mysql+mysqldb://grey:xxxxxx@localhost/china?charset=utf8", echo=True)
+Base.metadata.create_all(engine)
+
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+# add hosts
+h0 = Host(hostname='Alibaba', ip='192.168.1.2', port='80')
+h1 = Host(hostname='AWS', ip='192.168.1.3', port='5555')
+h2 = Host(hostname='Google', ip='192.168.1.5', port='9999')
+h3 = Host(hostname='Azure', ip='192.168.1.8', port='7777')
+s.add_all([h0, h1, h2, h3])
+
+# add remoteusers
+ru0 = RemoteUser(username='root', auth_type='ssh-password', password='666666')
+ru1 = RemoteUser(username='nginx', auth_type='ssh-key')
+ru2 = RemoteUser(username='mysql', auth_type='ssh-password', password='555555')
+ru3 = RemoteUser(username='apache', auth_type='ssh-key')
+s.add_all([ru0, ru1, ru2, ru3])
+
+# add remotes
+r0 = Remote(host=h0, remote_user=ru0)
+r1 = Remote(host=h0, remote_user=ru1)
+r2 = Remote(host=h0, remote_user=ru2)
+r3 = Remote(host=h1, remote_user=ru2)
+r4 = Remote(host=h1, remote_user=ru1)
+r5 = Remote(host=h2, remote_user=ru3)
+s.add_all([r0, r1, r2, r3, r4, r5])
+
+# add groups
+g0 = Group(groupname='beijing', remotes=[r0, r1, r3])
+g1 = Group(groupname='shenzhen', remotes=[r1, r2, r4])
+g2 = Group(groupname='shagnhai', remotes=[r2, r3, r5])
+s.add_all([g0, g1, g2])
+
+# add users
+u0 = User(username='Moris', password='666', group=g2)
+u1 = User(username='Grey', password='123', group=g2)
+u2 = User(username='Chris', password='456', group=g1)
+u3 = User(username='Tom', password='789', group=g0)
+s.add_all([u0, u1, u2, u3])
+
+s.commit()
+```
+
+```python
+# query
+Session_class = sqlalchemy.orm.sessionmaker(bind=engine)
+s = Session_class()
+
+u1 = s.query(User).filter(User.username == 'Grey').first()
+print(u1, u1.group) # Grey shanghai
+print(u1.group.remotes) # [<apache@192.168.1.5:9999>, <mysql@192.168.1.2:80>, <mysql@192.168.1.3:5555>]
+for remote in u1.group.remotes:
+    print(remote.host, remote.remote_user)
+
+# Google <RemoteUser=apache>
+# Alibaba <RemoteUser=mysql>
+# AWS <RemoteUser=mysql>
+```
+
+> 配合上面记录的方式就可以制作堡垒机了
