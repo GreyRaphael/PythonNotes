@@ -2375,6 +2375,7 @@ example: `relative` with `absolute`
 ```
 
 example: mask layer & modal dialog
+> 有三层box1, mask, msg，所以要用z-index
 
 ```html
 <body>
@@ -2416,6 +2417,36 @@ example: mask layer & modal dialog
 ```
 
 ## CSS background
+
+example: gradient background
+> ![](res/gradient01.png)
+
+```html
+<body>
+    <div class="box1"></div>
+    <div class="box2"></div>
+    <style>
+        .box1{
+            height: 300px;
+            background: linear-gradient(180deg, rgba(255,0,0,0), rgba(215,255,230,1)) no-repeat;
+            border: 1px solid red;
+        }
+        .box2{
+            height: 300px;
+            background: linear-gradient(90deg, rgba(255,0,0,0), rgba(215,255,230,1));
+            border: 1px solid red;
+        }
+        /* 大背景需要制定height */
+        /* html{
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,0,0,0), rgba(255,0,0,1)) no-repeat;
+        } */
+    </style>
+</body>
+```
+
+example: image as background or content
+> ![](res/css-bg01.png)
 
 ```html
 <!DOCTYPE html>
@@ -2460,7 +2491,8 @@ example: mask layer & modal dialog
 </html>
 ```
 
-![](res/css-bg01.png)
+example: background repeat
+> ![](res/css-bg02.png)
 
 ```html
 <!DOCTYPE html>
@@ -2512,7 +2544,65 @@ example: mask layer & modal dialog
 </html>
 ```
 
-![](res/css-bg02.png)
+example: background-position
+> Source:  
+> ![](res/icons.png)  
+> Result:  
+> ![](res/background_position01.png)
+```html
+<body>
+    <div class="box1"></div>
+    <div class="box2"></div>
+    <div class="box3"></div>
+    <style>
+        div{
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            border: 1px solid red;
+        }
+        .box1{
+            background: url(icons.png) no-repeat;
+        }
+        .box2{
+            background: url(icons.png) no-repeat 0px -20px;
+        }
+        .box3{
+            background: url(icons.png) no-repeat 0 -40px;
+        }
+    </style>
+</body>
+```
+
+example: background is login_icon
+> ![](res/background_position02.png)
+
+```html
+<body>
+    <div class="box1">
+        <input type="text" style="height:34px; width:360px;padding-right: 40px">
+        <i></i>
+    </div>
+    <style>
+       .box1{
+           position: relative;
+           height: 40px;
+           width: 400px;
+       }
+       .box1 i{
+           position: absolute;
+           right: 0;
+           top: 0;
+
+           display: inline-block;
+           width: 40px;
+           height: 40px;
+
+           background: url(login_icons.png) no-repeat 10px -10px;
+       }
+    </style>
+</body>
+```
 
 background简写：`background: gold url(res/bg.jpg) no-repeat -30px 30px`
 
