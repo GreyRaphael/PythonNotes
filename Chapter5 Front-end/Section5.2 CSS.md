@@ -13,7 +13,6 @@
     - [inline](#inline)
     - [inline-block](#inline-block)
     - [compare block|inline|inline-block](#compare-blockinlineinline-block)
-    - [css inline-block example](#css-inline-block-example)
   - [CSS Float](#css-float)
   - [CSS Position](#css-position)
   - [CSS background](#css-background)
@@ -1441,9 +1440,8 @@ display属性是用来设置元素的类型及隐藏的，常用的属性有：
 - inline→inline-block比较少；inline→block比较多
 - block不用转换到inline, inline-block
 
-### css inline-block example
-
-![](res/css-inline-block02.png)
+example: inline-block
+> ![](res/css-inline-block02.png)
 
 ```html
 <!DOCTYPE html>
@@ -1503,7 +1501,54 @@ display属性是用来设置元素的类型及隐藏的，常用的属性有：
 </html>
 ```
 
-![](res/css-block04.png)
+example: hover menu
+> ![](res/hover01.png)
+
+```html
+<body>
+    <div class="pg-header">
+        <div class="w">
+            <a class="menu">Home</a>
+            <a class="menu">Documentation</a>
+            <a class="menu">Examples</a>
+            <a class="menu">Themes</a>
+        </div>
+    </div>
+    <div class="pg-body">
+        <div class="w">This is content</div>
+    </div>
+    <style>
+        .pg-header{
+            position: fixed;
+            top:0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background-color: #2459a2; 
+            
+            line-height: 48px;
+            color: #fff;
+        }
+        .pg-body{
+            margin-top: 48px;
+        }
+        .w{
+            width: 980px;
+            margin: 0 auto;
+        }
+        .pg-header .menu{
+            display: inline-block;
+            padding: 0 10px;
+        }
+        .pg-header .menu:hover{
+            background-color: #204982;
+        }
+    </style>
+</body>
+```
+
+example: pg-navigator
+> ![](res/css-block04.png)
 
 可以用简单的方法，不做SEO优化，不管SEO; 管SEO，要用ul>li
 
