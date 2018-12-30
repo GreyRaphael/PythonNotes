@@ -1,36 +1,40 @@
 # javascript introduction
 
 - [javascript introduction](#javascript-introduction)
-    - [js datatype](#js-datatype)
-    - [js function](#js-function)
-        - [js function with params](#js-function-with-params)
-        - [js anonymous function](#js-anonymous-function)
-        - [condition](#condition)
-    - [js component](#js-component)
-        - [simple calculaor example](#simple-calculaor-example)
-        - [`NaN`, `isNaN`](#nan--isnan)
-    - [timer](#timer)
-    - [Function Closures](#function-closures)
-    - [closure](#closure)
-    - [some bulit-ins](#some-bulit-ins)
-        - [`document`](#document)
-        - [`location`](#location)
-        - [`Math`](#math)
-    - [js oop(not important)](#js-oopnot-important)
-        - [js single object](#js-single-object)
-        - [js factory mode](#js-factory-mode)
-        - [js constructor mode](#js-constructor-mode)
-    - [js Object Prototypes](#js-object-prototypes)
-        - [inherit](#inherit)
-    - [js new selector](#js-new-selector)
+  - [js datatype](#js-datatype)
+  - [js function](#js-function)
+    - [js function with params](#js-function-with-params)
+    - [js anonymous function](#js-anonymous-function)
+    - [condition](#condition)
+  - [js component](#js-component)
+    - [simple calculaor example](#simple-calculaor-example)
+    - [`NaN`, `isNaN`](#nan-isnan)
+  - [timer](#timer)
+  - [Function Closures](#function-closures)
+  - [closure](#closure)
+  - [some bulit-ins](#some-bulit-ins)
+    - [`document`](#document)
+    - [`location`](#location)
+    - [`Math`](#math)
+  - [js oop(not important)](#js-oopnot-important)
+    - [js single object](#js-single-object)
+    - [js factory mode](#js-factory-mode)
+    - [js constructor mode](#js-constructor-mode)
+  - [js Object Prototypes](#js-object-prototypes)
+    - [inherit](#inherit)
+  - [js new selector](#js-new-selector)
+
+浏览器本身就是一个JavaScript解释器
+
+写JavaScript代码的位置:
+- F12/Console
+- html文件中`<script>`
 
 因为V8和AJAX导致javascript飞速发展；
-
 - V8: 解析js
 - AJAX: 从后台通过接口读过来放到页面上，实现局部刷新；
 
 前端脚本语言：
-
 - JavaScript
 - TypeScript(Microsoft for IE)
 - ActionScript(Adobe, 用于视频交互，弹广告、会员)
@@ -38,7 +42,6 @@
 一般都是直接用JavaScript的库JQuery, 而不是自己原生地写(面试喜欢这么干)；JQuery是一个前后台都通的js库；
 
 前端三大块：
-
 - HTML: **页面的内容**
 - CSS: **页面的表现**。元素大小、颜色、位置、隐藏、部分动画...
 - JS: **页面行为**。部分动画、用户与页面交互(弹窗...)、页面功能(在线图片转换...)...
@@ -46,10 +49,11 @@
 js做动画的原理： 本质上是用js来改变css, 可以比css本身的动画更加复杂；
 
 js的运行环境是浏览器，嵌入到HTML中运行的，嵌入方式有3种：
-
 - 行内事件
 - 嵌入方式
 - 外部引入
+
+> 如果是远程的js文件(比如`https://code.jquery.com/jquery-3.3.1.min.js`)，并且`<script>`在html文件的头部，那么如果js文件没有下载完，网页一直刷不出来；所以一般讲`<script>`放在`<body>`内部的的最下边
 
 ```bash
 ./
@@ -90,14 +94,32 @@ js的运行环境是浏览器，嵌入到HTML中运行的，嵌入方式有3种�
 alert('hello, third times!');
 ```
 
+example: get data
+
+```html
+<body>
+    <input type="text" name="" id="username">
+    <input type="button" value="ClickMe!" onclick="GetData();">
+    <script>
+        function GetData() {
+            var i=document.getElementById('username');
+            alert(i.value);
+        }
+    </script>
+</body>
+```
+
 ## js datatype
+
+局部变量必须一个`var`开头，如果未使用`var`，则默认表示声明的是全局变量
+> [Tutorial](https://www.cnblogs.com/wupeiqi/articles/5433893.html)
 
 ```js
 // number
 var a = 100;
 // string
 var b = 'abc';
-// boolean
+// boolean: true, false; 小写，与python不同
 var c = true;
 // undefined
 var d;
@@ -105,11 +127,129 @@ var d;
 // null
 // object
 
+//array
+arr=[1, 2, 3, 4]
+console.log(arr[0])
+//dict
+dictionary={'k1':'v1', 'k2':'v2'}
+console.log(dictionary['k1'])
+
 alert(a);
 // 弱类型
 a = 'grey';
 alert(a);
 ```
+
+example: 定时执行
+
+```html
+<body>
+    <script>
+        function print() {
+            console.log(Math.random()*10);
+        }
+        setInterval(print, 1000);
+    </script>
+</body>
+```
+
+example: setInterval banner
+
+```html
+<body>
+    <div id="banner">Happy New Year </div>
+    <script>
+        tag = document.getElementById('banner');
+        setInterval(() => {
+            var txt=tag.innerHTML; //因为innerText会忽略空格，所以用innerHTML
+            var f = txt.charAt(0);
+            console.log(f, txt.charCodeAt(0))
+            var l = txt.substring(1, txt.length);
+            tag.innerText = l + f;
+        }, 1000);
+    </script>
+</body>
+```
+
+example: array & dictionary example
+
+```js
+a = [1, 2, 3, 4, 5]
+// splice(start, deleteCount, value)
+// operation1: replace
+a.splice(1, 1, 22)
+console.log(a) //[1, 22, 3, 4, 5]
+// operation2: delete
+a.splice(1, 1)
+console.log(a) //[1, 3, 4, 5]
+// operation3: insert
+a.splice(1, 0, 222)
+console.log(a) //[1, 222, 3, 4, 5]
+
+// join，该方法属于数组，而python中是属于字符串
+console.log(a.join('#')) //1#222#3#4#5
+```
+
+example: loop
+
+```js
+//// loop type1
+// array loop
+a = [11, 22, 33, 44, 55]
+for (var index in a) {
+    console.log(index, a[index]);
+}
+//dict loop
+dict = {
+    'k1': 'v1',
+    'k2': 'v2'
+}
+for (var key in dict) {
+    console.log(key, dict[key])
+}
+
+//// loop type2: 不支持dictionary
+for (var i = 0; i < a.length; i++) {
+    console.log(a[i]);
+}
+```
+
+example: condition sequence
+
+```js
+for(var i=0; i<6; i++){
+    if (i==3) {
+        console.log('hehe');
+    } else {
+        console.log(i**2);
+    }
+}
+```
+
+`==` vs `===`:
+
+- == 和 != 比较若类型不同，先偿试转换类型，再作值比较，最后返回值比较结果
+- === 和 !== 只有在相同类型下,才会比较其值。
+
+example: compare
+
+```js
+console.log(1 == '1') //true
+console.log(1 != '1') //false
+console.log(1 === '1') //false
+console.log(1 !== '1') //true
+
+// and
+if (1=='1' && 1===1) {
+    console.log('haha')
+}
+
+// or
+if (1=='1'||1==='1'){
+    console.log('hehe')
+}
+```
+
 
 用js获取html文档元素的属性并修改
 
@@ -666,11 +806,6 @@ alert(a);
 </body>
 </html>
 ```
-
-`==` vs `===`:
-
-- == 和 != 比较若类型不同，先偿试转换类型，再作值比较，最后返回值比较结果
-- === 和 !== 只有在相同类型下,才会比较其值。
 
 ```html
 <!-- for vs foreach -->
