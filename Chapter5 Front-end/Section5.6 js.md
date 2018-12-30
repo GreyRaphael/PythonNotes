@@ -7,7 +7,7 @@
     - [js anonymous function](#js-anonymous-function)
     - [condition](#condition)
   - [js component](#js-component)
-    - [simple calculaor example](#simple-calculaor-example)
+    - [DOM](#dom)
     - [`NaN`, `isNaN`](#nan-isnan)
   - [timer](#timer)
   - [Function Closures](#function-closures)
@@ -110,9 +110,6 @@ example: get data
 ```
 
 ## js datatype
-
-局部变量必须一个`var`开头，如果未使用`var`，则默认表示声明的是全局变量
-> [Tutorial](https://www.cnblogs.com/wupeiqi/articles/5433893.html)
 
 ```js
 // number
@@ -975,7 +972,280 @@ window.onload=()=>{
 }
 ```
 
-### simple calculaor example
+### DOM
+
+DOM: document, 整个页面就是一个document对象, 通过document可以对其进行CRUD操作
+
+DOM Operation:
+- find the tag: 选择器
+- operate the tag: 修改
+
+```js
+// 直接选择器
+document.getElementById //根据ID获取一个标签
+document.getElementsByName //根据name属性获取标签集合
+document.getElementsByClassName //根据class属性获取标签集合
+document.getElementsByTagName //根据标签名获取标签集合
+```
+
+```js
+// 间接选择器
+parentElement           // 父节点标签元素
+children                // 所有子标签
+firstElementChild       // 第一个子标签元素
+lastElementChild        // 最后一个子标签元素
+nextElementtSibling     // 下一个兄弟标签元素
+previousElementSibling  // 上一个兄弟标签元素
+
+parentNode          // 父节点
+childNodes          // 所有子节点
+firstChild          // 第一个子节点
+lastChild           // 最后一个子节点
+nextSibling         // 下一个兄弟节点
+previousSibling     // 上一个兄弟节点
+```
+
+```js
+// Operation
+tag=document.getElementById('banner')
+console.log(tag.classList)
+console.log(tag.className) // c1 c2
+tag.className='cx'
+console.log(tag.className) //cx
+tag.classList.add('cy')
+console.log(tag.className) // cx cy
+tag.classList.remove('cx')
+console.log(tag.className) // cy
+```
+
+example: DOM operation
+> ![](res/dom01.png)
+
+```html
+<body style="margin:0;">
+    <!-- Pannel -->
+    <div>
+        <input type="button" value="Add" onclick="ShowModal();">
+        <input type="button" value="Delete" onclick="Delete();">
+        <input type="button" value="SelectAll" onclick="SelectAll();">
+        <input type="button" value="DeselectAll" onclick="DeselectAll();">
+        <input type="button" value="Reverse" onclick="ReverseAll();">
+        <table>
+            <thead>
+                <th>Select</th>
+                <th>IP</th>
+                <th>Port</th>
+            </thead>
+            <tbody id="tb">
+                <tr>
+                    <td><input class="cb" type="checkbox"></td>
+                    <td>192.168.1.2</td>
+                    <td>3306</td>
+                </tr>
+                <tr>
+                    <td><input class="cb" type="checkbox"></td>
+                    <td>192.168.1.3</td>
+                    <td>80</td>
+                </tr>
+                <tr>
+                    <td><input class="cb" type="checkbox"></td>
+                    <td>192.168.1.5</td>
+                    <td>6357</td>
+                </tr>
+                <tr>
+                    <td><input class="cb" type="checkbox"></td>
+                    <td>192.168.1.6</td>
+                    <td>22</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mask -->
+    <div id='mask' class="mask hide"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hide">
+        <p>IP:<input type="text" name="" id="ip"></p>
+        <p>Port:<input type="text" name="" id="port"></p>
+        <p>
+            <input type="button" value="Cancel" onclick="HideModal();">
+            <input type="button" value="OK" onclick="Addline();">
+        </p>
+    </div>
+
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .mask {
+            z-index: 9;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: #000;
+            opacity: 0.3;
+        }
+
+        .modal {
+            z-index: 99;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            margin-left: -200px;
+            margin-top: -150px;
+
+            width: 400px;
+            height: 300px;
+            background-color: #fff;
+        }
+    </style>
+
+    <script>
+        function ShowModal() {
+            document.getElementById('mask').classList.remove('hide');
+            document.getElementById('modal').classList.remove('hide');
+        }
+
+        function HideModal() {
+            document.getElementById('mask').classList.add('hide');
+            document.getElementById('modal').classList.add('hide');
+        }
+
+        function Addline() {
+            var ip = document.getElementById('ip').value;
+            var port = document.getElementById('port').value;
+            var str =
+                `
+                <td><input class="cb" type="checkbox"></td>
+                <td>${ip}</td>
+                <td>${port}</td>
+                `;
+            var tr = document.createElement('tr')
+            tr.innerHTML = str;
+            document.getElementById('tb').appendChild(tr);
+            HideModal();
+        }
+
+        function Delete() {
+            //cbs变化时会实时更新, 正向iter会错误
+            // 或者使用深拷贝[...collection]
+            // trick: count in reverse order
+            var cbs = document.getElementsByClassName('cb');
+            for (var i = cbs.length - 1; i >= 0; i--) {
+                var cb = cbs[i]
+                if (cb.checked) {
+                    cb.parentElement.parentElement.remove(cb)
+                }
+            }
+        }
+
+        function SelectAll() {
+            var checkboxs = document.getElementsByClassName('cb');
+            for (var index in checkboxs) {
+                var cb = checkboxs[index];
+                cb.checked = true;
+            }
+        }
+
+        function DeselectAll() {
+            var checkboxs = document.getElementsByClassName('cb');
+            for (var index in checkboxs) {
+                var cb = checkboxs[index];
+                cb.checked = false;
+            }
+        }
+
+        function ReverseAll() {
+            var checkboxs = document.getElementsByClassName('cb');
+            for (var index in checkboxs) {
+                var cb = checkboxs[index];
+                if (cb.checked) {
+                    cb.checked = false;
+                } else {
+                    cb.checked = true;
+                }
+            }
+        }
+    </script>
+</body>
+```
+
+`var`, `let`, `const`:
+- 使用var声明的变量，其作用域为该语句所在的函数内，且存在变量提升现象；
+- 使用let声明的变量，其作用域为该语句所在的代码块内，不存在变量提升；
+- 使用const声明的是常量，在后面出现的代码中不能再修改该常量的值。
+
+example: click to activate menu
+> ![](res/dom02.png)
+
+```html
+<body>
+    <div class="container" style="margin:0 auto;width:300px;">
+        <div class="item">
+            <div class="header" id="i1" onclick="activate('i1');">Header1</div>
+            <div class="content">
+                <div>Content11</div>
+                <div>Content12</div>
+                <div>Content13</div>
+            </div>
+        </div>
+        <div class="item">
+            <div class="header" id="i2" onclick="activate('i2');">Header2</div>
+            <div class="content hide">
+                <div>Content21</div>
+                <div>Content22</div>
+                <div>Content23</div>
+            </div>
+        </div>
+        <div class="item">
+            <div class="header" id="i3" onclick="activate('i3');">Header3</div>
+            <div class="content hide">
+                <div>Content31</div>
+                <div>Content32</div>
+                <div>Content33</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .header {
+            height: 35px;
+            background-color: #2459a2;
+            color: white;
+            line-height: 35px;
+        }
+    </style>
+
+    <script>
+        function activate(params) {
+            let current_header = document.getElementById(params);
+            let current_item = current_header.parentElement;
+            let container = current_item.parentElement;
+            // method1:
+            // display this menu
+            current_header.nextElementSibling.classList.remove('hide');
+            // hide other menus
+            const items = [...container.children]; //深拷贝
+            let siblings = items.filter(e => e !== current_item);
+            for (const key in siblings) {
+                const item = siblings[key];
+                item.lastElementChild.classList.add('hide');
+            }
+            //method2: 先全部都hide, 然后将nextElementSibling.classList.remove('hide');
+        }
+    </script>
+</body>
+```
+
+example: simple calculator
 
 ```html
 <!-- indexl.html -->
@@ -2138,4 +2408,13 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
     </ul>
 </body>
 </html>
+```
+
+```bash
+作业：
+    1、登录、注册，练习：position
+    2、后台管理页面
+        - 左侧菜单
+        - 右边表格，全选反向，模态框，返回顶部
+    3、商城页面
 ```
