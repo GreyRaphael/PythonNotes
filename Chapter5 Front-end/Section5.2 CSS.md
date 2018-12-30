@@ -2082,7 +2082,7 @@ example: 清除浮动
 定位策略：
 
 - `relative`: 相对于原来的位置进行定位，原来的位置还是占用的
-- `absolute`: 相对于父元素，直到<body>
+- `absolute`: 相对于父元素，直到`<body>`
 - `fixed`: 相对于浏览器
 - `static`: 默认值
 - `inherit`：很少用到
@@ -2215,6 +2215,160 @@ example: 清除浮动
 ```
 
 ![](res/css-pos02.png)
+
+example: go to top
+
+```html
+<body>
+    <div style="height: 5000px;background-color: #ddd;"></div>
+    <div onclick="GoTop();" style="width:50px;height:50px;
+    background-color: black;color: red;
+    position:fixed;bottom:20px;right:20px;">Top</div>
+
+    <script>
+        function GoTop() {
+            document.documentElement.scrollTop = 0;
+        }
+    </script>
+</body>
+```
+
+example: float menu
+
+```html
+<body>
+    <div class="pg-header">Menu</div>
+    <div class="pg-body">This is content</div>
+    
+    <style>
+        .pg-header{
+            height: 48px;
+            background-color: black;
+            color: #ddd;
+            position: fixed;
+            top: 0;
+            /* 变成了inline-block */
+            /* method1: */
+            left: 0;
+            right: 0;
+            /* method2: */
+            /* width: 100%; */
+        }
+        .pg-body{
+            background-color: #ddd;
+            height: 5000px;
+            /* 因为pg-header将pg-body盖住了48px */
+            margin-top: 48px;
+        }
+    </style>
+</body>
+```
+
+example: `relative` with `absolute`
+> ![](res/relative01.png)
+
+```html
+<body>
+    <div class="parent-box">
+        <div class="box1">box1</div>
+        <div class="box2">box2</div>
+        <div class="box3">
+            <div class="box4">box4</div>
+            <div class="box5">box5</div>
+        </div>
+    </div>
+
+    <style>
+        .parent-box{
+            position: relative;
+            width: 400px;
+            height: 300px;
+            border: 1px solid red;
+            margin: 0 auto;
+        }
+        .box1, .box2{
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: orange;
+            /* align */
+            line-height: 50px;
+            text-align: center;
+        }
+        .box1{
+            left: 0;
+            bottom: 0;
+        }
+        .box2{
+            right: 0;
+            top: 0;
+        }
+        .box3{
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            background-color: yellow;
+            width: 200px;
+            height: 200px;
+        }
+        .box4, .box5{
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: green;
+        }
+        .box4{
+            left: 0;
+            top: 0;
+        }
+        .box5{
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</body>
+```
+
+example: mask layer & modal dialog
+
+```html
+<body>
+    <div class="box1" style="height:5000px;">This is content</div>
+    <div class="mask"></div>
+    <div class="msg">This is message</div>
+    <style>
+        .mask{
+            z-index: 1;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+
+            background-color: black;
+            opacity: 0.3;
+        }
+        .msg{
+            z-index: 2;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+
+            background-color: #fff;
+            color: red;
+            width: 300px;
+            height: 200px;
+
+            margin-left: -150px;
+            margin-top: -100px;
+        }
+        body{
+            /* prevent body scroll when modal open */
+            overflow: hidden;
+        }
+    </style>
+</body>
+```
 
 ## CSS background
 
