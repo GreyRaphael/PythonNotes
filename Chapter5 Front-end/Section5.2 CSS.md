@@ -3331,3 +3331,80 @@ style3: 同style1, 但是只是在style2添加一行代码; (most recommended)
     min-width: 500px;    
 }
 ```
+
+example: 在style3的基础上完善header
+
+```html
+<!-- header -->
+<div class="pg-header">
+    <div class="logo">LOGO</div>
+    <div class="user">
+        <a href="#"><img src="head.png"></a>
+        <div class="drop-down">
+            <a>Profile</a>
+            <a>Settings</a>
+            <a>Logout</a>
+        </div>
+    </div>
+</div>
+```
+
+```css
+.pg-header {
+    height: 48px;
+    background-color: #2459a2;
+    color: #fff;
+
+    line-height: 48px;
+}
+
+.pg-header .logo {
+    width: 200px;
+    background-color: cadetblue;
+    text-align: center;
+
+    float: left;
+}
+
+.pg-header .user {
+    height: 48px;
+    margin-right: 60px;
+    padding: 0 20px;
+
+    float: right;
+
+    /* 为了下拉菜单 */
+    position: relative;
+}
+
+.user:hover {
+    background-color: #396BB3;
+}
+
+.user img {
+    height: 40px;
+    margin-top: 4px;
+    border-radius: 50%;
+}
+
+.user .drop-down {
+    display: none;
+    position: absolute;
+    top: 48px;
+    right: 48px;
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #000;
+    
+    width: 160px;
+
+    z-index: 9;
+}
+.user:hover .drop-down{
+    /* 当user hover的时候，修改drop-down的css */
+    display: block;
+}
+
+.drop-down a{
+    display: block;
+}
+```
