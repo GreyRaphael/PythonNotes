@@ -16,7 +16,6 @@
   - [CSS Float](#css-float)
   - [CSS Position](#css-position)
   - [CSS background](#css-background)
-    - [float and background examples](#float-and-background-examples)
   - [layout](#layout)
 
 Cascading Style Sheets: 为了让网页元素的样式更加丰富，也为了让网页的内容和样式能拆分开；
@@ -2610,9 +2609,10 @@ background-attachment：滚动页面的时候，background是否跟着一起滚;
 
 比如`background-attachment: fixed;`，背景不动，文字可以滚动；
 
-### float and background examples
+如果要在整个网页适用的背景image，设置`<body>`的`img`即可
 
-![](res/css-block06.png)
+example: float & background
+> ![](res/css-block06.png)
 
 ```html
 <!DOCTYPE html>

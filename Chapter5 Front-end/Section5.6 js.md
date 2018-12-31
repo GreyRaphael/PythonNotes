@@ -2416,5 +2416,9 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
     2、后台管理页面
         - 左侧菜单
         - 右边表格，全选反向，模态框，返回顶部
-    3、商城页面
+    3、商城页面: 
 ```
+
+Tips:
+- 参照模板: [moban](http://www.cssmoban.com/)
+- [Bootstrap](http://www.bootcss.com/)网站示例
