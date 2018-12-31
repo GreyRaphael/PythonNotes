@@ -3332,7 +3332,7 @@ style3: 同style1, 但是只是在style2添加一行代码; (most recommended)
 }
 ```
 
-example: 在style3的基础上完善header
+example: 在style3的基础上添加弹出菜单
 
 ```html
 <!-- header -->
@@ -3373,7 +3373,7 @@ example: 在style3的基础上完善header
 
     float: right;
 
-    /* 为了下拉菜单 */
+    /* 为了弹出菜单 */
     position: relative;
 }
 
@@ -3407,4 +3407,242 @@ example: 在style3的基础上完善header
 .drop-down a{
     display: block;
 }
+```
+
+example: icons
+
+[fontawesome](https://fontawesome.com/download)下载到工作目录
+
+```html
+<!-- simeple test -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+</head>
+<body>
+    <div class="a">
+        <!-- 可以通过修改font-size来修改icon的大小 -->
+        <!-- 下面的代码去官网F12，然后粘贴 -->
+        <i class="fab fa-alipay" style="font-size: 48px;"></i>
+    </div>
+</body>
+</html>
+```
+
+example: 在前面header基础上添加icons
+> ![](res/layout03.png)
+
+```html
+<!-- header -->
+<div class="pg-header">
+    <div class="logo">LOGO</div>
+    <div class="user">
+        <a href="#"><img src="head.png"></a>
+        <div class="drop-down">
+            <a>Profile</a>
+            <a>Settings</a>
+            <a>Logout</a>
+        </div>
+    </div>
+    <div class="icon">
+        <i class="far fa-comment" style="font-size: 20px;line-height: 48px;"></i>
+        <div class="number">99+</div>
+    </div>
+    <div class="icon">
+        <i class="far fa-envelope" style="font-size: 20px;line-height: 48px;"></i>
+    </div>
+</div>
+```
+
+```css
+/* icons */
+.pg-header .icon {
+    padding: 0 20px;
+    float: right;
+
+    /* for message number */
+    position: relative;
+}
+
+.pg-header .icon:hover {
+    background-color: #396BB3;
+}
+
+.icon .number {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 10px;
+    background-color: #f00;
+    line-height: 18px;
+    text-align: center;
+}
+```
+
+example: complete style3
+> ![](res/layout04.png)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+        crossorigin="anonymous">
+</head>
+
+<body style="margin:0;">
+    <!-- header -->
+    <div class="pg-header">
+        <div class="logo">LOGO</div>
+        <div class="user">
+            <a href="#"><img src="head.png"></a>
+            <div class="drop-down">
+                <a>Profile</a>
+                <a>Settings</a>
+                <a>Logout</a>
+            </div>
+        </div>
+        <div class="icon">
+            <i class="far fa-comment" style="font-size: 20px;line-height: 48px;"></i>
+            <div class="number">99+</div>
+        </div>
+        <div class="icon">
+            <i class="far fa-envelope" style="font-size: 20px;line-height: 48px;"></i>
+        </div>
+    </div>
+
+    <!-- content -->
+    <div class="pg-content">
+        <div class="menu">This is menu</div>
+        <div class="content">
+            <div class="box" style="background-color:#0f0">
+                <!-- many p tags -->
+            </div>
+        </div>
+    </div>
+
+    <!-- footer -->
+    <div class="pg-footer"></div>
+
+    <style>
+        .pg-header {
+            height: 48px;
+            background-color: #2459a2;
+            color: #fff;
+
+            line-height: 48px;
+        }
+
+        .pg-header .logo {
+            width: 200px;
+            background-color: cadetblue;
+            text-align: center;
+
+            float: left;
+        }
+
+        .pg-header .user {
+            height: 48px;
+            margin-right: 60px;
+            padding: 0 20px;
+
+            float: right;
+
+            /* 为了下拉菜单 */
+            position: relative;
+        }
+
+        .user:hover {
+            background-color: #396BB3;
+        }
+
+        .user img {
+            height: 40px;
+            margin-top: 4px;
+            border-radius: 50%;
+        }
+
+        /* drop-down menu */
+        .user .drop-down {
+            display: none;
+            position: absolute;
+            top: 48px;
+            right: 48px;
+            background-color: rgba(255, 255, 255, 0.6);
+            color: #000;
+
+            width: 160px;
+
+            z-index: 9;
+        }
+
+        .user:hover .drop-down {
+            /* 当user hover的时候，修改drop-down的css */
+            display: block;
+        }
+
+        .drop-down a {
+            display: block;
+        }
+
+        /* icons */
+        .pg-header .icon {
+            padding: 0 20px;
+            float: right;
+
+            /* for message number */
+            position: relative;
+        }
+
+        .pg-header .icon:hover {
+            background-color: #396BB3;
+        }
+
+        .icon .number {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+            background-color: #f00;
+            line-height: 18px;
+            text-align: center;
+        }
+
+        /* content */
+        .pg-content .menu {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            bottom: 0;
+            width: 200px;
+            background-color: #ddd;
+        }
+
+        .pg-content .content {
+            position: absolute;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            bottom: 0;
+
+            min-width: 500px;
+
+            overflow: auto;
+        }
+    </style>
+</body>
+
+</html>
 ```
