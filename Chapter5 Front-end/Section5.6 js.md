@@ -1909,6 +1909,29 @@ window.onload=()=>{
 
 ## some bulit-ins
 
+example: serialization
+
+```js
+let li1 = [1, 2, 3, 4, 5];
+// object 2 string
+let li1_str = JSON.stringify(li1);
+console.log(li1_str, typeof li1_str); //"[1,2,3,4,5]" string
+
+// string 2 object
+let li2 = JSON.parse(li1_str);
+console.log(li2, typeof li2); //[1, 2, 3, 4, 5] object
+```
+
+example: encodeURI & decodeURI
+
+```js
+// encode
+let url='https://www.sogou.com/web?query=你好'
+let new_url=encodeURI(url)
+console.log(new_url) //"https://www.sogou.com/web?query=%E4%BD%A0%E5%A5%BD"
+console.log(decodeURI(new_url))//'https://www.sogou.com/web?query=你好'
+```
+
 ### `document`
 
 先是在首页，然后点击登录，登录成功之后要跳回首页；或者在商品详情页，点击购买，跳到登录页，登录成功之后跳回商品详情页；需要用到`document.referrer`, 需要服务器环境；
