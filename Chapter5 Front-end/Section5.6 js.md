@@ -2416,7 +2416,7 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
     2、后台管理页面
         - 左侧菜单
         - 右边表格，全选反向，模态框，返回顶部
-    3、商城页面: 
+    3、商城页面: https://github.com/sky-gg/www.meilele.com
 ```
 
 Tips:
