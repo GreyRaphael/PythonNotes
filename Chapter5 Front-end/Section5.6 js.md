@@ -3,9 +3,7 @@
 - [javascript introduction](#javascript-introduction)
   - [js datatype](#js-datatype)
   - [js function](#js-function)
-    - [js function with params](#js-function-with-params)
-    - [js anonymous function](#js-anonymous-function)
-    - [condition](#condition)
+  - [condition sentence](#condition-sentence)
   - [js component](#js-component)
     - [DOM](#dom)
     - [`NaN`, `isNaN`](#nan-isnan)
@@ -127,7 +125,7 @@ var d;
 //array
 arr=[1, 2, 3, 4]
 console.log(arr[0])
-//dict
+//dict, 本质是object
 dictionary={'k1':'v1', 'k2':'v2'}
 console.log(dictionary['k1'])
 
@@ -537,6 +535,11 @@ if (1=='1'||1==='1'){
 
 ## js function
 
+js函数分类:
+- 普通函数: `function func(){}`
+- 匿名函数: `let func = function (){}` 或者lambda: `let func = (a, b)=>{return a+b;}`
+- 自执行函数: `(function(arg){...})(666)`, 创建函数并且自动执行。一般引用其他人的js库，最外部的函数就是这样写的。
+
 ```html
 <!-- simple example -->
 
@@ -663,7 +666,7 @@ if (1=='1'||1==='1'){
 </html>
 ```
 
-### js function with params
+example: js function with params
 
 ```html
 <!DOCTYPE html>
@@ -696,7 +699,7 @@ if (1=='1'||1==='1'){
 </html>
 ```
 
-### js anonymous function
+example: js anonymous function
 
 ```html
 <!DOCTYPE html>
@@ -764,7 +767,7 @@ if (1=='1'||1==='1'){
 - 结束函数的运行
 - 阻止默认行为：提交表单的时候，不想让它提交而是自己用Ajax提交
 
-### condition
+## condition sentence
 
 ```html
 <!-- 显示、隐藏切换 -->
