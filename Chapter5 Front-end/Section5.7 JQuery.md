@@ -1,32 +1,36 @@
 # JQuery
 
 - [JQuery](#jquery)
-    - [Introduction](#introduction)
-    - [JQuery Selector](#jquery-selector)
-        - [traversing](#traversing)
-        - [`end()`](#end)
-        - [`siblings()`](#siblings)
-    - [`.css()`](#css)
-        - [`toggleClass()` and `.click()`](#toggleclass-and-click)
-    - [attributes Operation](#attributes-operation)
-    - [Effects](#effects)
-    - [animate](#animate)
-        - [jquery loop](#jquery-loop)
-        - [JQuery size and scroll](#jquery-size-and-scroll)
-        - [JQuery slide](#jquery-slide)
-    - [JQuery Event](#jquery-event)
-        - [mouseover mouseout mouseenter mouseleave hover](#mouseover-mouseout-mouseenter-mouseleave-hover)
-        - [blur focus change](#blur-focus-change)
-        - [mouseup mousedown mousemove](#mouseup-mousedown-mousemove)
-        - [keyup keydown keypress](#keyup-keydown-keypress)
-        - [load ready](#load-ready)
-        - [resize scroll select](#resize-scroll-select)
-        - [submit toggle unload](#submit-toggle-unload)
-        - [bind](#bind)
+  - [Introduction](#introduction)
+  - [JQuery Selector](#jquery-selector)
+    - [traversing](#traversing)
+    - [`end()`](#end)
+    - [`siblings()`](#siblings)
+  - [`.css()`](#css)
+    - [`toggleClass()` and `.click()`](#toggleclass-and-click)
+  - [attributes Operation](#attributes-operation)
+  - [Effects](#effects)
+  - [animate](#animate)
+    - [jquery loop](#jquery-loop)
+    - [JQuery size and scroll](#jquery-size-and-scroll)
+    - [JQuery slide](#jquery-slide)
+  - [JQuery Event](#jquery-event)
+    - [mouseover mouseout mouseenter mouseleave hover](#mouseover-mouseout-mouseenter-mouseleave-hover)
+    - [blur focus change](#blur-focus-change)
+    - [mouseup mousedown mousemove](#mouseup-mousedown-mousemove)
+    - [keyup keydown keypress](#keyup-keydown-keypress)
+    - [load ready](#load-ready)
+    - [resize scroll select](#resize-scroll-select)
+    - [submit toggle unload](#submit-toggle-unload)
+    - [bind](#bind)
 
 ## Introduction
 
+jQuery本质是封装了DOM和浏览器的一些对象
+
 jQuery是目前使用最广泛的javascript函数库
+
+对于访问量小的公司，jQuery完全适用；对于大公司，需要写自己的js库进而提升访问速度；另外对于手机，为了节约流量也会使用DIY的js库或者DOM
 
 后台用的是JQuery, 所以为了衔接前端，也是需要JQuery;
 

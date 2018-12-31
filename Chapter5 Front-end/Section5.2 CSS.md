@@ -17,6 +17,7 @@
   - [CSS Position](#css-position)
   - [CSS background](#css-background)
   - [layout](#layout)
+  - [CSS Trick](#css-trick)
 
 Cascading Style Sheets: 为了让网页元素的样式更加丰富，也为了让网页的内容和样式能拆分开；
 
@@ -2126,10 +2127,19 @@ example: 清除浮动
 定位策略：
 
 - `relative`: 相对于原来的位置进行定位，原来的位置还是占用的
-- `absolute`: 相对于父元素，直到`<body>`
+- `absolute`: 相对于父元素，一直寻找`relative`，找不到就相对`<body>`定位
 - `fixed`: 相对于浏览器
 - `static`: 默认值
 - `inherit`：很少用到
+
+```html
+<!-- 相对浏览器定位，拖动滑动条，还在右下角 -->
+<div style="position: fixed;bottom:0;right:0;width:50px;height:50px;"></div>
+
+<!-- 出现在浏览器右下角，拖动滑动条，会移动到别处； -->
+<!-- 本质是因为相对父元素body定位 -->
+<div style="position: absolute;bottom:0;right:0;width:50px;height:50px;"></div>
+```
 
 最常用的：父级containter设置成relative, 里面的元素为abosulte
 
@@ -3169,4 +3179,155 @@ example: a标签里面的img在IE下会有1px的边框，需要修改
     <a href="https://www.baidu.com"><img src="rabbit.jpg"></a>
 </body>
 </html>
+```
+
+## CSS Trick
+
+常用的记住就可以:
+- display
+- width, height
+- margin, padding, border
+- color, background-color, opacity, background
+- position, left, right, top, right, z-index
+- text-align, line-height, font-size
+- float, clear:both, overflow
+- :hover
+
+常用布局: 主站布局
+
+```html
+<body>
+    <!-- header -->
+    <div class="pg-header">
+        <div style="width:980px;margin:0 auto;">
+            This is Header
+        </div>
+    </div>
+
+    <!-- content -->
+    <div class="pg-content"></div>
+
+    <!-- footer -->
+    <div class="pg-footer"></div>
+</body>
+```
+
+常用布局：后台管理
+
+style1: 左侧菜单始终显示
+> ![](res/layout01.png)
+
+```html
+<body style="margin:0;">
+    <!-- header -->
+    <div class="pg-header">
+        <div>This is Header</div>
+    </div>
+
+    <!-- content -->
+    <div class="pg-content">
+        <div class="menu">This is menu</div>
+        <div class="content">This is content</div>
+    </div>
+
+    <!-- footer -->
+    <div class="pg-footer"></div>
+
+    <style>
+        .pg-header {
+            height: 48px;
+            background-color: #2459a2;
+            color: #fff;
+        }
+        .pg-content .menu{
+            position: fixed;
+            top: 48px;
+            left: 0;
+            bottom: 0;
+            width: 200px;
+            background-color: #ddd;
+        }
+        .pg-content .content{
+            position: fixed;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            bottom: 0;
+            background-color: #0f0;
+
+            /* 关键：右侧内容太多出现滚动条 */
+            overflow: auto; 
+        }
+    </style>
+</body>
+```
+
+style2: 左侧菜单不跟随滚动条, 只是修改了`position`，添加一个`div`
+> ![](res/layout02.png)
+
+```html
+<body style="margin:0;">
+    <!-- header -->
+    <div class="pg-header">
+        <div>This is Header</div>
+    </div>
+
+    <!-- content -->
+    <div class="pg-content">
+        <div class="menu">This is menu</div>
+        <div class="content">
+            <!-- 关键：再加一个div来实现背景色连续，不像左侧菜单一样 -->
+            <div class="box" style="background-color:#0f0">
+                <!-- many p tags -->
+            </div>
+        </div>
+    </div>
+
+    <!-- footer -->
+    <div class="pg-footer"></div>
+
+    <style>
+        .pg-header {
+            height: 48px;
+            background-color: #2459a2;
+            color: #fff;
+        }
+
+        .pg-content .menu {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            bottom: 0;
+            width: 200px;
+            background-color: #ddd;
+        }
+
+        .pg-content .content {
+            position: absolute;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</body>
+```
+
+style3: 同style1, 但是只是在style2添加一行代码; (most recommended)
+
+```css
+.pg-content .content {
+    position: absolute;
+    top: 48px;
+    left: 200px;
+    right: 0;
+    bottom: 0;
+
+    /* 添加一行代码变回absolute */
+    /* 因为滚动条从整个body的滚动条转移到右侧content了，而左侧菜单是随着body的滚动条才会滚动，转移到右侧的content，那么左侧的菜单就会不随着滚动条而移动了 */
+    overflow: auto;
+
+    /* 为了保持内容不混乱，小于500px自动出现横向的滚动条 */
+    min-width: 500px;    
+}
 ```
