@@ -26,9 +26,12 @@
 
 ## Introduction
 
-jQuery本质是封装了DOM和浏览器的一些对象
+jQuery本质是封装了DOM, BOM(Browser Object Model), JavaScript的javascript函数库
+> 这种东西，在python里面叫做模块，在其他语言叫ClassLibrary
 
-jQuery是目前使用最广泛的javascript函数库
+jQuery的基础：
+- 查找元素
+- 操作元素
 
 对于访问量小的公司，jQuery完全适用；对于大公司，需要写自己的js库进而提升访问速度；另外对于手机，为了节约流量也会使用DIY的js库或者DOM
 
