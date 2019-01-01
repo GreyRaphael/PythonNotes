@@ -68,8 +68,6 @@ js的运行环境是浏览器，嵌入到HTML中运行的，嵌入方式有3种�
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <!-- method2: 嵌入式 -->
     <script>
@@ -255,8 +253,6 @@ if (1=='1'||1==='1'){
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <!-- <script>
         // 用document对象来获取div
@@ -287,8 +283,6 @@ if (1=='1'||1==='1'){
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // 整个文档加载完成之后，执行一个lambda
@@ -333,8 +327,6 @@ if (1=='1'||1==='1'){
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <link rel="stylesheet" href="css/1.css" id="link1">
     <script>
@@ -400,8 +392,6 @@ if (1=='1'||1==='1'){
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=function(){
@@ -427,8 +417,6 @@ if (1=='1'||1==='1'){
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .box1{
@@ -463,8 +451,6 @@ if (1=='1'||1==='1'){
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .box1{
@@ -503,8 +489,6 @@ if (1=='1'||1==='1'){
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .box1{
@@ -548,8 +532,6 @@ js函数分类:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         function func1() {
@@ -574,8 +556,6 @@ js函数分类:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <link rel="stylesheet" href="css/1.css" id="link1">
     <script>
@@ -606,8 +586,6 @@ js函数分类:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <link rel="stylesheet" href="css/1.css" id="link1">
     <script>
@@ -646,8 +624,6 @@ js函数分类:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // js的预解析;
@@ -674,8 +650,6 @@ example: js function with params
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // 给onload的事件绑定了匿名函数
@@ -707,8 +681,6 @@ example: js anonymous function
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // 给onload的事件绑定了匿名函数
@@ -734,8 +706,6 @@ example: js anonymous function
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=function(){
@@ -776,8 +746,6 @@ example: js anonymous function
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .box1{
@@ -815,8 +783,6 @@ example: js anonymous function
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -1370,8 +1336,6 @@ example: simple calculator
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/hello.js"></script>
 </head>
@@ -1514,8 +1478,6 @@ window.onload=()=>{
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .pop_con{
@@ -1598,8 +1560,6 @@ clearInterval(timer1);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .box{
@@ -1641,8 +1601,6 @@ clearInterval(timer1);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -1693,8 +1651,6 @@ clearInterval(timer1);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -1778,8 +1734,6 @@ clearInterval(timer1);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // function closures
@@ -1873,8 +1827,6 @@ myFunc();//grey 23
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -1949,8 +1901,6 @@ window.onload=()=>{
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .btns{
@@ -2086,8 +2036,6 @@ console.log(d.getHours()); //10
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
 
@@ -2108,8 +2056,6 @@ console.log(d.getHours()); //10
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         //存在跳转过来的页面(比如首页)
@@ -2134,8 +2080,6 @@ console.log(d.getHours()); //10
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         var locationAddr=window.location.search;
@@ -2160,8 +2104,6 @@ console.log(d.getHours()); //10
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2204,8 +2146,6 @@ console.log(d.getHours()); //10
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2232,7 +2172,7 @@ console.log(d.getHours()); //10
 
 ## js oop(not important)
 
-js中没有**类**的概念，js的类是通过函数来是实现的，比较恶心；
+js中没有**类**的概念，js的类是通过函数来是实现的；
 
 将相关的变量和函数组合成一个整体，这个整体叫做对象，对象中的变量叫做属性，变量中的函数叫做方法。javascript中的对象类似字典
 
@@ -2245,8 +2185,6 @@ js中没有**类**的概念，js的类是通过函数来是实现的，比较恶
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2281,8 +2219,6 @@ js中没有**类**的概念，js的类是通过函数来是实现的，比较恶
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2325,8 +2261,6 @@ js中没有**类**的概念，js的类是通过函数来是实现的，比较恶
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2362,7 +2296,7 @@ js中没有**类**的概念，js的类是通过函数来是实现的，比较恶
 
 ## js Object Prototypes
 
-原型模式
+constructor mode中，创建一个object，该ojbect不仅保存了字段，还会保存内部的方法；大量的object创建后，每一个object都保存了自己的方法，浪费内存；这些方法应该公用，所以需要prototypes(原型模式)来优化；
 
 js的function本质是object, 公有一个属性`prototye`,通过这个属性可以实现所有对象公用一个方法，比构造器模式节约资源；
 
@@ -2371,8 +2305,6 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2410,8 +2342,6 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2449,6 +2379,26 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 </html>
 ```
 
+```js
+// 另一种写法
+function Person(name, age) {
+    this.name = name;
+    this.age = age;
+}
+Person.prototype = {
+    'sayName': function () {
+        console.log(this.name);
+    },
+    'sayAge': function () {
+        console.log(this.age);
+    }
+}
+
+let p1 = new Person('grey', 22);
+p1.sayName(); // grey
+p1.sayAge(); // 22
+```
+
 ### inherit
 
 一般都是原型模式创建所谓的**类**，然后用下面的东西来所谓的**继承**
@@ -2460,8 +2410,6 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         function ClassA(a, b){
@@ -2485,8 +2433,6 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
@@ -2548,8 +2494,6 @@ js的function本质是object, 公有一个属性`prototye`,通过这个属性可
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         window.onload=()=>{
