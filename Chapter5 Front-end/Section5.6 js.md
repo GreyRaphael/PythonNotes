@@ -6,7 +6,7 @@
   - [condition sentence](#condition-sentence)
   - [js Scope](#js-scope)
   - [js component](#js-component)
-    - [DOM](#dom)
+    - [DOM(Document Object Model)](#domdocument-object-model)
     - [`NaN`, `isNaN`](#nan-isnan)
   - [timer](#timer)
   - [Function Closures](#function-closures)
@@ -1054,9 +1054,9 @@ window.onload=()=>{
 }
 ```
 
-### DOM
+### DOM(Document Object Model)
 
-DOM: document, 整个页面就是一个document对象, 通过document可以对其进行CRUD操作
+整个页面就是一个document对象, document中包含各种tag对象; 对这些对象可以进行CRUD操作；
 
 DOM Operation:
 - find the tag: 选择器
@@ -1088,7 +1088,7 @@ previousSibling     // 上一个兄弟节点
 ```
 
 ```js
-// Operation
+// class Operation: 常用于修改样式，粒度大
 tag=document.getElementById('banner')
 console.log(tag.classList)
 console.log(tag.className) // c1 c2
@@ -1098,6 +1098,191 @@ tag.classList.add('cy')
 console.log(tag.className) // cx cy
 tag.classList.remove('cx')
 console.log(tag.className) // cy
+
+// 直接修改style, 粒度更细
+let box1 = document.getElementById('box1');
+box1.style.color = 'red';
+box1.style.backgroundColor = 'yellow';
+```
+
+example: js attributes
+
+```html
+<body>
+    <div id="box1">Happy New Year!</div>
+    <script>
+        let box1 = document.getElementById('box1');
+        box1.setAttribute('k1', 'v1');
+        console.log(box1.attributes); //{0: id, 1: k1}
+        box1.removeAttribute('k1')
+    </script>
+</body>
+```
+
+example: js create tag
+
+```html
+<body>
+    <input type="button" value="Add: method1" onclick="AddEle1();">
+    <input type="button" value="Add: method2" onclick="AddEle2();">
+    <div id="box1">
+        <p><input type="text"></p>
+    </div>
+    <script>
+        // method1
+        function AddEle1() {
+            let tag = '<p><input type="text"></p>';
+            // beforeEnd, afterEnd, beforeBegin, afterBegin
+            document.getElementById('box1').insertAdjacentHTML('beforeEnd', tag);
+        }
+        // method2
+        function AddEle2() {
+            let p_tag = document.createElement('p');
+            let input_tag = document.createElement('input');
+            input_tag.setAttribute('type', 'radio');
+            p_tag.appendChild(input_tag);
+            document.getElementById('box1').appendChild(p_tag);
+        }
+    </script>
+</body>
+```
+
+example: js get text or value
+
+```html
+<body>
+    <!-- innerText, innerHTML -->
+    <div id="box1">Box1<a href="">Face<span>book</a></div>
+    <!-- value -->
+    <input type="text" name="" id="t1">
+    <select id="s1">
+        <option value="11">Opt1</option>
+        <option value="22" selected="selected">Opt2</option>
+        <option value="33">Opt3</option>
+    </select>
+    <textarea name="" id="t2" cols="30" rows="10"></textarea>
+    <script>
+        let box1 = document.getElementById('box1');
+        console.log(box1.innerText); // Box1 Facebook
+        console.log(box1.innerHTML); // Box1<a href="">Face<span>book</span></a>
+        box1.innerText = '<a href="">Face<span>book</span></a>';
+        // outerHTML变成了
+        // <div id="box1">&lt;a href=""&gt;Face&lt;span&gt;book&lt;/span&gt;&lt;/a&gt;</div>
+
+        let t1 = document.getElementById('t1');
+        console.log(t1.value);
+
+        let s1 = document.getElementById('s1');
+        console.log(s1.value); //22
+        console.log(s1.selectedIndex); //1
+
+        let t2=document.getElementById('t2');
+        console.log(t2.value);
+    </script>
+</body>
+```
+
+example: placeholder
+> 可以直接`<input type="text" placeholder="Type to search...">`, 但不能定制，现在一般是用的js，可以智能提示；
+
+```html
+<body>
+    <div style="width:600px; margin:0 auto;">
+        <input onfocus="Focus();" onblur="Blur();" type="text" name="" id="search" value="Type to search...">
+    </div>
+    <script>
+        function Focus() {
+            // Focus
+            let searchbox = document.getElementById('search');
+            let v = searchbox.value;
+            if (v == "Type to search...") {
+                searchbox.value = '';
+            }
+        }
+
+        function Blur() {
+            // Defocus
+            let searchbox = document.getElementById('search');
+            let v = searchbox.value;
+            if (v.length == 0) {
+                searchbox.value = "Type to search...";
+            }
+        }
+    </script>
+</body>
+```
+
+example: js submit
+
+```html
+<body>
+    <!-- method1 -->
+    <form action="https://www.baidu.com/s" method="get">
+        <input type="text" name="wd">
+        <input type="submit" value="Submit">
+    </form>
+    <!-- method2 -->
+    <form id="f2" action="https://www.baidu.com/s" method="get">
+        <input type="text" name="wd">
+        <span onclick="submitForm();">ClickMe!</span>
+    </form>
+    <script>
+        function submitForm() {
+            document.getElementById('f2').submit();
+        }
+    </script>
+</body>
+```
+
+example: js dialog
+
+```js
+<body>
+    <div id="box1">
+        <input type="text" id="t1">
+        <input type="button" value="Clear" onclick="Clear();">
+    </div>
+    <script>
+        function Clear() {
+            let t1 = document.getElementById('t1');
+            alert('now value is: ', t1.value);
+            let result = confirm('Clear the input?');
+            if (result) {
+                document.getElementById('t1').value = '';
+            }
+        }
+    </script>
+</body>
+```
+
+example: `location`
+
+```js
+console.log(location);
+console.log(location.href); //http://127.0.0.1:5500/test.html
+console.log(location.host); // 127.0.0.1:5500
+console.log(location.hostname); // 127.0.0.1
+console.log(location.origin); // http://127.0.0.1:5500
+// redirect
+location.href='https://www.baidu.com';
+```
+
+example: interval & timeout
+
+```js
+// setInterval一直执行
+let obj = setInterval(() => {
+    console.log(666);
+    clearInterval(obj);
+}, 1000);
+// clearInterval(obj); // 放在这里，一次也不会执行
+
+console.log(555); // 这一句最先执行
+
+// setTimeout只执行一次
+setTimeout(() => {
+    console.log(999);
+}, 3000);
 ```
 
 example: DOM operation
