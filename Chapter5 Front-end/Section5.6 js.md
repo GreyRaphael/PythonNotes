@@ -5,6 +5,7 @@
   - [js function](#js-function)
   - [condition sentence](#condition-sentence)
   - [js Scope](#js-scope)
+  - [js event](#js-event)
   - [js component](#js-component)
     - [DOM(Document Object Model)](#domdocument-object-model)
     - [`NaN`, `isNaN`](#nan-isnan)
@@ -965,6 +966,206 @@ function func() {
     let name = 'Grey';
 }
 func(); // 使用let直接报错
+```
+
+## js event
+
+e.g. `onclick`, `onfocus`, `onblur`,....
+
+tag绑定事件的两种方式:
+1. tag里面直接写`onclick="func();"`。
+2. 先获取dom对象，然后进行绑定，将html与js分离。如果`func()`中有`this`， 该`this`代表当前触发事件的tag。(recommended)
+3. `addEventListener`来绑定事件，面试常用
+
+```html
+<body>
+    <!-- method1: 必须传入this -->
+    <div onclick="changeColor(this);"></div>
+    <!-- 错误使用this -->
+    <div onclick="errorChangeColor();"></div>
+    <!-- method2: 另一种绑定方式 -->
+    <div id="box1"></div>
+    <style>
+        div {
+            width: 300px;
+            height: 200px;
+            border: 1px solid red;
+            background-color: yellow;
+        }
+    </style>
+    <script>
+        // method1: bind event
+        function changeColor(self) {
+            self.style.backgroundColor = 'red';
+        }
+
+        // 错误使用this, 这个this代表window对象
+        function errorChangeColor() {
+            console.log(this); // window object
+            this.style.backgroundColor = 'red';
+        }
+
+        // method2: bind event & use this
+        document.getElementById('box1').onclick = function () {
+            // 这个this直接代表触发该事件的element
+            this.style.backgroundColor = 'red';
+        }
+    </script>
+</body>
+```
+
+example: seperate js and html
+
+```html
+<body>
+    <table border="1px" width='300px'>
+        <tr>
+            <td>Item1</td>
+            <td>Item2</td>
+            <td>Item3</td>
+        </tr>
+        <tr>
+            <td>Item1</td>
+            <td>Item2</td>
+            <td>Item3</td>
+        </tr>
+        <tr>
+            <td>Item1</td>
+            <td>Item2</td>
+            <td>Item3</td>
+        </tr>
+    </table>
+    <script>
+        // 分离了js与html, 仍然混为了style
+        let trs = document.getElementsByTagName('tr');
+        for (const key in trs) {
+            const tr = trs[key];
+            tr.onmouseover = function () {
+                tr.style.backgroundColor = 'yellow';
+            };
+            tr.onmouseout = function () {
+                tr.style.backgroundColor = '#fff';
+            };
+        }
+    </script>
+</body>
+```
+
+```js
+// 注意事项
+let trs = document.getElementsByTagName('tr');
+// 修改let index为var index就会报错, var作用域的问题导致的
+// 改正方法：
+// method1. 改回let
+// method2. trs[index].style.backgroundColor = 'yellow';修改为this.style.backgroundColor = 'yellow';
+for (var index = 0; index < trs.length; index++) {
+    trs[index].onmouseover = function () {
+        // 这一句没有执行，执行的时候用的index为2
+        trs[index].style.backgroundColor = 'yellow';
+    };
+    trs[index].onmouseout = function () {
+        trs[index].style.backgroundColor = '#fff';
+    };
+}
+```
+
+example: `addEventListener`
+
+```html
+<body>
+    <div id="box1"></div>
+    <style>
+        #box1 {
+            width: 300px;
+            height: 200px;
+            background-color: #ff0;
+        }
+    </style>
+    <script>
+        let box1 = document.getElementById('box1');
+        // 一个object绑定两个click
+        box1.addEventListener('click', () => {
+            console.log(111);
+        }, false); // 该参数表示事件模型，false表示冒泡模型，true是隧道模型
+        box1.addEventListener('click', () => {
+            console.log(222);
+        }, false);
+    </script>
+</body>
+```
+
+example: 事件模型
+> ![](res/dom03.png)
+
+```html
+<body>
+    <div id="layer1">Layer1
+        <div id="layer2">Layer2</div>
+    </div>
+    <style>
+        #layer1 {
+            width: 300px;
+            height: 300px;
+            background-color: #ff0;
+        }
+
+        #layer2 {
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+        }
+    </style>
+    <script>
+        let l1 = document.getElementById('layer1');
+        let l2 = document.getElementById('layer2');
+        l1.addEventListener('click', () => {
+            console.log('layer1');
+        }, true); // 隧道模型，从顶层body到底层
+        l2.addEventListener('click', () => {
+            console.log('layer2');
+        }, true);
+        // layer1 layer2
+    </script>
+</body>
+```
+
+```js
+let l1 = document.getElementById('layer1');
+let l2 = document.getElementById('layer2');
+l1.addEventListener('click', () => {
+    console.log('layer1');
+}, false); // 冒泡模型，从底层到顶层
+l2.addEventListener('click', () => {
+    console.log('layer2');
+}, false);
+// layer2 layer1
+```
+
+example: js core
+
+```js
+function func(age) {
+    console.log(age); //function
+    var age=22;
+    console.log(age); //22
+    function age() {
+        console.log(age);
+    }
+    console.log(age) //22
+}
+func(3);
+// interpreter会先过一遍，不是调用
+// AO(active object)进行逐步进行形参分析，局部变量分析，函数声明分析；
+// step1: 发现了第一行形参AO.age，并让AO.age=undefined
+// step2: 发现第三行局部变量AO.age，并让AO.age=undefined
+// step3: 发现第五行函数声明AO.age, 这个奖前面两个覆盖
+
+// result: 
+// function age()
+// 22
+// 22
+
+// 为了避免错误，将var修改为let就不会有这么一堆坑
 ```
 
 ## js component
