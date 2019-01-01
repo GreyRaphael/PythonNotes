@@ -1932,6 +1932,38 @@ console.log(new_url) //"https://www.sogou.com/web?query=%E4%BD%A0%E5%A5%BD"
 console.log(decodeURI(new_url))//'https://www.sogou.com/web?query=你好'
 ```
 
+example: eval
+
+python:
+- `eval(表达式)`
+- `exec(代码)`
+
+JavaScript的`eval()`是python两个函数的合并，既可以执行表达式，也可以执行代码
+
+```js
+let expr1 = '1+9';
+let expr2 = '8*9';
+console.log(eval(expr1)); //10
+console.log(eval(expr2)); //72
+
+let res = eval('for(let i=0;i<5;i++){console.log(i);}')
+console.log(res); // undefined
+```
+
+example: time
+
+```js
+let d = new Date();
+console.log(d);
+console.log(d.getDate());
+
+// get & set
+console.log(d.getHours()); //9
+let new_d = d.getHours() + 1
+d.setHours(new_d)
+console.log(d.getHours()); //10
+```
+
 ### `document`
 
 先是在首页，然后点击登录，登录成功之后要跳回首页；或者在商品详情页，点击购买，跳到登录页，登录成功之后跳回商品详情页；需要用到`document.referrer`, 需要服务器环境；
