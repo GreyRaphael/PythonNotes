@@ -4,6 +4,7 @@
   - [js datatype](#js-datatype)
   - [js function](#js-function)
   - [condition sentence](#condition-sentence)
+  - [js Scope](#js-scope)
   - [js component](#js-component)
     - [DOM](#dom)
     - [`NaN`, `isNaN`](#nan-isnan)
@@ -886,6 +887,118 @@ window.onload=()=>{
     }
     console.log(arr2);
 }
+```
+
+## js Scope
+
+JavaScript中作用域是最重要的；
+
+其他语言(C/C++, C#, Java)是以`{}`为作用域，即以代码块为作用域；Python以函数为作用域；
+
+```c#
+// C#以代码块为作用域
+static void func()
+{
+    if (1==1)
+    {
+        var name = "C#";
+    }
+    // name在作用域之外，编译通不过，报错
+    Console.WriteLine(name);
+}
+```
+
+```python
+# Python以函数为作用域
+def func():
+    if True:
+        name = 'Python'
+    # Python作用域可以到这里
+    print(name)
+
+func() # Python
+print(name) # 作用不到这里来
+```
+
+JS中带`var`表示局部变量，不带`var`表示全局变量; 而且`var`也可以放在全局的位置[Details](https://www.jianshu.com/p/34c96c75dc8c)
+
+
+JS作用域特点：
+- JS默认以函数为作用域，ES6引入`let`之后，`let`以代码块为作用域；
+- 函数未被调用的时候，作用域已经创建；
+- 函数的作用域链(函数套函数)的作用域，也是在被调用前已经创建；
+- JS的局部变量会提前声明；
+
+```js
+function func() {
+    if (true) {
+        var name = 'JavaScript';
+    }
+    console.log(name);
+}
+func(); // JavaScript
+```
+
+```js
+// let以代码块为作用域
+function func() {
+    if (true) {
+        let name = 'JavaScript';
+    }
+    console.log(name);
+}
+func(); // 没有输出
+```
+
+```js
+name = 'Alpha';
+
+function func() {
+    var name = 'Grey';
+    function innerFunc() {
+        // var name = 'Chris';
+        console.log(name); // 作用域链，如果内层没有，就往上一层找
+    }
+    return innerFunc;
+}
+
+var res1=func();
+res1(); // Grey，因为作用域链先于调用而创建；
+```
+
+```js
+name = 'Alpha';
+
+function func() {
+    var name = 'Grey';
+
+    function innerFunc() {
+        console.log(name);
+    }
+    var name = 'Moris'
+    return innerFunc;
+}
+
+var res1 = func();
+res1(); // Moris，因为innerFunc代码并不执行，只是创建了作用域，所以后面的Moris覆盖了前面的Grey
+```
+
+```js
+// Interpreter解释的时候，先找到所有的var，并且让其等于undefined;
+var a; // 只是声明，默认就是undefined
+function func() {
+    console.log(name); // var 提前声明
+    var name = 'Grey';
+}
+func(); //undefined
+```
+
+```js
+function func() {
+    console.log(name); 
+    let name = 'Grey';
+}
+func(); // 使用let直接报错
 ```
 
 ## js component
