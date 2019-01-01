@@ -239,25 +239,52 @@ icon: `<link rel="shortcut icon" href="rabbit.jpg" type="image/JPEG">`
 - a: hyperlink
 - dl,dt,dd: definition list; definition term; definition description
 
-```bash
-# vscode 写法
-dl>(dt+dd*2)*3
-# 然后tab
-```
+
+vscode html snippet:
 
 ```html
-<!-- output, 添加一些东西 -->
+<!-- dl>(dt+dd*2)*3 -->
+<!-- 然后tab -->
 <dl>
-    <dt>2016</dt>
-    <dd>2016-01</dd>
-    <dd>2016-02</dd>
-    <dt>2017</dt>
-    <dd>2017-01</dd>
-    <dd>2017-02</dd>
-    <dt>2018</dt>
-    <dd>2018-01</dd>
-    <dd>2018-02</dd>
+    <dt></dt>
+    <dd></dd>
+    <dd></dd>
+    <dt></dt>
+    <dd></dd>
+    <dd></dd>
+    <dt></dt>
+    <dd></dd>
+    <dd></dd>
 </dl>
+
+<!-- table.t1#tb1>tr*3>td*3{Test$} -->
+<table class="t1" id="tb1">
+    <tr>
+        <td>Test1</td>
+        <td>Test2</td>
+    </tr>
+    <tr>
+        <td>Test1</td>
+        <td>Test2</td>
+    </tr>
+</table>
+
+<!-- div>span.cl$*3 -->
+<div>
+    <span class="cl1"></span>
+    <span class="cl2"></span>
+    <span class="cl3"></span>
+</div>
+
+<!-- div.container.fl -->
+<div class="container fl"></div>
+
+<!-- ul#nav>li.item$*3>a{Item$} -->
+<ul id="nav">
+    <li class="item1"><a href="">Item1</a></li>
+    <li class="item2"><a href="">Item2</a></li>
+    <li class="item3"><a href="">Item3</a></li>
+</ul>
 ```
 
 ## pic & link
