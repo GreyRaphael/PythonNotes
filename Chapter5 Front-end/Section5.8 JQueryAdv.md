@@ -3,19 +3,19 @@
 <!-- TOC -->
 
 - [JQuery Advanced](#jquery-advanced)
-    - [event bubble](#event-bubble)
-    - [event delegate](#event-delegate)
-    - [JQuery element operation](#jquery-element-operation)
-    - [mousewheel & throttle](#mousewheel--throttle)
-        - [slide example](#slide-example)
-    - [json](#json)
-    - [ajax & jsonp](#ajax--jsonp)
-    - [JQuery Regex](#jquery-regex)
-    - [local Storage](#local-storage)
-        - [cookie](#cookie)
-        - [localStorage](#localstorage)
-        - [sessionStorage](#sessionstorage)
-    - [JQueryUI](#jqueryui)
+  - [event bubble](#event-bubble)
+  - [event delegate](#event-delegate)
+  - [JQuery element operation](#jquery-element-operation)
+  - [mousewheel & throttle](#mousewheel--throttle)
+    - [slide example](#slide-example)
+  - [json](#json)
+  - [ajax & jsonp](#ajax--jsonp)
+  - [JQuery Regex](#jquery-regex)
+  - [local Storage](#local-storage)
+    - [cookie](#cookie)
+    - [localStorage](#localstorage)
+    - [sessionStorage](#sessionstorage)
+  - [JQueryUI](#jqueryui)
 
 <!-- /TOC -->
 
@@ -28,8 +28,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -105,8 +103,6 @@ return false;
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -191,8 +187,6 @@ return false;
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -245,8 +239,6 @@ return false;
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -294,8 +286,6 @@ todolist(计划列表)实例
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -431,8 +421,6 @@ todolist(计划列表)实例
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/jquery.mousewheel.min.js"></script>
@@ -1019,8 +1007,6 @@ ajax例子
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1138,8 +1124,6 @@ aa({"name":"tom"})
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <!-- 跨域请求 -->
     <script>
@@ -1171,8 +1155,6 @@ JQuery的jsonp跨域
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1207,8 +1189,6 @@ JQuery的jsonp跨域
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-1.12.4.min.js"></script>
     <script>
@@ -1252,8 +1232,6 @@ JQuery的jsonp跨域
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-1.12.4.min.js"></script>
     <script>
@@ -1297,8 +1275,6 @@ JQuery的jsonp跨域
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-1.12.4.min.js"></script>
     <script>
@@ -1547,8 +1523,6 @@ cookie数据始终在同源的http请求中携带（即使不需要），即cook
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-1.12.4.min.js"></script>
     <script src="js/jquery.cookie.js"></script>
@@ -1583,8 +1557,6 @@ popOnce.html
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         body{
@@ -1666,8 +1638,6 @@ sessionStorage和localStorage不会自动把数据发给服务器，仅在本地
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         // 原生的不需要JQuery
@@ -1702,8 +1672,6 @@ sessionStorage和localStorage不会自动把数据发给服务器，仅在本地
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script>
         sessionStorage.setItem('key1', '111')
@@ -1751,8 +1719,6 @@ Example1: 没有参数限制的draggable(可以随便到处拖动)
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .con{
@@ -1793,8 +1759,6 @@ Example2: 带限制的draggable
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .con{
@@ -1846,8 +1810,6 @@ Example3: Dragbar
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         .slidebar_con{
@@ -1928,8 +1890,6 @@ Example4: custom scrollbar
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
         /* to show system scrollbar */
