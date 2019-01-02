@@ -29,8 +29,8 @@
 jQuery本质是封装了DOM, BOM(Browser Object Model), JavaScript的javascript函数库
 > 这种东西，在python里面叫做模块，在其他语言叫ClassLibrary
 
-jQuery的基础：
-- 查找元素
+jQuery的基础, [API](http://jquery.cuishifeng.cn/), [JQuery1.x chm](http://hemin.cn/jq/)：
+- 查找元素：选择器，筛选
 - 操作元素
 
 对于访问量小的公司，jQuery完全适用；对于大公司，需要写自己的js库进而提升访问速度；另外对于手机，为了节约流量也会使用DIY的js库或者DOM
@@ -50,15 +50,42 @@ jQuery的基础：
 也可以下载到本地之后使用；
 为了性能，实际开发都是用**压缩版的JQuery**, 查看的时候用**未压缩版的JQuery**
 
-[JQuery1.x chm](http://hemin.cn/jq/)
+example: jQuery对象与DOM对象相互转换
+
+```html
+<body>
+    <div id="box1">Box1</div>
+    <div id="box2">Box2</div>
+    <style>
+        div {
+            width: 300px;
+            height: 200px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // $与jQuery是一样的
+        jQuery('#box1')[0].style.backgroundColor = 'pink';
+        $('#box2')[0].style.backgroundColor = '#ff0';
+
+        // jQuery对象与DOM对象转换
+        // jQuery obj to DOM obj
+        let dom_obj = $('#box2')[0];
+        console.log(dom_obj);
+
+        // DOM obj to jQuery obj
+        let d_obj = document.getElementById('box2');
+        let j_obj = $(d_obj);
+        console.log(j_obj);
+    </script>
+</body>
+```
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <!-- 先引入JQuery, 然后再使用 -->
@@ -100,8 +127,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -151,8 +176,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -238,8 +261,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -271,8 +292,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -304,8 +323,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <style>
@@ -370,8 +387,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -404,8 +419,6 @@ jQuery的基础：
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -491,8 +504,6 @@ $('#img1').attr({ src: "test.jpg", alt: "Test Image" });
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -528,8 +539,6 @@ $(function () {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -625,8 +634,6 @@ JQuery的链式调用，前面已经大量用到了，链条越长，JQuery技�
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -750,8 +757,6 @@ JQuery的链式调用，前面已经大量用到了，链条越长，JQuery技�
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
@@ -802,8 +807,6 @@ $('#div1').animate({width:200, height:'+=200'})
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -836,8 +839,6 @@ $('#div1').animate({width:200, height:'+=200'})
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -936,8 +937,6 @@ $('#div1').animate({width:200, height:'+=200'})
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1002,8 +1001,6 @@ scrollTop
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1114,8 +1111,6 @@ scrollTop
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1221,8 +1216,6 @@ scrollTop
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1273,8 +1266,6 @@ scrollTop
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1448,8 +1439,6 @@ $( "#target" ).toggle(function() {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
@@ -1487,8 +1476,6 @@ $( "#target" ).toggle(function() {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
