@@ -122,47 +122,107 @@ example: jQuery对象与DOM对象相互转换
 
 ## JQuery Selector
 
+example: basic selectors
+
 ```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Document</title>
-    <script src="js/jquery-3.3.1.min.js"></script>
-    <script>
-        $(function () {
-            //JQuery的选择器和style差不多, 几乎没有学习成本
-            $('#div1').css({color:'pink'});
-            $('.box2').css({fontSize: '24px',color:"#ddd"});
-            // 原生里面必须要用到循环，这里可以一次性设置
-            $('.list1 li').css({backgroundColor: "yellow"});
-        });
-    </script>
-    <style>
-        #div1{
-            color: red;
-        }
-        .box2{
-            color: greenyellow;
-        }
-        .list1 li{
-            background-color: gold;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
 <body>
-    <div id="div1">This is div01</div>
-    <div class="box2">This is box2</div>
-    <ul class="list1">
-        <li>0</li>
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
-        <li>4</li>
-    </ul>
+    <div id="box1"></div>
+    <div class="c1">
+        <a href="">link1</a>
+        <a href="">link2</a>
+        <div><a href="">link3</a></div>
+    </div>
+    <div class="c1">
+        <a href="">link4</a>
+    </div>
+    <div class="c1">
+        <div class="c2"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        //JQuery的选择器和style差不多, 几乎没有学习成本
+        // by id, result is a list
+        $('#box1')
+        // by tag
+        $('a')
+        // by class
+        $('.c1')
+        // multiselect
+        $('a, .c2')
+
+        // cascade
+        // 所有后代
+        $('.c1 a').length // 4
+        // 子代
+        $('.c1 > a').length //3
+    </script>
 </body>
-</html>
+```
+
+example: basic selectors
+
+```html
+<body>
+    <ul id="l1">
+        <li>item1</li>
+        <li>item2</li>
+        <li>item3</li>
+        <li>item4</li>
+        <li>item5</li>
+        <li>item6</li>
+    </ul>
+    <div class="" id="box1">
+        <input type="checkbox"><span>Text1</span>
+        <input type="checkbox" checked="checked"><span>Text2</span>
+        <input type="checkbox"><span>Text3</span>
+    </div>
+    <div class="" id="box2">
+        <input type="checkbox"><span>Text1</span>
+        <input type="checkbox" checked="checked"><span>Text2</span>
+        <input type="checkbox"><span>Text3</span>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // first, last: 与first-child不同，first只返回一个，first-child可以多个
+        $('#l1 li:first').css({ color: 'pink' });
+        // odd
+        // DOM里面必须要用到循环，这里可以一次性设置
+        $('li:odd').css({ backgroundColor: '#ff0', fontSize: '20px' });
+        // even
+        $('li:even').css({ backgroundColor: 'cyan' });
+        // +: next
+        $('#box1 input:not(:checked) + span').css({ color: 'red' });
+        // ~: siblings
+        $('#box2 input:not(:checked) ~ span').css({ color: 'red' });
+        // eq, gt, lt
+        $('li:eq(5)').css({color:'red'});
+    </script>
+</body>
+```
+
+example: basic selectors
+
+```html
+<body>
+    <ul id="u1">
+        <li xxx='110'>item1</li>
+        <li xxx='111' class="li1">item2</li>
+        <li xxx='112' class="li2">item3</li>
+        <li xxx='113'>item4</li>
+        <li yyy='114'>item5</li>
+        <li yyy='115' class="li5">item6</li>
+    </ul>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('li[xxx]').length // 4
+        $('li[class]').length // 3
+        // =, !=, ^=, $=, *=
+        $('li[xxx=110]').css({ color: 'red' });
+        $('li[class="li2"]').css({ color: '#ff0' });
+        // multiselect
+        $('li[xxx][class]').length //2
+    </script>
+</body>
 ```
 
 ### traversing
