@@ -225,6 +225,113 @@ example: basic selectors
 </body>
 ```
 
+example: selectall, deselectall, reverseall
+> jQuery的最大好处是不用像DOM一样需要自己做循环，除非特殊情况
+
+```html
+<body>
+    <button id="btn0">SelectAll</button>
+    <button id="btn1">DeselectAll</button>
+    <button id="btn2">ReverseAll</button>
+    <table>
+        <thead>
+            <th>Select</th>
+            <th>Ip</th>
+            <th>Port</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type='checkbox'></td>
+                <td>192.168.0.1</td>
+                <td>3306</td>
+            </tr>
+            <tr>
+                <td><input type='checkbox'></td>
+                <td>192.168.0.7</td>
+                <td>22</td>
+            </tr>
+            <tr>
+                <td><input type='checkbox'></td>
+                <td>192.168.10.1</td>
+                <td>45</td>
+            </tr>
+        </tbody>
+    </table>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('#btn0').click(function () {
+            $(':checkbox').prop('checked', true);
+        });
+        $('#btn1').click(function () {
+            $(':checkbox').prop('checked', false);
+        });
+        $('#btn2').click(function () {
+            // 必须要循环，否则会矛盾；采用each来循环
+            $(':checkbox').each(function (index) {
+                console.log(index);
+
+                // // method1: this是DOM对象
+                // this.checked = this.checked ? false : true;
+
+                // // method2: jQuery, 先变成jQuery对象
+                let v = $(this).prop('checked') ? false : true;
+                $(this).prop('checked', v);
+            })
+        });
+    </script>
+</body>
+```
+
+example: expand & collapse menu
+
+```html
+<body>
+    <div id="box1">
+        <div class="item">
+            <div class="header">Header1</div>
+            <div class="content">Conten1</div>
+        </div>
+        <div class="item">
+            <div class="header">Header2</div>
+            <div class="content">Content2</div>
+        </div>
+        <div class="item">
+            <div class="header">Header3</div>
+            <div class="content">Content3</div>
+        </div>
+    </div>
+    <style>
+        #box1 {
+            width: 200px;
+            height: 400px;
+            border: 1px solid red;
+        }
+
+        .header {
+            color: #fff;
+            background-color: #000;
+        }
+
+        .content {
+            min-height: 50px;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('.content').addClass('hide');
+        $('.header').click(function () {
+            $(this).next().removeClass('hide');
+            // $(this).parent().siblings().find('.content').addClass('hide');
+            $(this).parent().siblings().children('.content').addClass('hide');
+        });
+    </script>
+</body>
+```
+
 ### traversing
 
 选择集转移
