@@ -649,6 +649,66 @@ example: modal
 </html>
 ```
 
+example: 赞动画
+> ![](res/css_like01.gif)
+
+```html
+<body>
+    <div class="box1"><span>赞</span></div>
+    <div class="box1"><span>赞</span></div>
+    <div class="box1"><span>赞</span></div>
+    <style>
+        .box1 {
+            position: relative;
+            width: 30px;
+            border: 1px solid #ddd;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('.box1').click(function () {
+            let fontSize = 15;
+            let top = 0;
+            let right = 0;
+            let opacity = 1;
+
+            let tag = document.createElement('span');
+            $(tag).text('+1');
+            $(tag).css({
+                color: 'green',
+                position: 'absolute',
+                fontSize: fontSize + 'px',
+                right: right + 'px',
+                top: top + 'px',
+                opacity: opacity,
+            });
+            $(this).append(tag);
+
+            let obj = setInterval(() => {
+                fontSize += 10;
+                top -= 10;
+                right -= 10;
+                opacity -= 0.1;
+
+                $(tag).css({
+                    color: 'green',
+                    position: 'absolute',
+                    fontSize: fontSize + 'px',
+                    right: right + 'px',
+                    top: top + 'px',
+                    opacity: opacity,
+                });
+
+                if (opacity < 0) {
+                    clearInterval(obj);
+                    $(tag).remove();
+                }
+            }, 50);
+        });
+    </script>
+</body>
+```
+
 example: 
 - `append()`, `prepend()`, `after()`, `before()`
 - `remove()`, `empty()`
@@ -1256,6 +1316,51 @@ example:
         // height, width
         $('#box1').height(); // get value
         $('#box1').height(200); // set value
+    </script>
+</body>
+```
+
+example: drag to move
+> ![](res/offet01.gif)
+
+```html
+<body>
+    <div style="border: 1px solid #ddd;width: 300px;position: absolute;">
+        <div id="title" style="background-color: black;height: 40px;"></div>
+        <div style="height: 300px;"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $(function () {
+            $('#title').mouseover(function () {
+                $(this).css('cursor', 'move');
+            });
+            $("#title").mousedown(function (e) {
+                //console.log($(this).offset());
+                var _event = e || window.event;
+                var ord_x = _event.clientX;
+                var ord_y = _event.clientY;
+
+                var parent_left = $(this).parent().offset().left;
+                var parent_top = $(this).parent().offset().top;
+
+                $('#title').on('mousemove', function (e) {
+                    var _new_event = e || window.event;
+                    var new_x = _new_event.clientX;
+                    var new_y = _new_event.clientY;
+
+                    var x = parent_left + (new_x - ord_x);
+                    var y = parent_top + (new_y - ord_y);
+
+                    $(this).parent().css('left', x + 'px');
+                    $(this).parent().css('top', y + 'px');
+
+                })
+            });
+            $("#title").mouseup(function () {
+                $("#title").off('mousemove');
+            });
+        })
     </script>
 </body>
 ```
