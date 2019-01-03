@@ -7,7 +7,6 @@
     - [`end()`](#end)
     - [`siblings()`](#siblings)
   - [`.css()`](#css)
-    - [`toggleClass()` and `.click()`](#toggleclass-and-click)
   - [attributes Operation](#attributes-operation)
   - [Effects](#effects)
   - [animate](#animate)
@@ -22,7 +21,8 @@
     - [load ready](#load-ready)
     - [resize scroll select](#resize-scroll-select)
     - [submit toggle unload](#submit-toggle-unload)
-    - [bind](#bind)
+    - [Event](#event)
+  - [extend jQuery](#extend-jquery)
 
 ## Introduction
 
@@ -332,6 +332,110 @@ example: expand & collapse menu
 </body>
 ```
 
+important filter:
+- `.prev()`, `.next()`
+- `.parent()`, `.children()`, `.siblings()`
+- `.find()` 
+- `.eq()`, `.first()`, `.last()`
+
+example: modal
+
+```html
+<body>
+    <div class="mask"></div>
+    <div class="modal">
+        <div>
+            <p><input name="ip" type="text"></p>
+            <p><input name="port" type="text"></p>
+        </div>
+        <div>
+            <button id="btn_cancel">Cancel</button>
+            <button id="btn_ok">OK</button>
+        </div>
+    </div>
+    <button id="btn_add">Add</button>
+    <table>
+        <thead>
+            <th>Ip</th>
+            <th>Port</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td target='ip'>192.1678.0.2</td>
+                <td target='port'>3306</td>
+                <td><button class="btn_edit">Edit</button></td>
+                <td><button class="btn_del">Delete</button></td>
+            </tr>
+            <tr>
+                <td target='ip'>192.1678.11.2</td>
+                <td target='port'>22</td>
+                <td><button class="btn_edit">Edit</button></td>
+                <td><button class="btn_del">Delete</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .mask {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            opacity: 0.6;
+            z-index: 8;
+        }
+
+        .modal {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: 300px;
+            height: 200px;
+            margin-left: -150px;
+            margin-top: -100px;
+            background-color: #ddd;
+            z-index: 9;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('.mask, .modal').addClass('hide');
+        $('#btn_add').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        $('#btn_cancel').click(function () {
+            $('.modal input').val(''); //clear input content
+            $('.mask, .modal').addClass('hide');
+        });
+        $('#btn_ok').click(function () {
+        });
+        $('.btn_edit').click(function () {
+            $('.mask, .modal').removeClass('hide');
+            let tds = $(this).parent().prevAll();
+            // DOM innderText对应.text()
+            // DOM innderHTML对应.html()
+            // DOM value对应.val()
+            tds.each(function () {
+                let txt = $(this).text();
+                let t = $(this).attr('target');
+                let i = `.modal input[name=${t}]`; // format string
+                $(i).val(txt);
+            });
+        });
+        $('.btn_del').click(function () {
+            $(this).parent().parent().remove();
+        });
+    </script>
+</body>
+```
+
 ### traversing
 
 选择集转移
@@ -545,9 +649,18 @@ example: expand & collapse menu
 </html>
 ```
 
-### `toggleClass()` and `.click()`
+example: 
+- `append()`, `prepend()`, `after()`, `before()`
+- `remove()`, `empty()`
+- `clone()`
+> `.append()`与`.appendTo()`主谓相反
 
-![](res/jquery_selector05.png)
+```html
+<!-- easy -->
+```
+
+example: `toggleClass()`
+> ![](res/jquery_selector05.png)
 
 ```html
 <!DOCTYPE html>
@@ -577,45 +690,40 @@ example: expand & collapse menu
 </html>
 ```
 
-选项卡例子:
-
-![](res/js_func03.png)
+example: 选项卡
+> ![](res/js_func03.png)
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Document</title>
-    <script src="js/jquery-3.3.1.min.js"></script>
-    <script>
-        $(function () {
-            $('#btns input').click(function () {
-                //this是原生的对象
-                //$(this)才是JQuery的当前对象input
-                $(this).addClass('cur').siblings().removeClass('cur');
-                //JQuery会帮助存储当前点击的对象索引值
-                console.log($(this).index())
-                $('#contents div').eq($(this).index()).addClass('active').siblings().removeClass('active');
-            })
-        });
-    </script>
+<body>
+    <div class="tabs">
+        <button class="cur">Tab1</button>
+        <button>Tab2</button>
+        <button>Tab3</button>
+    </div>
+    <div class="contents">
+        <div class="active">tab1 contents</div>
+        <div>tab2 contents</div>
+        <div>tab3 contents</div>
+    </div>
     <style>
-        .btns{
+        .tabs {
             width: 500px;
             height: 50px;
         }
-        .btns input{
+
+        .tabs button {
             width: 100px;
             height: 50px;
             background-color: #ddd;
-            color: #666;
             border: 0;
         }
-        .btns input.cur{
+
+        .tabs .cur {
+            /* level必须大于或者等于.tabs button */
             background-color: gold;
         }
-        .contents div{
+
+        .contents div {
             width: 500px;
             height: 300px;
             background-color: gold;
@@ -623,24 +731,21 @@ example: expand & collapse menu
             line-height: 300px;
             text-align: center;
         }
-        .contents div.active{
+
+        .contents .active {
             display: block;
         }
     </style>
-</head>
-<body>
-    <div class="btns" id="btns">
-        <input type="button" value="tab01" class="cur">
-        <input type="button" value="tab02">
-        <input type="button" value="tab03   ">
-    </div>
-    <div class="contents" id="contents">
-        <div class="active">tab1 contents</div>
-        <div>tab2 contents</div>
-        <div>tab3 contents</div>
-    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('button').click(function () {
+            $(this).addClass('cur').siblings().removeClass('cur');
+            let tab_index = $(this).index();//当前点击的对象索引值
+            // 也可以使用自定义的attr来代替tab_index
+            $('.contents div').eq(tab_index).addClass('active').siblings().removeClass('active');
+        });
+    </script>
 </body>
-</html>
 ```
 
 ## attributes Operation
@@ -650,6 +755,7 @@ example: expand & collapse menu
 - `.html()`
 - `.text()`
 - `.attr()`
+- `prop()`: 针对`checked`, `selected`, `enable`, `disabled`, 因为jQuery 3.x版本之前，`attr()`和`removeAttr()`处理有bug
 
 ```js
 var $htm = $('#div1').html();
@@ -1092,12 +1198,70 @@ $('#div1').animate({width:200, height:'+=200'})
 
 ### JQuery size and scroll
 
-- width()、height()    获取元素width和height  
-- innerWidth()、innerHeight()  包括padding的width和height  
-- outerWidth()、outerHeight()  包括padding和border的width和height  
-- outerWidth(true)、outerHeight(true)   包括padding和border以及margin的width和height
+example: 
+- `scrollTop()`, `scrollLeft()`
+- `offset()`, `position()`
+- `height()`, `width()`, `innerHeight)`, `outerHeight()`, ...
+> 没有参数表示`get`, 有参数表示`set`  
+> ![](res/jquery_animate04.png)  
+> ![](res/jQuery-dim01.png)
 
-![](res/jquery_animate03.gif)
+```html
+<body>
+    <div id="box1">
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+    </div>
+    <div style="position: relative;">
+        <div id="box2"></div>
+    </div>
+    <div style="height:3000px"></div>
+    <style>
+        #box1 {
+            width: 100px;
+            height: 100px;
+            overflow: auto;
+        }
+
+        #box2 {
+            position: absolute;
+            left: 100px;
+            top: 100px;
+            width: 50px;
+            height: 50px;
+            background-color: gold;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // get value
+        console.log($(window).scrollTop()); // 0
+        // set value
+        $(window).scrollTop(100);
+
+        // div scroll
+        $('#box1').scrollTop(100);
+
+        // offset: tag相对window的坐标
+        $('#box1').offset(); // {top: 8, left: 8}
+        $('#box1').offset().top; //8
+        $('#box1').offset().left; //8
+
+        // position: tag相对relative的坐标，该relative一直往上找
+        $('#box2').position(); // {top: 100, left: 100}
+
+        // height, width
+        $('#box1').height(); // get value
+        $('#box1').height(200); // set value
+    </script>
+</body>
+```
+
+example: hover to show
+> ![](res/jquery_animate03.gif)
 
 ```html
 <!DOCTYPE html>
@@ -1155,13 +1319,8 @@ $('#div1').animate({width:200, height:'+=200'})
 </html>
 ```
 
-scrollTop
-
-![](res/jquery_animate04.png)
-
-置顶菜单例子
-
-![](res/jquery_animate04.gif)
+example: 置顶菜单例子
+> ![](res/jquery_animate04.gif)
 
 ```html
 <!DOCTYPE html>
@@ -1597,9 +1756,62 @@ $( "#target" ).toggle(function() {
 - toggle() 根据鼠标点击的次数，依次运行多个函数
 - unload() 用户离开页面
 
-### bind
+### Event
 
-绑定事件的另一种方式，一个event绑定多个function
+绑定Event的方式:
+- `.on('click', function(){})`：其他都是基于此封装；可以动态绑定(dynamicall bind)
+- `.off()`
+- `.click(function(){})`: 不能动态绑定
+- `.bind('click', function(){})`：一个obj绑定多个Event，一个event绑定多个`function`，不能动态绑定
+- `.unbind('click')`
+
+example: dynamically bind
+
+```html
+<body>
+    <input type="text">
+    <button>Add</button>
+    <ul>
+        <li>1</li>
+        <li>2</li>
+    </ul>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $('button').click(function () {
+            let v = $('input').val();
+            let li = `<li>${v}</li>`;
+            $('ul').append(li);
+        });
+        $('ul').on('click', 'li', function () {
+            // 也就是委托，最开始并没有绑定，只是点击的时候临时绑定的
+            alert($(this).text());
+        })
+    </script>
+</body>
+```
+
+example: custom bind
+
+```html
+<body>
+    <a id='a1' href="http://www.baidu.com">GoGoGo</a>
+    <a id="a2" onclick="return myClick();" href="http://www.baidu.com">RunRun</a>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // method1: by jQuery
+        $('#a1').click(function () {
+            alert(666); // 自定义的click优先级高
+            return false; // 屏蔽了a本身的click事件
+        });
+
+        // method2: by DOM
+        function myClick() {
+            alert(777);
+            return false;
+        }
+    </script>
+</body>
+```
 
 ```html
 <!DOCTYPE html>
@@ -1666,4 +1878,148 @@ $( "#target" ).toggle(function() {
     <input type="button" value="Button02" id="btn2">
 </body>
 </html>
+```
+
+example: form verification(custom submit)
+
+```html
+<body>
+    <form action="https://www.baidu.com/s" method="get">
+        <input type="text" name="wd">
+        <input type="submit" value="Submit">
+    </form>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $(':submit').click(function () {
+            if ($(this).prev().val()) {
+                return true;
+            } else {
+                alert('empty input');
+                return false;
+            }
+        });
+    </script>
+</body>
+```
+
+example: multi verification
+> ![](res/bind01.png)
+
+```html
+<body>
+    <form action="https://www.baidu.com/s" method="get">
+        <p><input type="text" name="wd"></p>
+        <p><input type="text" name="bn"></p>
+        <input type="submit" value="Submit">
+    </form>
+    <style>
+        .err {
+            color: red;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $(':submit').click(function () {
+            $('.err').remove();
+            let flag = true;
+            $('form').find('input[type="text"]').each(function () {
+                if ($(this).val() == '') {
+                    flag = false;
+                    // remind
+                    let i = document.createElement('i');
+                    i.innerText = 'Must Enter';
+                    i.className = 'err';
+                    $(this).after(i);
+                }
+            });
+            return flag;
+        });
+    </script>
+</body>
+```
+
+example: about `$(function (){})`
+
+`$(function (){})`只是`$(document).ready()`的简写
+
+```html
+<body>
+    <script>
+        // 当上文所有元素渲染完毕之后，加载js code
+        // 比如碰到<img src="xxx.png"/>可能会耗时间
+    </script>
+</body>
+```
+
+```html
+<body>
+    <script>
+        // 当上文页面的框架（节点）渲染完毕之后，加载js code
+        $(function(){
+
+        });
+    </script>
+</body>
+```
+
+## extend jQuery
+
+给jQuery加上自己的method
+
+```html
+<body>
+    <div class="box1"></div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // form1: extend
+        $.extend({
+            'myFunc1': function () {
+                return 666;
+            },
+        });
+        alert($.myFunc1());
+
+        // form2: extend
+        $.fn.extend({
+            'myFunc2': function () {
+                return 777;
+            },
+        });
+        let v = $('.box1').myFunc2();
+        alert(v);
+    </script>
+</body>
+```
+
+example: use others extensions
+
+```bash
+./
+    plugin1.js
+    index.html
+```
+
+```js
+// plugin1.js
+(function (arg) {
+    // 自执行函数， 保证了plugin变量的安全
+    var status = 1; 
+    arg.extend({
+        // 和其他plugin的函数同名，没有解决办法
+        'myFunc1': function () {
+            return 666;
+        },
+    });
+})(jQuery)
+```
+
+```html
+<body>
+    <div class="box1"></div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="plugin1.js"></script>
+    <script>
+        alert($.myFunc1());
+    </script>
+</body>
 ```
