@@ -339,18 +339,25 @@ important filter:
 - `.eq()`, `.first()`, `.last()`
 
 example: modal
+> ![](res/modal01.png)
 
 ```html
 <body>
-    <div class="mask"></div>
-    <div class="modal">
-        <div>
-            <p><input name="ip" type="text"></p>
-            <p><input name="port" type="text"></p>
+    <div class="mask hide"></div>
+    <div class="modal hide">
+        <div class="modal-content" style="overflow:auto;">
+            <div style="float: left;text-align: right;">
+                <div style="height:36px;">IP:</div>
+                <div style="height:36px;">Port:</div>
+            </div>
+            <div style="float: right;">
+                <div style="height:36px;"><input name="ip" type="text"></div>
+                <div style="height:36px;"><input name="port" type="text"></div>
+            </div>
         </div>
-        <div>
-            <button id="btn_cancel">Cancel</button>
-            <button id="btn_ok">OK</button>
+        <div class="modal-btns" style="overflow:auto;">
+            <button id="btn_cancel" style="float: right;">Cancel</button>
+            <button id="btn_ok" style="float: right;">OK</button>
         </div>
     </div>
     <button id="btn_add">Add</button>
@@ -396,32 +403,33 @@ example: modal
             position: fixed;
             left: 50%;
             top: 50%;
-            width: 300px;
-            height: 200px;
+            width: 220px;
+            height: 100px;
             margin-left: -150px;
             margin-top: -100px;
             background-color: #ddd;
             z-index: 9;
+
+            padding: 30px 40px;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script>
-        $('.mask, .modal').addClass('hide');
-        $('#btn_add').click(function () {
-            $('.mask, .modal').removeClass('hide');
-        });
         $('#btn_cancel').click(function () {
             $('.modal input').val(''); //clear input content
             $('.mask, .modal').addClass('hide');
         });
-        $('#btn_ok').click(function () {
-        });
-        $('.btn_edit').click(function () {
+
+        $('tbody').on('click', '.btn_edit', function () {
+            let i = $(this).parents('tr').index();
             $('.mask, .modal').removeClass('hide');
-            let tds = $(this).parent().prevAll();
+            $('.modal').attr({ 'created': 'no', 'row_index': i });
+
+            // fill modal with data
             // DOM innderText对应.text()
             // DOM innderHTML对应.html()
             // DOM value对应.val()
+            let tds = $(this).parent().prevAll();
             tds.each(function () {
                 let txt = $(this).text();
                 let t = $(this).attr('target');
@@ -429,8 +437,58 @@ example: modal
                 $(i).val(txt);
             });
         });
-        $('.btn_del').click(function () {
+
+        $('#btn_add').click(function () {
+            $('.mask, .modal').removeClass('hide');
+            $('.modal').attr({ 'created': 'yes' });
+        });
+
+        // dynamically bind event to btn_del
+        $('tbody').on('click', '.btn_del', function () {
             $(this).parent().parent().remove();
+
+            // // 如下方法，新添加得到btn click失效
+            // $('.btn_del').click(function () {
+            //     $(this).parent().parent().remove();
+            // });
+        });
+
+        $('#btn_ok').click(function () {
+            let ip = $('.modal input[name="ip"]').val();
+            let port = $('.modal input[name="port"]').val();
+
+            if ($('.modal').attr('created') == 'yes') {
+                // modal from add click
+                if (ip && port) {
+                    let new_tr = `
+                        <tr>
+                        <td target='ip'>${ip}</td>
+                        <td target='port'>${port}</td>
+                        <td><button class="btn_edit">Edit</button></td>
+                        <td><button class="btn_del">Delete</button></td>
+                        </tr>
+                        `;
+                    $('tbody').append(new_tr);
+                }
+            } else {
+                // modal from edit click
+                let row_index = eval($('.modal').attr('row_index'));
+
+                let new_tr = `
+                    <tr>
+                    <td target='ip'>${ip}</td>
+                    <td target='port'>${port}</td>
+                    <td><button class="btn_edit">Edit</button></td>
+                    <td><button class="btn_del">Delete</button></td>
+                    </tr>
+                    `;
+                // method1:
+                $('tr').eq(row_index + 1).replaceWith(new_tr);
+                // method2: 
+                // $('tr').eq(row_index + 1).after(new_tr);
+                // $('tr').eq(row_index + 1).remove();
+            };
+            $('#btn_cancel').click();
         });
     </script>
 </body>
