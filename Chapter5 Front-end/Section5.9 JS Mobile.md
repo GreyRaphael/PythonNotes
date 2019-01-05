@@ -3,24 +3,24 @@
 <!-- TOC -->
 
 - [Mobile framework & lib](#mobile-framework--lib)
-    - [zeptojs](#zeptojs)
-    - [swiper](#swiper)
-    - [Bootstrap framework](#bootstrap-framework)
-        - [bootstrap **grid system**](#bootstrap-grid-system)
-            - [grid nested](#grid-nested)
-            - [grid offset](#grid-offset)
-        - [bootstra button](#bootstra-button)
-        - [bootstrap form](#bootstrap-form)
-        - [form control group](#form-control-group)
-        - [bootstrap image](#bootstrap-image)
-        - [bootstrap navigation bar](#bootstrap-navigation-bar)
-        - [bootstrap directory navi](#bootstrap-directory-navi)
-        - [bootstrap jumbotron](#bootstrap-jumbotron)
-        - [bootstrap modal](#bootstrap-modal)
-        - [bootstrap dropmenu](#bootstrap-dropmenu)
-        - [bootstrap hidden](#bootstrap-hidden)
-        - [bootstrap slide](#bootstrap-slide)
-    - [JQuery easyUI](#jquery-easyui)
+  - [zeptojs](#zeptojs)
+  - [swiper](#swiper)
+  - [Bootstrap framework](#bootstrap-framework)
+    - [bootstrap **grid system**](#bootstrap-grid-system)
+      - [grid nested](#grid-nested)
+      - [grid offset](#grid-offset)
+    - [bootstra button](#bootstra-button)
+    - [bootstrap form](#bootstrap-form)
+    - [form control group](#form-control-group)
+    - [bootstrap image](#bootstrap-image)
+    - [bootstrap navigation bar](#bootstrap-navigation-bar)
+    - [bootstrap directory navi](#bootstrap-directory-navi)
+    - [bootstrap jumbotron](#bootstrap-jumbotron)
+    - [bootstrap modal](#bootstrap-modal)
+    - [bootstrap dropmenu](#bootstrap-dropmenu)
+    - [bootstrap hidden](#bootstrap-hidden)
+    - [bootstrap slide](#bootstrap-slide)
+  - [JQuery easyUI](#jquery-easyui)
 
 <!-- /TOC -->
 
@@ -1598,4 +1598,11 @@ bootstrap [slide](https://v3.bootcss.com/javascript/#carousel)比较差，不好
 
 ## JQuery easyUI
 
-[easyUI](http://www.jeasyui.com/documentation/)
+[easyUI](http://www.jeasyui.com/documentation/)和BootStrap, jQueryUI都是一些常用的组件
+
+这些组件包含css, js 需要按照它们对应的规则来写；
+
+然后就是web框架：
+- django: 最全
+- tornado
+- 
