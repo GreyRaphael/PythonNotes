@@ -494,6 +494,154 @@ example: modal
 </body>
 ```
 
+example: editing mode
+> ![](res/modal02.png)
+
+```html
+<body>
+    <button id="btn-sa">SelectAll</button>
+    <button id="btn-da">DeselectAll</button>
+    <button id="btn-ra">Reverse</button>
+    <button id="edit-mode">Editing Mode</button>
+    <table border="1">
+        <thead>
+            <th>Select</th>
+            <th>IP</th>
+            <th>Port</th>
+            <th>Status</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>192.168.1.10</td>
+                <td>22</td>
+                <td>online</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>192.168.2.10</td>
+                <td>3306</td>
+                <td>offline</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>192.168.3.10</td>
+                <td>45</td>
+                <td>online</td>
+            </tr>
+        </tbody>
+    </table>
+    <style>
+        .editing {
+            background-color: gold;
+            border: 0;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // basic mode
+        $('#btn-sa').click(function () {
+            // prop()无法触发checkbox的change事件，所以需要另外触发
+            // method1: trigger('change')
+            // method2: change()
+            $(':not(:checked)').prop('checked', true).change();
+        });
+        $('#btn-da').click(function () {
+            $(':checked').prop('checked', false).change();
+        });
+        $('#btn-ra').click(function () {
+            $(':checkbox').each(function () {
+                let v = $(this).prop('checked');
+                $(this).prop('checked', !v).change();
+            });
+        });
+
+        // editing mode
+        $('#edit-mode').click(function () {
+            // bind event to checkbox
+            $('tbody').on('change', ':checkbox', function () {
+                if ($(this).prop('checked')) {
+                    // single checkbox checked
+                    // ip, port
+                    $(this).parent().siblings(':eq(0), :eq(1)').each(function () {
+                        let txt = $(this).text();
+                        $(this).replaceWith(`<td><input value="${txt}"></td>`);
+                    });
+                    // status
+                    let status = $(this).parent().siblings(':last');
+                    let txt = status.text();
+                    let new_td;
+
+                    if (txt == 'online') {
+                        new_td =
+                            `<td><select>
+                                <option value="0" selected>online</option>
+                                <option value="1">offline</option>
+                            </select></td>`;
+                    } else if (txt == 'offline') {
+                        new_td =
+                            `<td><select>
+                                <option value="0">online</option>
+                                <option value="1" selected>offline</option>
+                            </select></td>`;
+                    };
+                    status.replaceWith(new_td);
+
+
+                } else {
+                    // single checkbox no checked
+                    // ip, port
+                    $(this).parent().siblings(':eq(0), :eq(1)').each(function () {
+                        let txt = $(this).find('input').val();
+                        $(this).html(txt);
+                    });
+                    // status
+                    let opt = $(this).parent().siblings(':last').find(':selected');
+                    let txt = opt.text();
+                    opt.parent().replaceWith(txt);
+                };
+            });
+
+            $(this).toggleClass('editing');
+            if ($(this).hasClass('editing')) {
+                // with class editing
+                // check all checkbox initially
+                $(':checked').change();
+            } else {
+                // without class editing
+                // unbind event of checkbox
+                $('tbody').off('change', ':checkbox');
+                // all port, ip
+                $('td:nth-child(2) input, td:nth-child(3) input').each(function () {
+                    let txt = $(this).val();
+                    $(this).replaceWith(txt);
+                })
+                // all status
+                $(':selected').each(function () {
+                    let txt = $(this).text();
+                    $(this).parent().replaceWith(txt);
+                })
+            };
+        });
+
+        // Ctrl+Click to change status in batch
+        $(document).keydown(function (e) {
+            if (e.ctrlKey) {
+                // bind select change event
+                $('tbody').on('change', 'select', function () {
+                    let v = $(this).val();
+                    $(':checkbox:checked').parent().siblings().find('select').val(v);
+                })
+            };
+        });
+        $(document).keyup(function () {
+            // unbind select change event
+            $('tbody').off('change', 'select');
+        });
+    </script>
+</body>
+```
+
 ### traversing
 
 选择集转移
