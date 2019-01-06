@@ -1270,37 +1270,70 @@ JQuery的jsonp跨域
 
 因为数据直接从后台用ajax传递当前端，后台一般用regex把数据处理好了，所以前端用regex的几率不大；即便是用也是简单的处理-**表单验证**
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Document</title>
-    <script src="js/jquery-1.12.4.min.js"></script>
-    <script>
-        // 定义方法1：i:忽略大小写, g:全局匹配
-        var re1=new RegExp('a', 'ig');
-        // 定义方法2：
-        var re2=/a/ig;
-        var re3=/^\d+$/;
-        var re4=/\d+/g;
-        var re5=/\d+/;
-        //test
-        var str1='abc';
-        var str2='cba';
-        var str3='123abc'
-        var str4='122a456b789d'
-        console.log(re1.test(str1));//true
-        console.log(re1.test(str2));//true
-        console.log(re3.test(str3));//false
-        console.log(str4.match(re4));//["122", "456", "789"]
-        console.log(str4.match(re5));//122
-        
-    </script>
-</head>
-<body>
-</body>
-</html>
+JS Regex:
+- `.test()`: 判断匹配
+- `.exec()`: 提取字符串
+
+```js
+// 不需要JQuery
+let s1 = 'abc123';
+let s2 = '123abc';
+let s3 = '123abc456';
+
+// i: ignore case; g: 全局匹配
+let r1 = new RegExp('\\d+'); // not recommended
+let r2 = new RegExp('a', 'ig'); // not recommended
+let r3 = /\d+/; // same as r1
+let r4 = /a/ig; // same as r2
+let r5 = /^\d+/;
+// test: 默认就是全局匹配
+r1.test(s1);// true
+r1.test(s2);// true
+
+r2.test(s1);// true
+r2.test(s2);// true
+
+r5.test(s1);// false
+r5.test(s2);// true
+
+// exec: 默认匹配第一个
+// find first one
+r1.exec(s1); // ["123"]
+r1.exec(s3); // ["123"]
+// 类似finditer: 获得一个iter
+let r6 = /\d+/g;
+r6.exec(s1); // ["123"]
+r6.exec(s1); // null
+while (res1 = r6.exec(s3)) {
+    console.log(res1);
+}; // ["123"], ["456"]
+
+
+// group
+let s4 = 'JavaScript is different with TypeScript';
+let r7 = /(\w+)Script/;
+let r8 = /(\w+)Script/g;
+r7.exec(s4);// ["JavaScript", "Java"]
+while (res2 = r8.exec(s4)) {
+    console.log(res2);
+}; // ["JavaScript", "Java"], ["TypeScript", "Type"]
+
+// multiline
+let s5 = 'JavaScript is different with \nJava;\nand Javabean!';
+let r9 = /Java(\w*)/g;
+let r10 = /^Java(\w*)/g;
+let r11 = /^Java(\w*)/gm;
+while (res3 = r9.exec(s5)) {
+    console.log(res3);
+}; // ["JavaScript", "Java"],["Java", ""], ["Javabean", "bean"]
+
+while (res4 = r10.exec(s5)) {
+    console.log(res4);
+}; // ["JavaScript", "Java"]
+
+while (res5 = r11.exec(s5)) {
+    console.log(res5);
+}; // ["JavaScript", "Java"],["Java", ""]
 ```
 
 `search`只是搜索pattern在字符串中的位置, 一般用`IndexOf`代替; `replace`替换字符串, 一般用来做过滤敏感词;
