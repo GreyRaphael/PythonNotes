@@ -2124,6 +2124,23 @@ example: custom bind
 </body>
 ```
 
+example: 例外: `checkbox`是默认事件先执行，然后执行自定义事件
+
+```html
+<body>
+    <input type="checkbox">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        $(':checkbox').click(function () {
+            // 至此，checkbox绑定了两个事件：打勾，打印value
+            // 因为最开始默认值是false，点击后先打勾后打印value为true
+            let v = $(this).prop('checked');
+            console.log(v);
+        });
+    </script>
+</body>
+```
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -2192,6 +2209,8 @@ example: custom bind
 ```
 
 example: form verification(custom submit)
+> 减少数据库请求；但是浏览器的js能够被禁用，做坏事还是可以直接疯狂访问数据库的；  
+> 所以一般：前端js验证，后端python验证，然后才到数据库
 
 ```html
 <body>
