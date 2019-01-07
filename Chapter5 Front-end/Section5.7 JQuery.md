@@ -2268,6 +2268,143 @@ example: multi verification
 </body>
 ```
 
+example: multi verification
+> ![](res/bind02.png)
+
+```html
+<body>
+    <form action="https://httpbin.org/get" method="get">
+        <div class="group">
+            <label class="tip"><span class="red">*</span>User Name:</label>
+            <input type="text" name="username" require='true' label='UserName' field='string' range='4-40'>
+        </div>
+        <div class="group">
+            <label class="tip"><span class="red">*</span>Phone:</label>
+            <input type="text" name="phone" require='true' label='Phone' mobile='true'>
+        </div>
+        <div class="group">
+            <label class="tip"><span class="red">*</span>Password:</label>
+            <input type="password" name="pwd" require='true' label='Password' range='6-20'>
+        </div>
+        <div class="group">
+            <label class="tip"><span class="red">*</span>RePassword:</label>
+            <input type="password" name="repwd" require='true' label='RePassword' confirm-to='pwd'>
+        </div>
+        <div class="group">
+            <label class="tip"><span class="red">*</span>Captcha:</label>
+            <input type="text" name="captcha" require='true' label='Captcha' style="width:60px;">
+            <a class="captcha-link">
+                <img alt="img">
+            </a>
+        </div>
+        <div class="group">
+            <input type="checkbox" name="protocol" checked id="protocol">
+            <span>I Agree</span>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+    <style>
+        .group {
+            margin-top: 10px;
+        }
+
+        .tip {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+        }
+
+        .red {
+            color: red;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+        // change captcha
+        $('.captcha-link').click(function () {
+            console.log('get new captcha');
+        });
+
+        // Error Message
+        function ErrorMsg(parent, msg) {
+            if (!parent.children(':last').is('i')) {
+                parent.append(`<i class="red">${msg}</i>`);
+            }
+        }
+
+        $(':submit').click(function () {
+            let flag = true;
+
+            $(':text, :password').each(function () {
+                let name = $(this).attr('name');
+                let label = $(this).attr('label');
+                let v = $(this).val();
+                let p = $(this).parent();
+                p.children('i').remove();
+
+                // require
+                let require = $(this).attr('require');
+                if (require) {
+                    if (v == '' || v.trim() == '') {
+                        flag = false;
+                        ErrorMsg(p, `${label} cannot be empty!`);
+                    }
+                }
+
+                // username format
+                let field = $(this).attr('field');
+                if (field) {
+                    let regex = /^\w+$/;
+                    if (!regex.test(v)) {
+                        flag = false;
+                        ErrorMsg(p, `${label} is consisted of English, number or _`)
+                    }
+                }
+
+                // mobile
+                let mobile = $(this).attr('mobile');
+                if (mobile == 'true') {
+                    let regex = /^1[3|5|8]\d{9}$/;
+
+                    if (!regex.test(v)) {
+                        flag = false;
+                        ErrorMsg(p, `${label} format is error!`);
+                    }
+                }
+
+                // password confirm
+                let confirm_to = $(this).attr('confirm-to');
+                if (confirm_to) {
+                    let pwd = $(`:password[name=${confirm_to}]`);
+                    if (v != pwd.val()) {
+                        flag = false;
+                        ErrorMsg(p, `different password!`);
+                    }
+                }
+
+                // input length
+                let range = $(this).attr('range');
+                if (range) {
+                    let len = range.split('-');
+                    if (v.length < parseInt(len[0]) || v.length > parseInt(len[1])) {
+                        flag = false;
+                        ErrorMsg(p, `${label} length rang is: ${len[0]}~${len[1]}`);
+                    }
+                }
+            });
+
+            // protocol
+            if (!$('#protocol').prop('checked')) {
+                flag = false;
+                ErrorMsg($('#protocol').parent(), 'Please read protocol!');
+            }
+
+            return flag;
+        });
+    </script>
+</body>
+```
+
 example: about `$(function (){})`
 
 `$(function (){})`只是`$(document).ready()`的简写
