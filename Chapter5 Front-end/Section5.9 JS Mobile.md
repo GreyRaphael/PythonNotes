@@ -19,7 +19,7 @@
     - [bootstrap modal](#bootstrap-modal)
     - [bootstrap dropmenu](#bootstrap-dropmenu)
     - [bootstrap hidden](#bootstrap-hidden)
-    - [bootstrap slide](#bootstrap-slide)
+  - [bootstrap slide](#bootstrap-slide)
   - [easyUI](#easyui)
 
 <!-- /TOC -->
@@ -1592,9 +1592,32 @@ Example: better ![](res/bootstrap02.gif)
 </html>
 ```
 
-### bootstrap slide
+## bootstrap slide
 
-bootstrap [slide](https://v3.bootcss.com/javascript/#carousel)比较差，不好用；
+bootstrap [slide](https://v3.bootcss.com/javascript/#carousel)比较差，不好用；一般使用[bxslider](https://bxslider.com/install/)
+
+```html
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/bxslider/4.2.12/jquery.bxslider.css">
+
+</head>
+
+<body>
+    <div class="slider">
+        <div>I am a slide.</div>
+        <div>I am another slide.</div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/bxslider/4.2.12/jquery.bxslider.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.slider').bxSlider();
+        });
+        // $(function(){})
+    </script>
+</body>
+```
 
 ## easyUI
 
