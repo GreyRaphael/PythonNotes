@@ -20,7 +20,7 @@
     - [bootstrap dropmenu](#bootstrap-dropmenu)
     - [bootstrap hidden](#bootstrap-hidden)
     - [bootstrap slide](#bootstrap-slide)
-  - [JQuery easyUI](#jquery-easyui)
+  - [easyUI](#easyui)
 
 <!-- /TOC -->
 
@@ -1596,13 +1596,58 @@ Example: better ![](res/bootstrap02.gif)
 
 bootstrap [slide](https://v3.bootcss.com/javascript/#carousel)比较差，不好用；
 
-## JQuery easyUI
+## easyUI
 
-[easyUI](http://www.jeasyui.com/documentation/)和BootStrap, jQueryUI都是一些常用的组件
-
-这些组件包含css, js 需要按照它们对应的规则来写；
+easyUI, BootStrap, jQueryUI都是一些常用的组件, 这些组件包含css, js 需要按照它们对应的规则来写；
 
 然后就是web框架：
 - django: 最全
 - tornado
-- 
+
+[easyUI](http://www.jeasyui.com/index.php)特点:
+- easyUI都是建立在jQuery基础上, 本质就是jQuery的插件(用的`$.extend()`实现的) 
+- easyUI修改起来难度较大，可能需要修改css和js，学习成本大
+- 学习途径: [easyUI Demo](http://www.jeasyui.com/download/v17.php)
+
+[jQueryUI](https://jqueryui.com/)特点:
+- 没有easyUI功能齐全
+- 直接F12复制粘贴就可以使用
+- js丰富，但是略丑(css少)
+
+> easyUI, jQueryUI一般用于后台管理，比较丑
+
+[Bootstrap](https://getbootstrap.com/)特点:
+- 适用于所有位置
+- 较好看
+
+写后台管理:
+- method1: 免费的bootstrap模板[templates](https://github.com/phachon/html-templates),
+- method2: 付费的bootstrap模板[nifty](https://wrapbootstrap.com/)
+
+响应式布局本质: 使用了CSS的`@media (min-width){xxx}`
+- container宽度变化
+- 从`display: inlin-block;`变成`display: block;`
+
+制作图标:
+- method1: 以图片的形式来制作.
+- method2：以font的形式来制作. 比如bootstrap中的`@font-face`，然后根据代码找到图标`content: "\2601";`, 这个不用管，是bootstrap实现的，直接写`class`名字即可
+
+example: bootstrap introduction
+> 如果使用别人的css， 常常最后加上`width:200px !import;`
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <button type="button" class="btn btn-primary">Primary</button>
+    <button type="button" class="btn btn-secondary">Secondary</button>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+</body>
+```
