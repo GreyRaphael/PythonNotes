@@ -3,34 +3,118 @@
 <!-- TOC -->
 
 - [Django Procedure](#django-procedure)
-    - [Introduction](#introduction)
-        - [MVC](#mvc)
-        - [MVT](#mvt)
-    - [mkvirtualenv](#mkvirtualenv)
-        - [how to install](#how-to-install)
-        - [how to use](#how-to-use)
-    - [Django Model](#django-model)
-        - [create apps](#create-apps)
-        - [create models](#create-models)
-        - [makemigrations & migrate](#makemigrations--migrate)
-        - [add data to DB](#add-data-to-db)
-    - [server manage](#server-manage)
-        - [use django management](#use-django-management)
-        - [management some setting](#management-some-setting)
-        - [custom background console](#custom-background-console)
-        - [register several objects](#register-several-objects)
-        - [bool value display](#bool-value-display)
-    - [View](#view)
-    - [Template](#template)
-        - [template without data](#template-without-data)
-        - [template with data](#template-with-data)
-            - [将数据传递给template](#将数据传递给template)
-            - [用model拿数据](#用model拿数据)
-        - [带有`<a></a>`的project](#带有aa的project)
+  - [Introduction](#introduction)
+    - [MVC](#mvc)
+    - [MTV](#mtv)
+  - [mkvirtualenv](#mkvirtualenv)
+    - [how to install](#how-to-install)
+    - [how to use](#how-to-use)
+  - [Django Model](#django-model)
+    - [create apps](#create-apps)
+    - [create models](#create-models)
+    - [makemigrations & migrate](#makemigrations--migrate)
+    - [add data to DB](#add-data-to-db)
+  - [server manage](#server-manage)
+    - [use django management](#use-django-management)
+    - [management some setting](#management-some-setting)
+    - [custom background console](#custom-background-console)
+    - [register several objects](#register-several-objects)
+    - [bool value display](#bool-value-display)
+  - [View](#view)
+  - [Template](#template)
+    - [template without data](#template-without-data)
+    - [template with data](#template-with-data)
+      - [将数据传递给template](#%E5%B0%86%E6%95%B0%E6%8D%AE%E4%BC%A0%E9%80%92%E7%BB%99template)
+      - [用model拿数据](#%E7%94%A8model%E6%8B%BF%E6%95%B0%E6%8D%AE)
+    - [带有`<a></a>`的project](#%E5%B8%A6%E6%9C%89aa%E7%9A%84project)
 
 <!-- /TOC -->
 
 ## Introduction
+
+example: 所有的web请求本质是socket; 所有web框架的本质是如下的程序;
+
+```python
+# DIY socket service
+import socket
+
+def handle_request(client):
+    buf = client.recv(1024).decode('utf8')
+    client.send("HTTP/1.1 200 OK\r\n\r\n".encode('utf8'))
+    client.send(f"Hello, Grey\n{buf}".encode('utf8'))
+
+if __name__ == '__main__':
+    server = socket.socket()
+    server.bind(('', 9999))
+    server.listen(5)
+
+    while True:
+        connection, addr = server.accept()
+        handle_request(connection)
+        connection.close()
+```
+
+```python
+# 只是简化上面的过程
+from wsgiref.simple_server import make_server
+
+def simple_app(environ, start_response):
+    start_response('200 OK', [('Content-type', 'text/html')])
+    # environ.items()客户端传递过来的所有东西
+    return [f'Hello, Grey'.encode('utf8'), ]
+
+with make_server('', 9999, simple_app) as httpd:
+    httpd.serve_forever()
+```
+
+example: DIY web MVC framework
+> MVC: Models, Views, Controllers
+
+```bash
+Models/
+    # get data from DB
+Views/
+    test.html
+Controllers/
+    handle.py
+test.py
+```
+
+```python
+# test.py
+from wsgiref.simple_server import make_server
+from Controllers import handle
+
+URL_DICT = {
+    '/index': handle.handle_index,
+    '/register': handle.handle_register,
+}
+
+def simple_app(environ, start_response):
+    start_response('200 OK', [('Content-type', 'text/html')])
+    path = environ['PATH_INFO']
+
+    data = b'404'
+    if path in URL_DICT:
+        func = URL_DICT[path]
+        data = func()
+
+    return [data, ]
+
+with make_server('', 9999, simple_app) as httpd:
+    httpd.serve_forever()
+
+```
+
+```python
+# handle.py
+def handle_index():
+    return b'index'
+
+def handle_register():
+    with open('Views/test.html', 'rb') as file:
+        return file.read()
+```
 
 python的web框架有:
 - flask:小型应用
@@ -49,7 +133,7 @@ MVC框架的核心思想是：**解耦**; 降低各功能模块之间的耦合�
 
 ![](res/mvc01.png)
 
-### MVT
+### MTV
 
 Django是一款python的web开发框架; 与MVC有所不同，属于MVT框架(仅限于Django framework)
 
