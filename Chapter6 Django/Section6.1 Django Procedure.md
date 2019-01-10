@@ -125,33 +125,21 @@ python的web框架有:
 
 ### MVC
 
-MVC框架的核心思想是：**解耦**; 降低各功能模块之间的耦合性，方便变更，更容易重构代码，最大程度上实现代码的重用；根本目的是实现高可扩展性，向后兼容；
-
+MVC框架的核心思想：**解耦**; 降低各功能模块之间的耦合性，方便变更，更容易重构代码，最大程度上实现代码的重用；根本目的是实现高可扩展性，向后兼容；
+> ![](res/mvc01.png)
 - m表示model，主要用于对数据库层的封装
 - v表示view，用于向用户展示结果
 - c表示controller，是核心，用于处理请求、获取数据、返回结果
 
-![](res/mvc01.png)
-
 ### MTV
 
-Django是一款python的web开发框架; 与MVC有所不同，属于MVT框架(仅限于Django framework)
-
+Django是python web框架, 属于MTV框架，本质和MVC一样，只是没有严格按照MVC的结构来写;
+> ![](res/mvt01.png)
 - m表示model，负责与数据库交互; 要么操作object, 要么操作list
-- v表示view，是核心，负责接收请求(request)、逻辑处理、获取数据、返回响应结果(response)
 - t表示template，负责呈现内容到浏览器
-
-Django走的是MVC的思想，没有严格按照MVC的结构来写
+- v表示view，是核心，负责接收请求(request)、逻辑处理、获取数据、返回响应结果(response)
 
 model中一般规范不让编写sql语句；model中维护的是一个object与Database中的一行对应；对于python, 一个list与Database的一个table对应；model直接将代码转换为sql语句(也就是ORM)
-
-处理是在view中进行的；
-
-然后找一个模板(各种html挑一个), 返回给view, 最后view将结果返回给客户端(http报文...)；
-
-客户端渲染得到结果；
-
-![](res/mvt01.png)
 
 ## mkvirtualenv
 
