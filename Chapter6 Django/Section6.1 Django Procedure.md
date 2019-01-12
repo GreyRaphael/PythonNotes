@@ -7,8 +7,6 @@
     - [MVC](#mvc)
     - [MTV](#mtv)
   - [mkvirtualenv](#mkvirtualenv)
-    - [how to install](#how-to-install)
-    - [how to use](#how-to-use)
   - [Django Model](#django-model)
     - [create apps](#create-apps)
     - [create models](#create-models)
@@ -143,9 +141,7 @@ model中一般规范不让编写sql语句；model中维护的是一个object与D
 
 ## mkvirtualenv
 
-### how to install
-
-[Installation](https://virtualenvwrapper.readthedocs.io/en/latest/install.html#basic-installation)
+[mkvirtualenv Installation](https://virtualenvwrapper.readthedocs.io/en/latest/install.html#basic-installation)
 
 ```bash
 # pip3安装virtualenvwrapper,会自动安装virtualenv
@@ -168,7 +164,7 @@ source /usr/local/bin/virtualenvwrapper.sh
 source ~/.bashrc
 ```
 
-### how to use
+Use mkvirtualenv
 
 ```bash
 # create new virtual env
@@ -709,8 +705,6 @@ admin.site.register(HeroInfo, HeroInfoAdmin)
 ```
 
 ## View
-
-view的本质就是一个函数
 
 ```python
 # BookTest/views.py
