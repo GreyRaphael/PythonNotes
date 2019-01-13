@@ -202,3 +202,137 @@ urlpatterns = [
 ]
 ```
 
+explain Django directory
+
+```bash
+C:\USERS\ADMINISTRATOR\MYSITE
+│  manage.py            # 管理django程序
+└─mysite                # 对整个程序进行配置
+        settings.py     # 缓存配置、数据库连接、静态文件处理、模板配置、加密(加盐)
+        urls.py         # url与处理函数的对应关系
+        wsgi.py         # django只是web框架，依赖于wsgi创建的socket
+        __init__.py
+```
+
+> PyCharm默认会将`C:\USERS\ADMINISTRATOR\MYSITE`加入它的环境变量，常常出现`import`过程中的飘红现象
+
+遵循wsgi规则的模块是用来创建socket的，Django依赖于其他模块创建的socket。`wsgi.py`中默认使用的就是python自带的模块`wsgiref`，只是改了一个名字为`from django.core.wsgi import get_wsgi_application`。所以wsgi模块是可以更改的，一般部署的时候使用的是`uwsgi`模块，配合nginx就可以将程序跑起来了
+
+与`manage.py`相关的命令:
+- `python manage.py runserver`
+- `python manage.py startapp cmdb`
+- `python manage.py makemigrations`
+- `python manage.py migrate`
+
+example: PyCharm add Apps
+
+```bash
+# in Terminal
+python manage.py startapp cmdb
+python manage.py startapp openstack
+
+tree /f DjangProj1
+D:\PYCHARMPROJECTS\DJANGPROJ1
+│  db.sqlite3
+│  manage.py
+├─cmdb
+│  │  admin.py          # django自带的后台管理
+│  │  apps.py           # 配置当前的app
+│  │  models.py         # ORM, 用于创建数据库Table
+│  │  tests.py          # unit test
+│  │  views.py          # 各种业务逻辑代码
+│  │  __init__.py
+│  │
+│  ├─migrations
+│         __init__.py
+│
+├─DjangProj1
+│  │  settings.py
+│  │  urls.py
+│  │  wsgi.py
+│  │  __init__.py
+│
+├─openstack
+│  │  admin.py
+│  │  apps.py
+│  │  models.py
+│  │  tests.py
+│  │  views.py
+│  │  __init__.py
+│  │
+│  ├─migrations
+│  │      __init__.py
+│
+└─templates
+```
+
+```python
+# cmdb views.py
+from django.shortcuts import render, HttpResponse
+
+# Create your views here.
+def sayHi(request):
+    return HttpResponse('Hi, CMDB')
+```
+
+```python
+# openstakc views.py
+from django.shortcuts import render, HttpResponse
+
+# Create your views here.
+def say_hello(request):
+    return HttpResponse('Hello, OpenStack')
+```
+
+sqlalchemy模块，无法修改table结构；django的ORM可以修改table结构，`migrations`文件夹记录了每次修改表结构操作，并不记录`insert`之类的操作
+
+example: django默认后台管理程序
+
+```python
+# cmdb models.py
+from django.db import models
+
+# Create your models here.
+class UserType(models.Model):
+    name = models.CharField(max_length=32)
+
+class UserInfo(models.Model):
+    username = models.CharField(max_length=32)
+    pwd = models.CharField(max_length=32)
+    email = models.CharField(max_length=32)
+    # on_delete在2.0版本之后必须有
+    usr_type = models.ForeignKey(UserType, on_delete=models.CASCADE)
+```
+
+```python
+#  cmdb admin.py
+from django.contrib import admin
+from cmdb import models
+
+# Register your models here.
+admin.site.register(models.UserInfo)
+admin.site.register(models.UserType)
+```
+
+```python
+# setting.py
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'cmdb',
+    'openstack',
+]
+```
+
+```bash
+# in terminal
+python manage.py makemigrations
+python manage.py migrate
+
+python manage.py createsuperuser
+python manage.py runserver
+```
