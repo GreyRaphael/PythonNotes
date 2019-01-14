@@ -3,25 +3,25 @@
 <!-- TOC -->
 
 - [Python OOP](#python-oop)
-    - [OOP的意义](#oop的意义)
-        - [`==` vs `is`](#-vs-is)
-    - [ctor & destructor](#ctor--destructor)
-        - [class property vs instance property](#class-property-vs-instance-property)
-        - [`super()`](#super)
-        - [`__init__` vs `__new__`](#__init__-vs-__new__)
-        - [`__del__`](#__del__)
-    - [python GUI](#python-gui)
-    - [动态增加属性、方法](#动态增加属性方法)
-    - [overload](#overload)
-    - [副本机制](#副本机制)
-    - [访问控制](#访问控制)
-    - [send SMS](#send-sms)
-    - [send Email](#send-email)
-    - [`import` local .py file](#import-local-py-file)
-        - [import method 1](#import-method-1)
-        - [import method 2](#import-method-2)
-    - [组合多种功能(send email,send sms)](#组合多种功能send-emailsend-sms)
-    - [访问控制](#访问控制-1)
+  - [OOP的意义](#oop%E7%9A%84%E6%84%8F%E4%B9%89)
+    - [`==` vs `is`](#vs-is)
+  - [ctor & destructor](#ctor--destructor)
+    - [class property vs instance property](#class-property-vs-instance-property)
+    - [`super()`](#super)
+    - [`__init__` vs `__new__`](#init-vs-new)
+    - [`__del__`](#del)
+  - [python GUI](#python-gui)
+  - [动态增加属性、方法](#%E5%8A%A8%E6%80%81%E5%A2%9E%E5%8A%A0%E5%B1%9E%E6%80%A7%E6%96%B9%E6%B3%95)
+  - [overload](#overload)
+  - [副本机制](#%E5%89%AF%E6%9C%AC%E6%9C%BA%E5%88%B6)
+  - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6)
+  - [send SMS](#send-sms)
+  - [send Email](#send-email)
+  - [`import` local .py file](#import-local-py-file)
+    - [import method 1](#import-method-1)
+    - [import method 2](#import-method-2)
+  - [组合多种功能(send email,send sms)](#%E7%BB%84%E5%90%88%E5%A4%9A%E7%A7%8D%E5%8A%9F%E8%83%BDsend-emailsend-sms)
+  - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6-1)
 
 <!-- /TOC -->
 
@@ -1291,3 +1291,5 @@ print(dir(Student))
 ['_Student__num', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__']
 ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__']
 ```
+
+`__str__`的优先级比`__repr__`高
