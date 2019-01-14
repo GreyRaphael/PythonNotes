@@ -539,6 +539,7 @@ def login(request):
         else:
             err_msg='wrong username or password!'
     # GET
+    # 将templates文件和数据库内容合在一起，渲染；给Browser的永远是标准的html
     return render(request, 'login.html', {'err_msg':err_msg})
 ```
 
@@ -573,6 +574,7 @@ def login(request):
         uname = request.POST.get('uname', None)
         pwd = request.POST.get('pwd', None)
         if uname == 'root' and pwd == '112233':
+            # redirect只能填url不能templates文件
             return redirect('/home')
         else:
             err_msg = 'wrong username or password!'
