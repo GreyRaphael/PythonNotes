@@ -336,3 +336,96 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
+
+example: vscode django "login page"
+> [vscode with django](https://code.visualstudio.com/docs/python/tutorial-django)
+
+```bash
+tree /f mysite
+C:.
+│  db.sqlite3
+│  manage.py
+├─cmdb
+│  │  admin.py
+│  │  apps.py
+│  │  models.py
+│  │  tests.py
+│  │  views.py
+│  │  __init__.py
+│  │
+│  ├─migrations
+│  │  │  __init__.py
+│  │
+│  ├─templates
+│  │      login.html
+│  │
+└─mysite
+    │  settings.py
+    │  urls.py
+    │  wsgi.py
+    │  __init__.py
+```
+
+```html
+<!-- cmdb/templates/login.html -->
+<body>
+    <form action="/login" method="post">
+        <p>
+            <label for="username">Username</label>
+            <input type="text" name="uname" id="username">
+        </p>
+        <p>
+            <label for="pwd">Pasword</label>
+            <input type="password" name="pwd" id="pwd">
+        </p>
+        <input type="submit" value="Submit">
+    </form>
+    <style>
+        label{
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+        }
+    </style>
+</body>
+```
+
+```python
+# setting.py
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'cmdb',
+]
+```
+
+```python
+# urls.py
+from django.contrib import admin
+from django.urls import path
+
+from cmdb.views import login
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('login/', login),
+]
+```
+
+```python
+# cmdb/views.py
+from django.shortcuts import render, HttpResponse
+
+# # method1
+# def login(request):
+#     with open('cmdb/templates/login.html') as file:
+#         return HttpResponse(file.read())
+
+# method2
+def login(request):
+    return render(request, 'login.html')
+```
