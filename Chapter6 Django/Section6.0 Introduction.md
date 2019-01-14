@@ -429,3 +429,37 @@ from django.shortcuts import render, HttpResponse
 def login(request):
     return render(request, 'login.html')
 ```
+
+example: django static file
+> js, css, picture
+
+```python
+# setting.py
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+```
+
+```html
+<!-- cmdb/templates/login.html -->
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/cmdb/style.css">
+</head>
+```
+
+```css
+/* static/cmdb/style.css */
+label{
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+```
+
+Django配置`setting.py`步骤:
+1. 配置app: `INSTALLED_APPS`
+1. 配置templates目录: `TEMPLATES` 
+1. 配置staitic目录: `STATICFILES_DIRS`
