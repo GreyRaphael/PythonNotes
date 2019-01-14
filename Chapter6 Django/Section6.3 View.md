@@ -3,28 +3,28 @@
 <!-- TOC -->
 
 - [Django View](#django-view)
-    - [URLconf](#urlconf)
-        - [incluse `namespace`, path `name`用于反向解析](#incluse-namespace-path-name%E7%94%A8%E4%BA%8E%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90)
-    - [view method](#view-method)
-        - [404 view](#404-view)
-        - [500(server error) view](#500server-error-view)
-        - [400(bad request) view](#400bad-request-view)
-    - [Request](#request)
-        - [QueryDict](#querydict)
-        - [property `GET`](#property-get)
-            - [关于网址](#%E5%85%B3%E4%BA%8E%E7%BD%91%E5%9D%80)
-            - [`request.GET` example](#requestget-example)
-        - [property `POST`](#property-post)
-    - [Response](#response)
-        - [Response子类`HttpResponseRedirect`](#response%E5%AD%90%E7%B1%BBhttpresponseredirect)
-            - [反向解析](#%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90)
-        - [HttpResponse子类JsonResponse](#httpresponse%E5%AD%90%E7%B1%BBjsonresponse)
-    - [状态保持](#%E7%8A%B6%E6%80%81%E4%BF%9D%E6%8C%81)
-        - [session example: login](#session-example-login)
-        - [session expire](#session-expire)
-        - [session storage](#session-storage)
-            - [使用Redis缓存session](#%E4%BD%BF%E7%94%A8redis%E7%BC%93%E5%AD%98session)
-        - [session原理](#session%E5%8E%9F%E7%90%86)
+  - [URLconf](#urlconf)
+    - [incluse `namespace`, path `name`用于反向解析](#incluse-namespace-path-name%E7%94%A8%E4%BA%8E%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90)
+  - [view method](#view-method)
+    - [404 view](#404-view)
+    - [500(server error) view](#500server-error-view)
+    - [400(bad request) view](#400bad-request-view)
+  - [Request](#request)
+    - [QueryDict](#querydict)
+    - [property `GET`](#property-get)
+      - [关于网址](#%E5%85%B3%E4%BA%8E%E7%BD%91%E5%9D%80)
+      - [`request.GET` example](#requestget-example)
+    - [property `POST`](#property-post)
+  - [Response](#response)
+    - [Response子类`HttpResponseRedirect`](#response%E5%AD%90%E7%B1%BBhttpresponseredirect)
+      - [反向解析](#%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90)
+    - [HttpResponse子类JsonResponse](#httpresponse%E5%AD%90%E7%B1%BBjsonresponse)
+  - [状态保持](#%E7%8A%B6%E6%80%81%E4%BF%9D%E6%8C%81)
+    - [session example: login](#session-example-login)
+    - [session expire](#session-expire)
+    - [session storage](#session-storage)
+      - [使用Redis缓存session](#%E4%BD%BF%E7%94%A8redis%E7%BC%93%E5%AD%98session)
+    - [session原理](#session%E5%8E%9F%E7%90%86)
 
 <!-- /TOC -->
 
@@ -162,8 +162,8 @@ ALLOWED_HOSTS = ['*']
 
 与python字典不同，QueryDict类型的对象用来处理**同一个键带有多个值**的情况
 
-- `.get('key', default)` or `['key']`: 只能获取键的一个值, 如果一个键同时拥有多个值，获取最后一个值: 比如`request.GET.get('key')`, `request.GET['key']`
-- `.getlist('key', default)`: 将键的值以列表返回，可以获取一个键的多个值; 如果没有那么返回默认值default
+- `.get('key', default)` or `['key']`: 只能获取键的一个值, 如果一个键同时拥有多个值，获取最后一个值: 比如`request.GET.get('key')`, `request.GET['key']`。比如标签input:text, input:password, input:radio
+- `.getlist('key', default)`: 将键的值以列表返回，可以获取一个键的多个值; 如果没有那么返回默认值default。比如标签input:checkbox, select
 
 ### property `GET`
 

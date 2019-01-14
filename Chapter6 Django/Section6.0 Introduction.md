@@ -629,3 +629,69 @@ def home(request):
     </style>
 </body>
 ```
+
+example: `request.POST.get()` & `request.POST.getlist()`
+
+```html
+<body>
+    <form action="/register/" method="post">
+        <p>
+            <!-- text: get() -->
+            <input type="text" name="uname" placeholder="username">
+            <input type="password" name="pwd" placeholder="password">
+        </p>
+        <p>
+            <!-- radio: get() -->
+            Female:<input type="radio" name="gender" value="0">
+            Male:<input type="radio" name="gender" value="1">
+        </p>
+        <p>
+            <!-- checkbox: getlist() -->
+            Basketball:<input type="checkbox" name="hobby" value='0'>
+            Football:<input type="checkbox" name="hobby" value='1'>
+            Babmintoon:<input type="checkbox" name="hobby" value='2'>
+        </p>
+        <p>
+            <!-- single select: get() -->
+            <select name="city">
+                <option value="0">Beijing</option>
+                <option value="1">Shanghai</option>
+                <option value="2">Guangzhou</option>
+            </select>
+        </p>
+        <p>
+            <!-- multi select: getlist() -->
+            <select name="province" multiple>
+                <option value="10">Hubei</option>
+                <option value="11">Hunan</option>
+                <option value="12">Jiangsu</option>
+            </select>
+        </p>
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+```
+
+```py
+# app1 view.py
+from django.shortcuts import render, redirect
+
+def register(request):
+    if request.method=='GET':
+        return render(request, 'register.html')
+    elif request.method=='POST':
+        # get
+        uname=request.POST.get('uname')
+        pwd=request.POST.get('pwd')
+        gender=request.POST.get('gender')
+        city=request.POST.get('city')
+        # getlist
+        hobby=request.POST.getlist('hobby')
+        province=request.POST.getlist('province')
+
+        return render(request, 'register.html')
+    else:
+        # PUT, DELETE, HEAD, OPTION.....
+        return redirect('/register/')
+```
