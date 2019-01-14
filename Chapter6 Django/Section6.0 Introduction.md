@@ -463,6 +463,7 @@ Django配置`setting.py`步骤:
 1. 配置app: `INSTALLED_APPS`
 1. 配置templates目录: `TEMPLATES` 
 1. 配置staitic目录: `STATICFILES_DIRS`
+1. 配置CSRF
 
 example: django submit
 
