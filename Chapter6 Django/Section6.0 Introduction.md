@@ -695,3 +695,40 @@ def register(request):
         # PUT, DELETE, HEAD, OPTION.....
         return redirect('/register/')
 ```
+
+example: form file upload
+
+```html
+<body>
+    <!-- 没有enctype，post的只是字符串 -->
+    <!-- 有enctype，将input:text放到POST中，将input:file放到FILES -->
+    <form action="/register/" method="post" enctype="multipart/form-data">
+        <input type="text" name="uname" placeholder="username"><br>
+        <input type="file" name="head_img"><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+```
+
+```py
+# app1 views.py
+from django.shortcuts import render, redirect
+
+def register(request):
+    if request.method == 'GET':
+        return render(request, 'register.html')
+    elif request.method == 'POST':
+        # POST.get()只是request.FILES的一个特殊值
+        # filename = request.POST.get('head_img')
+        obj = request.FILES.get('head_img')
+        print(type(obj), obj.name)
+
+        with open(f'upload/{obj.name}', 'wb') as file:
+            for c in obj.chunks(): # chunks() is iter
+                file.write(c)
+
+        return render(request, 'register.html')
+    else:
+        # PUT, DELETE, HEAD, OPTION.....
+        return redirect('/register/')
+```
