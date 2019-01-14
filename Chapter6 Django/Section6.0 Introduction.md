@@ -463,3 +463,166 @@ Django配置`setting.py`步骤:
 1. 配置app: `INSTALLED_APPS`
 1. 配置templates目录: `TEMPLATES` 
 1. 配置staitic目录: `STATICFILES_DIRS`
+
+example: django submit
+
+```python
+# settings.py
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+```
+
+```html
+<!-- cmdb/templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/cmdb/style.css">
+</head>
+
+<body>
+    <!-- Django特殊: 对于POST，login/要与urls.py中一致 -->
+    <form action="/login/" method="post">
+        <p>
+            <label for="username">Username</label>
+            <input type="text" name="uname" id="username">
+        </p>
+        <p>
+            <label for="pwd">Pasword</label>
+            <input type="password" name="pwd" id="pwd">
+        </p>
+        <input type="submit" value="Submit">
+        <span style="color:red;">{{err_msg}}</span>
+    </form>
+</body>
+
+</html>
+```
+
+```py
+# urls.py
+from django.contrib import admin
+from django.urls import path
+
+from cmdb.views import login
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('login/', login),
+]
+```
+
+```py
+from django.shortcuts import render, redirect
+
+# Create your views here.
+def login(request):
+    # request包含了用户提交的所有信息
+    err_msg=''
+    # POST
+    if request.method=='POST':
+        # request.POST is dict
+        uname=request.POST.get('uname', None)
+        pwd=request.POST.get('pwd', None)
+        if uname=='root' and pwd=='112233':
+            return redirect('https://www.baidu.com')
+        else:
+            err_msg='wrong username or password!'
+    # GET
+    return render(request, 'login.html', {'err_msg':err_msg})
+```
+
+example: 在上一个例子基础上增加简单的后台管理
+> ![](res/admin01.png)
+
+```py
+# urls.py
+from django.contrib import admin
+from django.urls import path
+
+from cmdb import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('login/', views.login),
+    path('home/', views.home),
+]
+```
+
+```py
+# views.py
+from django.shortcuts import render, redirect
+
+
+def login(request):
+    # request包含了用户提交的所有信息
+    err_msg = ''
+    # POST
+    if request.method == 'POST':
+        # request.POST is dict
+        uname = request.POST.get('uname', None)
+        pwd = request.POST.get('pwd', None)
+        if uname == 'root' and pwd == '112233':
+            return redirect('/home')
+        else:
+            err_msg = 'wrong username or password!'
+    # GET
+    return render(request, 'login.html', {'err_msg': err_msg})
+
+# 用全局变量代替数据库
+g_list = []
+for i in range(6):
+    temp = {'Name': f'Person{i+1}', 'Gender': 'F', 'Age': 22}
+    g_list.append(temp)
+
+def home(request):
+    if request.method=='POST':
+        name=request.POST.get('name')
+        gender=request.POST.get('gender')
+        age=request.POST.get('age')
+        g_list.append({'Name':name, 'Gender':gender, 'Age':age})
+    return render(request, 'home.html', {'user_list': g_list})
+```
+
+```html
+<!-- cmdb/templates/home.html -->
+<body>
+    <form action="/home/" method="post">
+        <input type="text" name="name" id="name" placeholder="Name">
+        <input type="text" name="gender" id="gender" placeholder="Gender">
+        <input type="text" name="age" id="age" placeholder="Age">
+        <input type="submit" value="Add">
+    </form>
+    <table>
+        <thead>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Age</th>
+        </thead>
+        <tbody>
+            {% for row in user_list%}
+            <tr>
+                <td>{{row.Name}}</td>
+                <td>{{row.Gender}}</td>
+                <td>{{row.Age}}</td>
+            </tr>
+            {%endfor %}
+        </tbody>
+    </table>
+    <style>
+        input{
+            width: 80px;
+        }
+    </style>
+</body>
+```
