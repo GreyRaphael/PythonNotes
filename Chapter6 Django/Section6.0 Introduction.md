@@ -732,3 +732,73 @@ def register(request):
         # PUT, DELETE, HEAD, OPTION.....
         return redirect('/register/')
 ```
+
+FBV vs CBV: Django 支持两种方式，没有优劣之分
+- FBV: Functin Based View
+- CBV: Class Based View
+
+```py
+# urls.py
+from django.contrib import admin
+from django.urls import path
+
+from app1 import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    # FBV
+    path('register/', views.register),
+    # CBV: .as_view()
+    path('cregister/', views.Register.as_view()),
+]
+```
+
+```html
+<!-- cmdb/templates/cregister.html -->
+<body>
+    <form action="/cregister/" method="post">
+        <input type="text" name="uname" placeholder="username"><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+```
+
+```py
+# cmdb/view.py
+from django.shortcuts import render, redirect
+from django import views
+
+def register(request):
+    pass
+
+class Register(views.View):
+    # override get, post | put delete, head, option.....
+    # 基于Reflection来找到下面的两个方法: hasattr, getattr
+    def get(self, request):
+        return render(request, 'cregister.html')
+    def post(self, request):
+        uname=request.POST.get('uname')
+        print(uname)
+        return render(request, 'cregister.html')
+```
+
+example: CBV details
+> `Register`继承了`views.View`的`dispatch`方法，该方法使用Reflection的方法进而调用`get(self, request)`和`post(self, request)`方法
+
+```py
+# simple modify
+class Register(views.View):
+    def dispatch(self, request, *args, **kwargs):
+        print(f'before {request.method}')
+        res = super().dispatch(request, *args, **kwargs)
+        print(f'after {request.method}')
+        return res
+
+    def get(self, request):
+        return render(request, 'cregister.html')
+
+    def post(self, request):
+        uname = request.POST.get('uname')
+        print(uname)
+        return render(request, 'cregister.html')
+```
