@@ -267,19 +267,17 @@ D:\PYCHARMPROJECTS\DJANGPROJ1
 ```
 
 ```python
-# cmdb views.py
+# cmdb/views.py
 from django.shortcuts import render, HttpResponse
 
-# Create your views here.
 def sayHi(request):
     return HttpResponse('Hi, CMDB')
 ```
 
 ```python
-# openstakc views.py
+# openstakc/views.py
 from django.shortcuts import render, HttpResponse
 
-# Create your views here.
 def say_hello(request):
     return HttpResponse('Hello, OpenStack')
 ```
@@ -289,10 +287,9 @@ sqlalchemy模块，无法修改table结构；django的ORM可以修改table结构
 example: django默认后台管理程序
 
 ```python
-# cmdb models.py
+# cmdb/models.py
 from django.db import models
 
-# Create your models here.
 class UserType(models.Model):
     name = models.CharField(max_length=32)
 
@@ -305,7 +302,7 @@ class UserInfo(models.Model):
 ```
 
 ```python
-#  cmdb admin.py
+#  cmdb/admin.py
 from django.contrib import admin
 from cmdb import models
 
@@ -524,9 +521,9 @@ urlpatterns = [
 ```
 
 ```py
+# cmdb/views.py
 from django.shortcuts import render, redirect
 
-# Create your views here.
 def login(request):
     # request包含了用户提交的所有信息
     err_msg=''
@@ -562,7 +559,7 @@ urlpatterns = [
 ```
 
 ```py
-# views.py
+# cmdb/views.py
 from django.shortcuts import render, redirect
 
 
@@ -633,6 +630,7 @@ def home(request):
 example: `request.POST.get()` & `request.POST.getlist()`
 
 ```html
+<!-- app1/templates/register.html -->
 <body>
     <form action="/register/" method="post">
         <p>
@@ -674,7 +672,7 @@ example: `request.POST.get()` & `request.POST.getlist()`
 ```
 
 ```py
-# app1 view.py
+# app1/view.py
 from django.shortcuts import render, redirect
 
 def register(request):
@@ -699,6 +697,7 @@ def register(request):
 example: form file upload
 
 ```html
+<!-- app1/templates/register.html -->
 <body>
     <!-- 没有enctype，post的只是字符串 -->
     <!-- 有enctype，将input:text放到POST中，将input:file放到FILES -->
@@ -711,7 +710,7 @@ example: form file upload
 ```
 
 ```py
-# app1 views.py
+# app1/views.py
 from django.shortcuts import render, redirect
 
 def register(request):
@@ -754,7 +753,7 @@ urlpatterns = [
 ```
 
 ```html
-<!-- cmdb/templates/cregister.html -->
+<!-- app1/templates/cregister.html -->
 <body>
     <form action="/cregister/" method="post">
         <input type="text" name="uname" placeholder="username"><br>
@@ -764,7 +763,7 @@ urlpatterns = [
 ```
 
 ```py
-# cmdb/view.py
+# app1/view.py
 from django.shortcuts import render, redirect
 from django import views
 
@@ -786,7 +785,7 @@ example: CBV details
 > `Register`继承了`views.View`的`dispatch`方法，该方法使用Reflection的方法进而调用`get(self, request)`和`post(self, request)`方法
 
 ```py
-# simple modify
+# simple modify app1/views.py
 class Register(views.View):
     def dispatch(self, request, *args, **kwargs):
         print(f'before {request.method}')
@@ -801,4 +800,44 @@ class Register(views.View):
         uname = request.POST.get('uname')
         print(uname)
         return render(request, 'cregister.html')
+```
+
+example: django template loop for dictionary
+
+```html
+<!-- app1/templates/index.html -->
+<body>
+    <ul>
+        <!-- for dictionary -->
+        {%for k, v in user_dict.items%}
+        <li>{{k}}===>{{v}}</li>
+        {%endfor%}
+    </ul>
+    <ul>
+        <!-- for list -->
+        {%for row in user_list%}
+        <li>{{row}}</li>
+        {%endfor%}
+    </ul>
+</body>
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+
+g_dict = {
+    '0': {'name': 'grey', 'gender': 'M', 'age': 22},
+    '1': {'name': 'chris', 'gender': 'F', 'age': 32},
+    '2': {'name': 'james', 'gender': 'M', 'age': 12},
+}
+
+g_list = [
+    {'name': 'grey', 'gender': 'M', 'age': 22},
+    {'name': 'chris', 'gender': 'F', 'age': 32},
+    {'name': 'james', 'gender': 'M', 'age': 12},
+]
+
+def index(request):
+    return render(request, 'index.html', {'user_dict': g_dict, 'user_list': g_list})
 ```
