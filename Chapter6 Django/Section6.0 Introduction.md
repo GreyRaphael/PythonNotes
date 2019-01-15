@@ -860,6 +860,12 @@ example: click in details
         <li><a target='_blank' href="/detail-{{k}}.html">{{v.name}}</a></li>
         {%endfor%}
     </ul>
+    <label>Method3: Best</label>
+    <ul>
+        {%for k, v in user_dict.items%}
+        <li><a target='_blank' href="/detail-{{k}}-0.html">{{v.name}}</a></li>
+        {%endfor%}
+    </ul>
 </body>
 ```
 
@@ -882,8 +888,12 @@ urlpatterns = [
     path('index/', views.index),
     path('detail/', views.detail1),
     re_path(r'detail-(\d+).html', views.detail2),
+    re_path(r'detail-(?P<nid>\d+)-(?P<uid>\d+).html', views.detail3),
 ]
 ```
+
+> Django re_path支持regex分组: `r'detail-(?P<nid>\d+)-(?P<uid>\d+).html'`, 那么`def detail3(request, uid, nid):`和`def detail3(request, nid, uid):`都行；  
+> 简化做法`def detaile(request, *args, **kwargs)`，不分组就会采用`*args`，分组了之后因为有组名，就会采用`**kwargs`
 
 ```py
 # app1/views.py
@@ -906,5 +916,9 @@ def detail1(request):
 
 
 def detail2(request, nid):
+    return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
+
+def detail3(request, *args, **kwargs):
+    nid=kwargs.get('nid')
     return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
 ```
