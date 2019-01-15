@@ -841,3 +841,70 @@ g_list = [
 def index(request):
     return render(request, 'index.html', {'user_dict': g_dict, 'user_list': g_list})
 ```
+
+example: click in details
+
+```html
+<!-- app1/templates/index.html -->
+<body>
+    <label>Method1: 权重低</label>
+    <ul>
+        {%for k, v in user_dict.items%}
+        <!-- SEO网站权重不高，因为当作是同一个site -->
+        <li><a target='_blank' href="/detail/?nid={{k}}">{{v.name}}</a></li>
+        {%endfor%}
+    </ul>
+    <label>Method2: Better</label>
+    <ul>
+        {%for k, v in user_dict.items%}
+        <li><a target='_blank' href="/detail-{{k}}.html">{{v.name}}</a></li>
+        {%endfor%}
+    </ul>
+</body>
+```
+
+```html
+<!-- app1/templates/detail.html -->
+<body>
+    {{detail_info}}    
+</body>
+```
+
+```py
+# urls.py
+from django.contrib import admin
+from django.urls import path, re_path
+
+from app1 import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('index/', views.index),
+    path('detail/', views.detail1),
+    re_path(r'detail-(\d+).html', views.detail2),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+
+g_dict = {
+    '0': {'name': 'grey', 'gender': 'M', 'age': 22},
+    '1': {'name': 'chris', 'gender': 'F', 'age': 32},
+    '2': {'name': 'james', 'gender': 'M', 'age': 12},
+}
+
+
+def index(request):
+    return render(request, 'index.html', {'user_dict': g_dict})
+
+
+def detail1(request):
+    nid = request.GET.get('nid')
+    return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
+
+
+def detail2(request, nid):
+    return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
+```
