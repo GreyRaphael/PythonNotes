@@ -877,7 +877,7 @@ example: click in details
 ```
 
 ```py
-# urls.py
+
 from django.contrib import admin
 from django.urls import path, re_path
 
@@ -905,15 +905,12 @@ g_dict = {
     '2': {'name': 'james', 'gender': 'M', 'age': 12},
 }
 
-
 def index(request):
     return render(request, 'index.html', {'user_dict': g_dict})
-
 
 def detail1(request):
     nid = request.GET.get('nid')
     return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
-
 
 def detail2(request, nid):
     return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
@@ -922,3 +919,70 @@ def detail3(request, *args, **kwargs):
     nid=kwargs.get('nid')
     return render(request, 'detail.html', {'detail_info': g_dict.get(nid)})
 ```
+
+```py
+# summary: 通用做法
+def func(request, *args, **kwargs): pass
+
+# situation1: detail-(\d+)-(\d+).html
+def func1(request, nid, uid): pass
+def func2(request, *args):
+    nid, uid = args
+def func3(request, *args, **kwargs): pass
+
+# situation2: detail-(?P<nid>\d+)-(?P<uid>\d+).html
+def func4(request, nid, uid):pass
+def func5(request, uid, nid):pass # 参数位置不影响传值
+def func6(request, **kwargs):pass
+def func7(request, *args, **kwargs):pass
+```
+
+example: submit to current url
+
+```py
+# app1/views.py
+def index(request):
+    print(request.path_info)
+    # request也被传递给了index.html
+    return render(request, 'index.html', {'user_dict': g_dict})
+```
+
+```html
+<!-- submit to current url -->
+<!--  -->
+<form action="{{request.path_info}}" method="post">
+    <input type="text" name="uname" placeholder="Name">
+    <input type="password" name="pwd" placeholder="Password">
+    <input type="submit" value="Submit">
+</form>
+```
+
+example: `path()`的`name`参数
+
+```py
+# urls.py
+from django.contrib import admin
+from django.urls import path, re_path
+
+from app1 import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('indexxxxxxxxxxxxxxxx/', views.index, name='index'),
+    path('detail/', views.detail1, name='detail'),
+    re_path(r'detail-(\d+).html', views.detail2),
+    re_path(r'detail-(?P<nid>\d+)-(?P<uid>\d+).html', views.detail3),
+]
+```
+
+```html
+<!-- app1/templates/index.html -->
+<!-- 使用name参数，可以简化书写 -->
+<form action="{% url 'index'%}" method="post">
+    <input type="text" name="uname" placeholder="Name">
+    <input type="password" name="pwd" placeholder="Password">
+    <input type="submit" value="Submit">
+</form>
+```
+
+还可以这么操作`<form action="{% url 'detail'%}" method="post">`
