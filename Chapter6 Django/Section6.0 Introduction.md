@@ -921,20 +921,19 @@ def detail3(request, *args, **kwargs):
 ```
 
 ```py
-# summary: 通用做法
-def func(request, *args, **kwargs): pass
+# summary: views.py获取url的参数
 
-# situation1: detail-(\d+)-(\d+).html
-def func1(request, nid, uid): pass
-def func2(request, *args):
+# situation1: re_path(r'detail-(\d+)-(\d+).html', views.xxx)
+def xxx(request, nid, uid): pass
+def xxx(request, *args):
     nid, uid = args
-def func3(request, *args, **kwargs): pass
+def xxx(request, *args, **kwargs): pass
 
-# situation2: detail-(?P<nid>\d+)-(?P<uid>\d+).html
-def func4(request, nid, uid):pass
-def func5(request, uid, nid):pass # 参数位置不影响传值
-def func6(request, **kwargs):pass
-def func7(request, *args, **kwargs):pass
+# situation2: re_path(r'detail-(?P<nid>\d+)-(?P<uid>\d+).html', views.yyy)
+def yyy(request, nid, uid):pass
+def yyy(request, uid, nid):pass # 参数位置不影响传值
+def yyy(request, **kwargs):pass
+def yyy(request, *args, **kwargs):pass
 ```
 
 example: submit to current url
@@ -957,7 +956,7 @@ def index(request):
 </form>
 ```
 
-example: `path()`的`name`参数
+example: `path()`的`name`参数用于动态生成url
 
 ```py
 # urls.py
@@ -970,14 +969,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('indexxxxxxxxxxxxxxxx/', views.index, name='index'),
     path('detail/', views.detail1, name='detail'),
-    re_path(r'detail-(\d+).html', views.detail2),
+    re_path(r'detail-(\d+).html', views.detail2, name='haha'),
     re_path(r'detail-(?P<nid>\d+)-(?P<uid>\d+).html', views.detail3),
 ]
 ```
 
 ```html
 <!-- app1/templates/index.html -->
-<!-- 使用name参数，可以简化书写 -->
 <form action="{% url 'index'%}" method="post">
     <input type="text" name="uname" placeholder="Name">
     <input type="password" name="pwd" placeholder="Password">
@@ -985,4 +983,32 @@ urlpatterns = [
 </form>
 ```
 
-还可以这么操作`<form action="{% url 'detail'%}" method="post">`
+example: 动态生成url
+> 可以直接写url, 也可以动态生成; 动态生成时django的特色
+
+```py
+# view.py中动态生成url
+# situation1: path('abcdefg/', views.index, name='indexx'),
+from django.urls import reverse
+def index(request, *args, **kwargs):
+    url1=reverse('indexx')
+    print(url1)
+
+# situation2: re_path(r'abcdefg/(\d+)/(\d+)', views.index, name='indexx'),
+def index(request, *args, **kwargs):
+    url2=reverse('indexx', args=(10,20,))
+
+# situation3: re_path(r'abcdefg/(?P<nid>\d+)/(?P<uid>\d+)', views.index, name='indexx'),
+def index(request, *args, **kwargs):
+    url3=reverse('indexx', kwargs={'nid':10, 'uid': 110})
+```
+
+```django
+<!-- templates的模板中动态生成url -->
+<!-- situation1: path('uvwxyz/', views.detail, name='det'), -->
+{%url 'det'%}
+<!-- situation2: re_path(r'uvwxyz/(\d+)/(\d+)', views.detail, name='det'), -->
+{%url 'det' 10 20%}
+<!-- situation3: re_path(r'uvwxyz/(?P<nid>\d+)/(?P<uid>\d+)', views.detail, name='det'), -->
+{%url 'det' nid=10 uid=110%}
+```
