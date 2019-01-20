@@ -1430,3 +1430,63 @@ def adduser(request, *args, **kwargs):
 - 增加一个`not NULL`字段，`python manage.py makemigrations`，会提示输入一个值，将之前的所有记录都增加这个字段的默认值，`python manage.py migrate`即可
 - 增加一个`null=True`字段，`python manage.py makemigrations`, `python manage.py migrate`会将之前的记录的该字段设置为`NULL`
 - 删除一个字段，需要`python manage.py makemigrations`, `python manage.py migrate`
+
+`models.EmailField`, `models.URLField`本质就是`models.CharField`，只不过是用于`127.0.0.1:8000/admin/`；如果不用`/admin/`那么这些Field没用。
+
+`models.py`中的class有一个隐含的默认的`id`字段，并且是primary_key；也可以自定义id字段`uid=models.AutoField(primary_key=True)`而不使用默认的`id`字段(AutoField必须是primary_key)
+
+`models.py`生成的table名字为`appname_classname`
+
+django字段类型分类:
+- string
+- number
+- time
+- binary
+
+```bash
+# 字段参数
+null                # 是否为空
+default             # 默认值
+primary_key         # 主键
+db_column           # 列名
+db_index            # 索引
+unique              # 唯一索引
+unique_for_date     # 只对date做index
+unique_for_month
+unique_for_year
+auto_now_add        # 创建时，自动生成时间
+auto_now            # 更新时，自动更新为当前时间
+    # method1调用, auto_now无效
+    # obj = UserGroup.objects.filter(id=1).update(caption='CEO')
+    
+    # method2调用，auto_now有效
+    # obj = UserGroup.objects.filter(id=1).first()
+    # obj.caption = "CEO"
+    # obj.save()
+
+choices             # django admin中显示下拉选项；避免连表查询，提升性能
+blank               # django admin是否为空: blank=True
+verbose_name        # django admin显示字段中文: verbose_name='用户名'
+editable            # django admin是否可编辑
+error_messages      # django admin错误信息 error_messages={'required': '请输入'}
+help_text           # django admin提示
+validators          # django form ,自定义验证
+```
+
+```py
+# choice使用场景: 学生表中的class_id和班级表中id需要连表(foreign_key是class_id)，然而班级就那么几个，而连表性能低，所以一般使用内存中的数据；那么就会涉及choices；choices是在内存中的数据
+# models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    username=models.CharField(max_length=32)
+    password=models.CharField(max_length=64)
+
+    user_type=(
+        (1, 'superuser'),
+        (2, 'normaluser'),
+        (3, 'banneduser'),
+    )
+
+    user_type_id=models.IntegerField(choices=user_type, default=1)
+```
