@@ -1012,3 +1012,37 @@ def index(request, *args, **kwargs):
 <!-- situation3: re_path(r'uvwxyz/(?P<nid>\d+)/(?P<uid>\d+)', views.detail, name='det'), -->
 {%url 'det' nid=10 uid=110%}
 ```
+
+example: `include` urls
+
+```bash
+# urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('app1/', include('app1.urls')),
+    path('app2/', include('app2.urls')),
+]
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('login/', views.login),
+]
+```
+
+```py
+# app2.urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+
+]
+```
