@@ -1038,7 +1038,7 @@ urlpatterns = [
 ```
 
 ```py
-# app2.urls.py
+# app2/urls.py
 from django.urls import path, re_path
 from . import views
 
@@ -1055,9 +1055,11 @@ ORM 分类
 - `INSTALLED_APPS`添加app
 - `DATABASES`修改为对应的DB
 - `models.py`中写class
+- `python manage.py makemigrations`, `python manage.py migrate`
 
 ```py
 # settings.py
+# method1: 使用mysqlclient
 # 对于MySQL需要首先 conda install mysqlclient
 DATABASES = {
     'default': {
@@ -1071,10 +1073,73 @@ DATABASES = {
 }
 ```
 
-对于MySQL也可采用
-
 ```py
-# 和settings.py同一级的__init__.py
+# method2: 使用pymysql
+# 对于MySQL，在settings.py同一级的__init__.py
 import pymysql
 pymysql.install_as_MySQLdb()
+```
+
+```py
+# app/models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    username=models.CharField(max_length=32)
+    password=models.CharField(max_length=64)
+```
+
+example: DB add data
+> 访问`http://127.0.0.1:8000/app2/adduser/`即可添加数据
+
+```py
+# app2/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('login/', views.login),
+    path('adduser/', views.adduser),
+]
+```
+
+```py
+# app2/views.py
+from django.shortcuts import render, HttpResponse
+from . import models
+
+def login(request, *args, **kwargs):
+    return render(request, 'login.html')
+
+def adduser(request, *args, **kwargs):
+    # # Insert Data
+    # method1: 
+    models.UserInfo.objects.create(username='Grey', password='123')
+
+    # method2:
+    user={'username':'moris', 'password': '456'}
+    models.UserInfo.objects.create(**user)
+
+    # method3:
+    user=models.UserInfo(username='James', password='789')
+    user.save()
+
+    # # Query
+    # select * from app2_userinfo;
+    for u in models.UserInfo.objects.all():
+        print(u.id, u.username, u.password)
+    
+    # select * from app2_userinfo where username='Grey';
+    for u in models.UserInfo.objects.filter(username='Grey'):
+        print(u.id, u.username, u.password)
+
+    # # Delete
+    # delete from app2_userinfo where id=2;
+    models.UserInfo.objects.filter(id=2).delete()
+
+    # # Update
+    # update app2_userinfo set password='666' where username='Grey';
+    models.UserInfo.objects.filter(username='Grey').update(password='666')
+    
+    return HttpResponse('OK')
 ```
