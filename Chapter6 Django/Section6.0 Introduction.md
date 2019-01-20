@@ -1098,48 +1098,329 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    path('login/', views.login),
     path('adduser/', views.adduser),
 ]
 ```
 
 ```py
 # app2/views.py
-from django.shortcuts import render, HttpResponse
-from . import models
-
-def login(request, *args, **kwargs):
-    return render(request, 'login.html')
+from django.shortcuts import HttpResponse
+from models import UserInfo
 
 def adduser(request, *args, **kwargs):
     # # Insert Data
-    # method1: 
-    models.UserInfo.objects.create(username='Grey', password='123')
+    # method1:
+    UserInfo.objects.create(username='Grey', password='123')
 
     # method2:
-    user={'username':'moris', 'password': '456'}
-    models.UserInfo.objects.create(**user)
+    user = {'username': 'moris', 'password': '456'}
+    UserInfo.objects.create(**user)
 
     # method3:
-    user=models.UserInfo(username='James', password='789')
+    user = UserInfo(username='James', password='789')
     user.save()
 
     # # Query
     # select * from app2_userinfo;
-    for u in models.UserInfo.objects.all():
+    for u in UserInfo.objects.all():
         print(u.id, u.username, u.password)
-    
+
     # select * from app2_userinfo where username='Grey';
-    for u in models.UserInfo.objects.filter(username='Grey'):
+    for u in UserInfo.objects.filter(username='Grey'):
         print(u.id, u.username, u.password)
 
     # # Delete
     # delete from app2_userinfo where id=2;
-    models.UserInfo.objects.filter(id=2).delete()
+    UserInfo.objects.filter(id=2).delete()
 
     # # Update
     # update app2_userinfo set password='666' where username='Grey';
-    models.UserInfo.objects.filter(username='Grey').update(password='666')
-    
+    UserInfo.objects.filter(username='Grey').update(password='666')
+
     return HttpResponse('OK')
+```
+
+example: login & CRUD
+
+```bash
+app2/
+    models.py
+    urls.py
+    views.py
+    templates/
+        app2/
+            login.html
+            index.html
+            info.html
+            detail.html
+            edit.html
+```
+
+```py
+# app2/models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    username=models.CharField(max_length=32)
+    password=models.CharField(max_length=64)
+```
+
+```py
+# app2/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('adduser/', views.adduser),
+    path('login/', views.login),
+    path('index/', views.index),
+    path('userinfo/', views.user_info),
+    path('usergroup/', views.user_group),
+    re_path(r'detail-(?P<nid>\d+)/', views.user_detail),
+    re_path(r'deluser-(?P<nid>\d+)/', views.user_del),
+    re_path(r'edituser-(?P<nid>\d+)/', views.user_edit),
+]
+```
+
+```py
+# app2/views.py
+from django.shortcuts import render, HttpResponse, redirect
+from .models import UserInfo
+
+def login(request, *args, **kwargs):
+    msg = ''
+    if request.method == 'POST':
+        u = request.POST.get('uname')
+        p = request.POST.get('pwd')
+        obj = UserInfo.objects.filter(username=u, password=p).first()
+        if not obj:
+            msg = 'error username or password'
+        else:
+            print(obj.username, obj.password)
+            return redirect(f'/app2/index/')
+    return render(request, 'app2/login.html', {'msg': msg})
+
+
+def index(request, *args, **kwargs):
+    return render(request, 'app2/index.html')
+
+
+def user_info(request, *args, **kwargs):
+    if request.method == 'GET':
+        userlist = UserInfo.objects.all()
+        return render(request, 'app2/info.html', {'userlist': userlist})
+    elif request.method == 'POST':
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+        UserInfo.objects.create(username=uname, password=pwd)
+        return redirect(f'/app2/userinfo/')
+
+
+def user_group(request, *args, **kwargs): pass
+
+
+def user_detail(request, *args, **kwargs):
+    nid = kwargs.get('nid')
+    obj = UserInfo.objects.filter(id=nid).first()
+    if obj:
+        print(obj.id, obj.username, obj.password)
+        return render(request, 'app2/detail.html', {'obj': obj})
+
+
+def user_del(request, *args, **kwargs):
+    nid = kwargs.get('nid')
+    UserInfo.objects.filter(id=nid).delete()
+    return redirect('/app2/userinfo/')
+
+
+def user_edit(request, *args, **kwargs):
+    if request.method == 'GET':
+        nid = kwargs.get('nid')
+        obj = UserInfo.objects.filter(id=nid).first()
+        if obj:
+            return render(request, 'app2/edit.html', {'obj': obj})
+    elif request.method == 'POST':
+        nid = request.POST.get('id')
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+        UserInfo.objects.filter(id=nid).update(username=uname, password=pwd)
+        return redirect('/app2/userinfo/')
+
+
+def adduser(request, *args, **kwargs):
+    # # Insert Data
+    # method1:
+    UserInfo.objects.create(username='Grey', password='123')
+
+    # method2:
+    user = {'username': 'moris', 'password': '456'}
+    UserInfo.objects.create(**user)
+
+    # method3:
+    user = UserInfo(username='James', password='789')
+    user.save()
+
+    # # Query
+    # select * from app2_userinfo;
+    for u in UserInfo.objects.all():
+        print(u.id, u.username, u.password)
+
+    # select * from app2_userinfo where username='Grey';
+    for u in UserInfo.objects.filter(username='Grey'):
+        print(u.id, u.username, u.password)
+
+    # # Delete
+    # delete from app2_userinfo where id=2;
+    UserInfo.objects.filter(id=2).delete()
+
+    # # Update
+    # update app2_userinfo set password='666' where username='Grey';
+    UserInfo.objects.filter(username='Grey').update(password='666')
+
+    return HttpResponse('OK')
+```
+
+```html
+<!-- app2/templates/app2/login.html -->
+<body>
+    <form action="{{request.path_info}}" method="post">
+        <input type="text" name="uname" placeholder="username">
+        <input type="password" name="pwd" placeholder="password">
+        <input type="submit" value="Submit">
+    </form>
+    <span>{{msg}}</span>
+</body>
+```
+
+```html
+<!-- app2/templates/app2/index.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            This is content
+        </div>
+    </div>
+    <style>
+        body{
+            margin: 0;
+        }
+        .pg-header{
+            height: 48px;
+            background-color: #000;
+            color: #fff;
+        }
+        .pg-menu{
+            position: absolute;
+            top: 48px;
+            bottom: 0;
+            left: 0;
+            width: 200px;
+            background-color: pink;
+        }
+        .menu{
+            display: block;
+            margin: 10px;
+        }
+        .pg-content{
+            position: absolute;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            background-color: gold;
+            overflow: auto;
+        }
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/app2/info.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Add User:</h3>
+            <form action="/app2/userinfo/" method="post">
+                <input type="text" name="uname" placeholder="username">
+                <input type="password" name="pwd" placeholder="password">
+                <input type="submit" value="Submit">
+            </form>
+            <h3>User List:</h3>
+            <ul>
+                {% for row in userlist%}
+                <li>
+                    <a href="/app2/detail-{{row.id}}">{{row.username}}</a>|
+                    <a href="/app2/deluser-{{row.id}}">Delete</a>|
+                    <a href="/app2/edituser-{{row.id}}">Edit</a>
+                </li>
+                {%endfor%}
+            </ul>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/app2/detail.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>User Details:</h3>
+            {{obj.id}}, {{obj.username}}, {{obj.password}}
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/app2/edit.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Edit User:</h3>
+            <form action="/app2/edituser-{{obj.id}}/" method="post">
+                <input style="display:none;" type="text" name="id" value="{{obj.id}}">
+                <input type="text" name="uname" value="{{obj.username}}">
+                <input type="text" name="pwd" value="{{obj.password}}">
+                <input type="submit" value="Modify">
+            </form>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
 ```
