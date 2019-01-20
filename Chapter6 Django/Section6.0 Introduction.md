@@ -1424,3 +1424,9 @@ def adduser(request, *args, **kwargs):
     </style>
 </body>
 ```
+
+`models.py`注意事项:
+- 修改了字段的`max_length`等属性，需要`python manage.py makemigrations`, `python manage.py migrate`
+- 增加一个`not NULL`字段，`python manage.py makemigrations`，会提示输入一个值，将之前的所有记录都增加这个字段的默认值，`python manage.py migrate`即可
+- 增加一个`null=True`字段，`python manage.py makemigrations`, `python manage.py migrate`会将之前的记录的该字段设置为`NULL`
+- 删除一个字段，需要`python manage.py makemigrations`, `python manage.py migrate`
