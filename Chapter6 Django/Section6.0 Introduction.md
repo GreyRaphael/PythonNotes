@@ -1046,3 +1046,35 @@ urlpatterns = [
 
 ]
 ```
+
+ORM 分类
+- DB-first ORM: 先创建DB(自己登陆，写sql)，然后使用IDE之类的工具生成一些`class`，然后根据类来操作数据库
+- code-first ORM(mainstream): 先写一些`class`，然后工具帮助生成各种数据库Table，然后根据类来操作数据库
+
+操作步骤:
+- `INSTALLED_APPS`添加app
+- `DATABASES`修改为对应的DB
+- `models.py`中写class
+
+```py
+# settings.py
+# 对于MySQL需要首先 conda install mysqlclient
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test', # create by myself
+        'USER': 'grey',
+        'PASSWORD': '123456',
+        'HOST': 'xx.xx.xx.xx',
+        'PORT': '3306',
+    }
+}
+```
+
+对于MySQL也可采用
+
+```py
+# 和settings.py同一级的__init__.py
+import pymysql
+pymysql.install_as_MySQLdb()
+```
