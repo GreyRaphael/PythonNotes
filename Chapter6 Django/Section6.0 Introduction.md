@@ -1141,6 +1141,11 @@ def adduser(request, *args, **kwargs):
 ```
 
 example: login & CRUD
+> ![](res/CRUD01.png)  
+> ![](res/CRUD02.png)  
+> ![](res/CRUD03.png)  
+> ![](res/CRUD04.png)  
+> ![](res/CRUD05.png)  
 
 ```bash
 app2/
