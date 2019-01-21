@@ -1552,6 +1552,14 @@ def adduser(request, *args, **kwargs):
 ```
 
 example: UserInfo & UserGroup
+> ![](res/CRUD01.png)  
+> ![](res/CRUD02.png)  
+> ![](res/CRUD06.png)  
+> ![](res/CRUD07.png)  
+> ![](res/CRUD08.png)  
+> ![](res/CRUD09.png)  
+> ![](res/CRUD10.png)  
+> ![](res/CRUD11.png)  
 
 ```bash
 app2/
