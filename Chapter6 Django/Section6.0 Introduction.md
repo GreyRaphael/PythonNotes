@@ -1550,3 +1550,460 @@ def adduser(request, *args, **kwargs):
         user_group=UserGroup.objects.filter(id=1).first()
     )
 ```
+
+example: UserInfo & UserGroup
+
+```bash
+app2/
+    models.py
+    urls.py
+    views.py
+    templates/
+        app2/
+            login.html
+            index.html
+            info.html
+            detail.html
+            edit.html
+            
+            groupinfo.html
+            gpdetail.html
+            gpedit.html
+```
+
+```py
+# app2/models.py
+from django.db import models
+
+class UserGroup(models.Model):
+    uid = models.AutoField(primary_key=True)
+    groupname = models.CharField(max_length=32)
+
+
+class UserInfo(models.Model):
+    username = models.CharField(max_length=32)
+    password = models.CharField(max_length=64)
+    user_group = models.ForeignKey(
+        'UserGroup',
+        to_field='uid',
+        on_delete=models.CASCADE,
+        default=1
+    )
+```
+
+```py
+# app2/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    # user operation
+    path('adduser/', views.adduser),
+    path('login/', views.login),
+    path('index/', views.index),
+    path('userinfo/', views.user_info),
+    re_path(r'^detail-(?P<nid>\d+)/', views.user_detail),
+    re_path(r'deluser-(?P<nid>\d+)/', views.user_del),
+    re_path(r'edituser-(?P<nid>\d+)/', views.user_edit),
+    # group operation
+    path('usergroup/', views.user_group),
+    # ^必须要有，否则url会与detail那条匹配
+    re_path(r'^gpdetail-(?P<gid>\d+)/', views.gp_detail),
+    re_path(r'delgroup-(?P<gid>\d+)/', views.gp_del),
+    re_path(r'editgroup-(?P<gid>\d+)/', views.gp_edit),
+]
+```
+
+```py
+# app2/views.py
+from django.shortcuts import render, HttpResponse, redirect
+from .models import *
+
+
+def login(request, *args, **kwargs):
+    msg = ''
+    if request.method == 'POST':
+        u = request.POST.get('uname')
+        p = request.POST.get('pwd')
+        obj = UserInfo.objects.filter(username=u, password=p).first()
+        if not obj:
+            msg = 'error username or password'
+        else:
+            print(obj.username, obj.password)
+            return redirect(f'/app2/index/')
+    return render(request, 'app2/login.html', {'msg': msg})
+
+
+def index(request, *args, **kwargs):
+    return render(request, 'app2/index.html')
+
+
+def user_info(request, *args, **kwargs):
+    if request.method == 'GET':
+        userlist = UserInfo.objects.all()
+        grouplist = UserGroup.objects.all()
+        return render(request, 'app2/info.html', {'userlist': userlist, 'grouplist': grouplist})
+    elif request.method == 'POST':
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+        gp_id = request.POST.get('gp_id')
+        UserInfo.objects.create(
+            username=uname,
+            password=pwd,
+            user_group_id=gp_id,
+        )
+        return redirect('/app2/userinfo/')
+
+
+def user_detail(request, *args, **kwargs):
+    nid = kwargs.get('nid')
+    obj = UserInfo.objects.filter(id=nid).first()
+    if obj:
+        print(obj.id, obj.username, obj.password)
+        return render(request, 'app2/detail.html', {'obj': obj})
+
+
+def user_del(request, *args, **kwargs):
+    nid = kwargs.get('nid')
+    UserInfo.objects.filter(id=nid).delete()
+    return redirect('/app2/userinfo/')
+
+
+def user_edit(request, *args, **kwargs):
+    if request.method == 'GET':
+        nid = kwargs.get('nid')
+        obj = UserInfo.objects.filter(id=nid).first()
+        grouplist = UserGroup.objects.all()
+        if obj:
+            return render(request, 'app2/edit.html', {'obj': obj, 'grouplist': grouplist})
+    elif request.method == 'POST':
+        nid = request.POST.get('id')
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+        gp_id = request.POST.get('gp_id')
+        UserInfo.objects.filter(id=nid).update(
+            username=uname,
+            password=pwd,
+            user_group_id=gp_id
+        )
+        return redirect('/app2/userinfo/')
+
+
+def adduser(request, *args, **kwargs):
+    # # Insert Data
+    # method1:
+    UserInfo.objects.create(username='Grey', password='123')
+
+    # method2:
+    user = {'username': 'moris', 'password': '456'}
+    UserInfo.objects.create(**user)
+
+    # method3:
+    user = UserInfo(username='James', password='789')
+    user.save()
+
+    # # Query
+    # select * from app2_userinfo;
+    for u in UserInfo.objects.all():
+        print(u.id, u.username, u.password)
+
+    # select * from app2_userinfo where username='Grey';
+    for u in UserInfo.objects.filter(username='Grey'):
+        print(u.id, u.username, u.password)
+
+    # # Delete
+    # delete from app2_userinfo where id=2;
+    UserInfo.objects.filter(id=2).delete()
+
+    # # Update
+    # update app2_userinfo set password='666' where username='Grey';
+    UserInfo.objects.filter(username='Grey').update(password='666')
+
+    return HttpResponse('OK')
+
+
+def user_group(request, *args, **kwargs):
+    if request.method == 'GET':
+        grouplist = UserGroup.objects.all()
+        return render(request, 'app2/groupinfo.html', {'grouplist': grouplist})
+    elif request.method == 'POST':
+        gpname = request.POST.get('gpname')
+        UserGroup.objects.create(groupname=gpname)
+        return redirect('/app2/usergroup')
+
+
+def gp_detail(request, *args, **kwargs):
+    gid = kwargs.get('gid')
+    obj = UserGroup.objects.filter(uid=gid).first()
+    if obj:
+        return render(request, 'app2/gpdetail.html', {'obj': obj})
+
+
+def gp_del(request, *args, **kwargs):
+    gid = kwargs.get('gid')
+    UserGroup.objects.filter(uid=gid).delete()
+    return redirect('/app2/usergroup')
+
+
+def gp_edit(request, *args, **kwargs):
+    if request.method == 'GET':
+        gid = kwargs.get('gid')
+        obj = UserGroup.objects.filter(uid=gid).first()
+        if obj:
+            print(gid)
+            return render(request, 'app2/gpedit.html', {'obj': obj})
+    elif request.method == 'POST':
+        gid = request.POST.get('uid')
+        gpname = request.POST.get('gpname')
+        UserGroup.objects.filter(uid=gid).update(groupname=gpname)
+        return redirect('/app2/usergroup')
+```
+
+```html
+<!-- app2/templates/login.html -->
+<body>
+    <form action="{{request.path_info}}" method="post">
+        <input type="text" name="uname" placeholder="username">
+        <input type="password" name="pwd" placeholder="password">
+        <input type="submit" value="Submit">
+    </form>
+    <span>{{msg}}</span>
+</body>
+```
+
+```html
+<!-- app2/templates/index.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            This is content
+        </div>
+    </div>
+    <style>
+        body{
+            margin: 0;
+        }
+        .pg-header{
+            height: 48px;
+            background-color: #000;
+            color: #fff;
+        }
+        .pg-menu{
+            position: absolute;
+            top: 48px;
+            bottom: 0;
+            left: 0;
+            width: 200px;
+            background-color: pink;
+        }
+        .menu{
+            display: block;
+            margin: 10px;
+        }
+        .pg-content{
+            position: absolute;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            background-color: gold;
+            overflow: auto;
+        }
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/info.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Add User:</h3>
+            <form action="/app2/userinfo/" method="post">
+                <input type="text" name="uname" placeholder="username">
+                <input type="password" name="pwd" placeholder="password">
+                <select name="gp_id">
+                    {% for row in grouplist %}
+                        <option value="{{ row.uid }}">{{ row.groupname }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Add">
+            </form>
+            <h3>User List:</h3>
+            <ul>
+                {% for row in userlist%}
+                <li>
+                    <a href="/app2/detail-{{row.id}}">{{row.username}}</a>|
+                    <a href="/app2/gpdetail-{{ row.user_group.uid }}">{{row.user_group.groupname}}</a>|
+                    <a href="/app2/deluser-{{row.id}}">Delete</a>|
+                    <a href="/app2/edituser-{{row.id}}">Edit</a>
+                </li>
+                {%endfor%}
+            </ul>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/detail.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>User Details:</h3>
+            {{obj.id}}, {{obj.username}}, {{obj.password}}
+            <h3>Group:</h3>
+            {{ obj.user_group.groupname }}
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/edit.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Edit User:</h3>
+            <form action="/app2/edituser-{{obj.id}}/" method="post">
+                <input style="display:none;" type="text" name="id" value="{{obj.id}}">
+                <input type="text" name="uname" value="{{obj.username}}">
+                <input type="text" name="pwd" value="{{obj.password}}">
+                <select name="gp_id">
+                    {% for row in grouplist %}
+                        {% if row.uid == obj.user_group_id %}
+                            <option value="{{ row.uid }}" selected>{{ row.groupname }}</option>
+                        {% else %}
+                            <option value="{{ row.uid }}">{{ row.groupname }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Modify">
+            </form>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/groupinfo.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Add Group:</h3>
+            <form action="/app2/usergroup/" method="post">
+                <input type="text" name="gpname" placeholder="groupname">
+                <input type="submit" value="Add">
+            </form>
+            <h3>Group List:</h3>
+            <ul>
+                {% for row in grouplist%}
+                <li>
+                    <a href="/app2/gpdetail-{{row.uid}}">{{row.groupname}}</a>|
+                    <a href="/app2/delgroup-{{row.uid}}">Delete</a>|
+                    <a href="/app2/editgroup-{{row.uid}}">Edit</a>
+                </li>
+                {%endfor%}
+            </ul>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/gpdetail.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Group Details:</h3>
+            {{obj.uid}}, {{obj.groupname}}
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+```html
+<!-- app2/templates/gpedit.html -->
+<body>
+    <div class="pg-header">
+        Hello, Administrator
+    </div>
+    <div class="pg-container">
+        <div class="pg-menu">
+            <a href="/app2/userinfo/" class="menu">UserList</a>
+            <a href="/app2/usergroup/" class="menu">UserGroup</a>
+        </div>
+        <div class="pg-content">
+            <h3>Edit Group:</h3>
+            <form action="/app2/editgroup-{{obj.uid}}/" method="post">
+                <input style="display:none;" type="text" name="uid" value="{{obj.uid}}">
+                <input type="text" name="gpname" value="{{obj.groupname}}">
+                <input type="submit" value="Modify">
+            </form>
+        </div>
+    </div>
+    <style>
+        /* same as index.html style */
+    </style>
+</body>
+```
+
+Django有两个精华的东西:
+- `__`
+- `_set`
