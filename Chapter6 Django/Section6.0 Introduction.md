@@ -1479,7 +1479,7 @@ validators          # django form ,自定义验证
 ```
 
 ```py
-# choice使用场景: 学生表中的class_id和班级表中id需要连表(foreign_key是class_id)，然而班级就那么几个，而连表性能低，所以一般使用内存中的数据；那么就会涉及choices；choices是在内存中的数据
+# choice使用场景: 学生表中的class_id和班级表中id需要连表(foreign_key是class_id)，然而班级就那么几个，而连表性能低，班级表变动少，所以一般使用内存中的数据；那么就会涉及choices；choices是在内存中的数据
 # models.py
 from django.db import models
 
@@ -1494,4 +1494,59 @@ class UserInfo(models.Model):
     )
 
     user_type_id=models.IntegerField(choices=user_type, default=1)
+```
+
+example: `ForeignKey`
+
+```py
+# models.py
+from django.db import models
+
+class UserGroup(models.Model):
+    uid = models.AutoField(primary_key=True)
+    groupname = models.CharField(max_length=32)
+
+class UserInfo(models.Model):
+    username = models.CharField(max_length=32)
+    password = models.CharField(max_length=64)
+    # to_field默认是primary_key; on_delete必须要有
+    # DB中字段名为user_group_id
+    # user_group是一个对象，方便连表查询
+    user_group = models.ForeignKey(
+        'UserGroup',
+        to_field='uid',
+        on_delete=models.CASCADE,
+        default=1
+    )
+```
+
+```py
+# 连表查询: 可以一层一层连接表
+
+user_list=UserInfo.objects.all()
+for row in user_list:
+    # 存在的字段查询
+    print(row.id, row.username, row.password, row.user_group_id)
+    # 连表查询
+    print(row.user_group.uid, row.user_group.groupname)
+```
+
+```py
+# 连表增加数据
+
+# method1: recommended
+def adduser(request, *args, **kwargs):
+    UserInfo.objects.create(
+        username='Jack', 
+        password='123', 
+        user_group_id=2
+    )
+
+# method2: not recommended
+def adduser(request, *args, **kwargs):
+    UserInfo.objects.create(
+        username='Jack', 
+        password='123', 
+        user_group=UserGroup.objects.filter(id=1).first()
+    )
 ```
