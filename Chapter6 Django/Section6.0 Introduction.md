@@ -5,6 +5,7 @@
     - [MVC](#mvc)
     - [MTV](#mtv)
   - [Django on Windows](#django-on-windows)
+  - [Django `__`](#django)
 
 ## Framework
 
@@ -2017,3 +2018,163 @@ def gp_edit(request, *args, **kwargs):
 Django有两个精华的东西:
 - `__`
 - `_set`
+
+## Django `__`
+
+```bash
+app1/
+    models.py
+    urls.py
+    views.py
+    templates/
+        app1/
+            business.html
+            host.html
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Business(models.Model):
+    name = models.CharField(max_length=32)
+
+class Host(models.Model):
+    hostname = models.CharField(max_length=32, db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+    port = models.IntegerField()
+    business = models.ForeignKey('Business', on_delete=models.CASCADE)
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('business/', views.business),
+    path('host/', views.host)
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+def business(request, *args, **kwargs):
+    v1 = Business.objects.all()
+    v2 = Business.objects.all().values('name', 'id')
+    v3 = Business.objects.all().values_list('name', 'id')
+    print(v1)  # object list
+    print(v2)  # dictionary
+    print(v3)  # tuple
+    return render(request, 'app1/business.html', {'v1': v1, 'v2': v2, 'v3': v3})
+
+def host(request, *args, **kwargs):
+    v1 = Host.objects.filter(id__gt=2)
+    # 字符串中需要用 __ 来跨表查询
+    v2 = Host.objects.filter(id__lt=5).values('id', 'hostname', 'business_id', 'business__name')  # __跨表
+    v3 = Host.objects.all().values_list('id', 'hostname', 'business_id', 'business__name')  # __跨表
+    print(v1)  # object list
+    print(v2)  # dictionary
+    print(v3)  # tuple
+    # v1是QuerySet内部类型是object, 使用 . 来获取值
+    for row in v1:
+        print(row.id, row.hostname, row.business_id, row.business.name)
+    # v2是QuerySet,内部类型是dictionary，使用[] 来获取值
+    for row in v2:
+        print(row['id'], row['hostname'], row['business_id'], row['business__name'])
+    # v3是QuerySet, 内部类型是tuple， 使用[]来获取值
+    for row in v3:
+        print(row[0], row[1], row[2], row[3])
+    return render(request, 'app1/host.html', {'v1': v1, 'v2': v2, 'v3': v3})
+```
+
+```django
+<!-- app1/templates/app1/business.html -->
+<body>
+<h3>method1: by objects</h3>
+<ul>
+    {% for row in v1 %}
+        <li>{{ row.id }}------{{ row.name }}</li>
+    {% endfor %}
+</ul>
+<h3>method2: by dictionary</h3>
+<ul>
+    {% for row in v2 %}
+        <li>{{ row.id }}------{{ row.name }}</li>
+    {% endfor %}
+</ul>
+<ul>
+    {% for row in v2 %}
+        <li>
+            {% for v in row.values %}
+                {{ v }}
+            {% endfor %}
+        </li>
+    {% endfor %}
+</ul>
+<h3>method3: by tuple</h3>
+<ul>
+    {% for row in v3 %}
+        <li>{{ row.1 }}------{{ row.0 }}</li>
+    {% endfor %}
+</ul>
+</body>
+```
+
+```django
+<!-- app1/tempates/host.html -->
+<body>
+<h3>Table 1: by object</h3>
+<table border="1">
+    <thead>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>Business_Name</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr host_id="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<h3>Table 2: by dictionary</h3>
+<table border="1">
+    <thead>
+    <th>HostName</th>
+    <th>Business_Name</th>
+    </thead>
+    <tbody>
+    {% for row in v2 %}
+        <tr host_id="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.business__name }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<h3>Table 3: by tuple</h3>
+<table border="1">
+    <thead>
+    <th>HostName</th>
+    <th>Business_Name</th>
+    </thead>
+    <tbody>
+    {% for row in v3 %}
+        <tr host_id="{{ row.0 }}" bid="{{ row.2 }}">
+            <td>{{ row.1 }}</td>
+            <td>{{ row.3 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+```
