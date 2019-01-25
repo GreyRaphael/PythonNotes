@@ -2542,3 +2542,483 @@ def host(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: modal delete data
+
+实现方式:
+- method1: 在modal中submit host的id来删除数据
+- method2: 在ajax中submit host的id来删除数据
+- method3: 利用`confirm` dialog配合ajax来删除数据
+
+method1: delete by `form` submit
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('business/', views.business),
+    path('host/', views.host),
+    path('delhost/', views.delhost),
+]
+```
+
+```py
+# app1/views.py
+def delhost(request, *args, **kwargs):
+    hid = request.POST.get('hid')
+    Host.objects.filter(id=hid).delete()
+    return redirect('/app1/host')
+```
+
+```django
+<!-- app1/templates/app1/host.html -->
+<body>
+<div class="mask hide"></div>
+<!-- add data modal -->
+<div class="modal hide">
+    <form action="/app1/host/" method="post">
+        <input type="text" name="hostname" placeholder="HostName" id="hostname">
+        <input type="text" name="ip" placeholder="IP Address" id="ip">
+        <input type="text" name="port" placeholder="Port" id="port">
+        <select name="business_id" id="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="AjaxSubmit" id="btnAjax">
+            <input type="button" value="Cancel" id="btnCancel">
+            <span id="err_msg" style="color: red"></span>
+        </p>
+    </form>
+</div>
+<!-- delete date modal -->
+<div class="delModal hide">
+    <form action="/app1/delhost/" method="post">
+        <p>
+            <input type="hidden" name="hid">
+            <input type="button" value="Cancel" id="btnDelCancel">
+            <input type="submit" value="OK" id="btnDelOK">
+        </p>
+    </form>
+</div>
+<div>
+    <input type="button" value="Add" id="btnAddHost">
+</div>
+<!-- hosts table -->
+<table border="1">
+    <thead>
+    <th>N.O.</th>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>BusinessName</th>
+    <th>Edit</th>
+    <th>Delete</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr hid="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+            <td><a class="edit">Edit</a></td>
+            <td><a class="del">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .modal, .delModal {
+        position: fixed;
+        left: 50%;
+        top: 30%;
+        width: 400px;
+        height: 300px;
+        background-color: #fff;
+        margin-left: -200px;
+    }
+
+    form > input {
+        display: block;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        // AddHost
+        $('#btnAddHost').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        // modal cancel
+        $('#btnCancel').click(function () {
+            $('.mask, .modal').addClass('hide');
+            // clear input
+            $('form > input').val('');
+            // clear err_msg
+            $('#err_msg').text('');
+        });
+        // modal ajax submit
+        $('#btnAjax').click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/host/',
+                data: {
+                    'hostname': $('#hostname').val(),
+                    'ip': $('#ip').val(),
+                    'port': $('#port').val(),
+                    'business_id': $('#business_id').val()
+                },
+            }).done(function (data) {
+                let d = JSON.parse(data); // from string to object
+                if (d.status) {
+                    // reload page
+                    location.reload();
+                } else {
+                    $('#err_msg').text(d.error);
+                }
+            });
+        });
+        // delete record
+        $('.del').click(function () {
+            $('.mask, .delModal').removeClass('hide');
+            let hid = $(this).parent().parent().attr('hid')
+            $('input:hidden').val(hid)
+        });
+        // delete cancel
+        $('#btnDelCancel').click(function () {
+            $('.mask, .delModal').addClass('hide');
+        });
+    })
+</script>
+</body>
+```
+
+method2: delete by ajax
+
+```py
+# app1/views.py
+def delhost(request, *args, **kwargs):
+    hid = request.POST.get('hid')
+    Host.objects.filter(id=hid).delete()
+    return HttpResponse('OK')
+```
+
+```django
+<!-- app1/templates/app1/host.html -->
+<body>
+<div class="mask hide"></div>
+<!-- add data modal -->
+<div class="modal hide">
+    <form action="/app1/host/" method="post">
+        <input type="text" name="hostname" placeholder="HostName" id="hostname">
+        <input type="text" name="ip" placeholder="IP Address" id="ip">
+        <input type="text" name="port" placeholder="Port" id="port">
+        <select name="business_id" id="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="AjaxSubmit" id="btnAjax">
+            <input type="button" value="Cancel" id="btnCancel">
+            <span id="err_msg" style="color: red"></span>
+        </p>
+    </form>
+</div>
+<!-- delete data modal -->
+<div class="delModal hide">
+    <p>
+        <input type="hidden" name="hid">
+        <input type="button" value="Cancel" id="btnDelCancel">
+        <input type="button" value="OK" id="btnDelOK">
+    </p>
+</div>
+<div>
+    <input type="button" value="Add" id="btnAddHost">
+</div>
+<table border="1">
+    <thead>
+    <th>N.O.</th>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>BusinessName</th>
+    <th>Edit</th>
+    <th>Delete</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr hid="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+            <td><a class="edit">Edit</a></td>
+            <td><a class="del">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .modal, .delModal {
+        position: fixed;
+        left: 50%;
+        top: 30%;
+        width: 400px;
+        height: 300px;
+        background-color: #fff;
+        margin-left: -200px;
+    }
+
+    form > input {
+        display: block;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        // AddHost
+        $('#btnAddHost').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        // modal cancel
+        $('#btnCancel').click(function () {
+            $('.mask, .modal').addClass('hide');
+            // clear input
+            $('form > input').val('');
+            // clear err_msg
+            $('#err_msg').text('');
+        });
+        // modal ajax submit
+        $('#btnAjax').click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/host/',
+                data: {
+                    'hostname': $('#hostname').val(),
+                    'ip': $('#ip').val(),
+                    'port': $('#port').val(),
+                    'business_id': $('#business_id').val()
+                },
+            }).done(function (data) {
+                let d = JSON.parse(data); // from string to object
+                if (d.status) {
+                    // reload page
+                    location.reload();
+                } else {
+                    $('#err_msg').text(d.error);
+                }
+            });
+        });
+        // delete record
+        $('.del').click(function () {
+            $('.mask, .delModal').removeClass('hide');
+            let hid = $(this).parent().parent().attr('hid');
+            $('input:hidden').val(hid)
+        });
+        // delete cancel
+        $('#btnDelCancel').click(function () {
+            $('.mask, .delModal').addClass('hide');
+        });
+        // delete ok
+        $('#btnDelOK').click(function () {
+            let v = $('input:hidden').val();
+            $.ajax({
+                method: 'POST',
+                url: '/app1/delhost/',
+                data: {'hid': v}
+            }).done(function (data) {
+                if (data == 'OK') {
+                    // method1: reload()
+                    // location.reload();
+
+                    // method2: remove()掉元素，反正数据库里面已经删了，避免刷新
+                    $(`tr[hid=${v}]`).remove();
+                    $('#btnDelCancel').click();
+                }
+            });
+        });
+    })
+</script>
+</body>
+```
+
+method3: delete data by `confirm` dialog
+
+```py
+# app1/views.py
+def delhost(request, *args, **kwargs):
+    hid = request.POST.get('hid')
+    Host.objects.filter(id=hid).delete()
+    return HttpResponse('OK')
+```
+
+```django
+<!-- app1/templates/app1/host.html -->
+<body>
+<div class="mask hide"></div>
+<!-- add data modal -->
+<div class="modal hide">
+    <form action="/app1/host/" method="post">
+        <input type="text" name="hostname" placeholder="HostName" id="hostname">
+        <input type="text" name="ip" placeholder="IP Address" id="ip">
+        <input type="text" name="port" placeholder="Port" id="port">
+        <select name="business_id" id="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="AjaxSubmit" id="btnAjax">
+            <input type="button" value="Cancel" id="btnCancel">
+            <span id="err_msg" style="color: red"></span>
+        </p>
+    </form>
+</div>
+<div>
+    <input type="button" value="Add" id="btnAddHost">
+</div>
+<table border="1">
+    <thead>
+    <th>N.O.</th>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>BusinessName</th>
+    <th>Edit</th>
+    <th>Delete</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr hid="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+            <td><a class="edit">Edit</a></td>
+            <td><a class="del">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .modal {
+        position: fixed;
+        left: 50%;
+        top: 30%;
+        width: 400px;
+        height: 300px;
+        background-color: #fff;
+        margin-left: -200px;
+    }
+
+    form > input {
+        display: block;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        // AddHost
+        $('#btnAddHost').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        // modal cancel
+        $('#btnCancel').click(function () {
+            $('.mask, .modal').addClass('hide');
+            // clear input
+            $('form > input').val('');
+            // clear err_msg
+            $('#err_msg').text('');
+        });
+        // modal ajax submit
+        $('#btnAjax').click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/host/',
+                data: {
+                    'hostname': $('#hostname').val(),
+                    'ip': $('#ip').val(),
+                    'port': $('#port').val(),
+                    'business_id': $('#business_id').val()
+                },
+            }).done(function (data) {
+                let d = JSON.parse(data); // from string to object
+                if (d.status) {
+                    // reload page
+                    location.reload();
+                } else {
+                    $('#err_msg').text(d.error);
+                }
+            });
+        });
+        // delete record
+        $('.del').click(function () {
+            let hostname = $(this).parent().parent().find(':eq(2)').text();
+            let hid = $(this).parent().parent().attr('hid');
+            let res = confirm(`Delete record? ${hostname}`);
+            if (res == true) {
+                $.ajax({
+                    method: 'POST',
+                    url: '/app1/delhost/',
+                    data: {'hid': hid},
+                }).done(function (data) {
+                    if (data == 'OK') {
+                        $(`tr[hid=${hid}]`).remove();
+                    }
+                });
+            }
+        });
+    })
+</script>
+</body>
+```
