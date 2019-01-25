@@ -6,6 +6,7 @@
     - [MTV](#mtv)
   - [Django on Windows](#django-on-windows)
   - [Django `__`](#django)
+  - [Ajax](#ajax)
 
 ## Framework
 
@@ -2297,6 +2298,86 @@ def host(request, *args, **kwargs):
             $('form > input').val('')
         });
     })
+</script>
+</body>
+```
+
+## Ajax
+
+Ajax本质: 悄悄地Submit
+> `form` submit的时候，要么跳转到其他页面(post到其他页面)，要么刷新本页面(post到本页面)  
+> `ajax` submit的时候，不会跳转到其他页面，刷新本页面要另外操作`location.reload()`, 所以对于ajax, `redirect()`函数没有用处，而为了获得后台的数据，`render()`也没有必要
+
+example: test ajax
+
+```bash
+app1/
+    urls.py
+    views.py
+    templates/
+        test.html
+
+# 访问 http://127.0.0.1:8000/app1/test/，然后click
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('test/', views.test),
+    path('test_ajax/', views.test_ajax),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, HttpResponse
+
+def test(request, *args, **kwargs):
+    return render(request, 'app1/test.html')
+
+def test_ajax(request, *args, **kwargs):
+    import time
+    if request.method == 'GET':
+        u = request.GET.get('user')
+        p = request.GET.get('pwd')
+        print(u, p)
+        # 默认都是async的
+        time.sleep(5)
+        return HttpResponse('OK')
+```
+
+```django
+<!-- app1/templates/app1/test.html -->
+<body>
+<input type="button" value="Ajax Submit" id="btnAjax">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        $('#btnAjax').click(function () {
+            // method1: success, deprecated
+            // $.ajax({
+            //     url: "/app1/test_ajax/",
+            //     type: "GET",
+            //     data: {'user': "John", 'pwd': "666666"},
+            //     success: function(data){
+            //         alert(data);
+            //     }
+            // })
+
+            // method2: done, jQuery 3.0+
+            $.ajax({
+                url: "/app1/test_ajax/",
+                type: "GET",
+                data: {'user': "John", 'pwd': "666666"},
+            }).done(function (data) {
+                // 当test_ajax return 的时候才会被调用，是async的
+                alert(data); // 就是后台返回的"OK"
+            });
+        });
+    });
 </script>
 </body>
 ```
