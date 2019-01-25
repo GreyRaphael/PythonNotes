@@ -3003,7 +3003,7 @@ def delhost(request, *args, **kwargs):
         });
         // delete record
         $('.del').click(function () {
-            let hostname = $(this).parent().parent().find(':eq(2)').text();
+            let hostname = $(this).parent().parent().find('td:eq(1)').text();
             let hid = $(this).parent().parent().attr('hid');
             let res = confirm(`Delete record? ${hostname}`);
             if (res == true) {
@@ -3022,3 +3022,6 @@ def delhost(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: modal edit data
+
