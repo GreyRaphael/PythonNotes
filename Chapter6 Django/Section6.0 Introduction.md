@@ -2178,3 +2178,125 @@ def host(request, *args, **kwargs):
 </table>
 </body>
 ```
+
+example: add Data by modal
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+def business(request, *args, **kwargs):
+    v1 = Business.objects.all()
+    return render(request, 'app1/business.html', {'v1': v1})
+
+def host(request, *args, **kwargs):
+    if request.method == 'GET':
+        v1 = Host.objects.all()
+        v2 = Business.objects.all()
+        return render(request, 'app1/host.html', {'v1': v1, 'v2': v2})
+    elif request.method == 'POST':
+        h = request.POST.get('hostname')
+        i = request.POST.get('ip')
+        p = request.POST.get('port')
+        b_id = request.POST.get('business_id')
+        Host.objects.create(
+            hostname=h,
+            ip=i,
+            port=p,
+            business_id=b_id
+        )
+        # trick
+        return redirect('/app1/host/')
+```
+
+```django
+<!-- app1/templates/app1/host.html -->
+<body>
+<div class="mask hide"></div>
+<div class="modal hide">
+    <form action="/app1/host/" method="post">
+        <input type="text" name="hostname" placeholder="HostName">
+        <input type="text" name="ip" placeholder="IP Address">
+        <input type="text" name="port" placeholder="Port">
+        <select name="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="submit" value="Submit">
+            <input type="button" value="Cancel" id="btnCancel">
+        </p>
+    </form>
+</div>
+<div>
+    <input type="button" value="Add" id="btnAddHost">
+</div>
+<table border="1">
+    <thead>
+    <th>N.O.</th>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>BusinessName</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr hid="{{ row.id }}" bid="{{ row.business_id }}">
+            <!-- couter, counter0, revcounter, revcounter0 -->
+            <!-- first, last -->
+            <!-- parentloop: 多层循环嵌套的时候，上层循环的以上6个变量 -->
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .modal {
+        position: fixed;
+        left: 50%;
+        top: 30%;
+        width: 400px;
+        height: 300px;
+        background-color: #fff;
+        margin-left: -200px;
+    }
+
+    form > input {
+        display: block;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script>
+    $(function () {
+        $('#btnAddHost').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        $('#btnCancel').click(function () {
+            $('.mask, .modal').addClass('hide');
+            <!-- clear input -->
+            $('form > input').val('')
+        });
+    })
+</script>
+</body>
+```
