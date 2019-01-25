@@ -2728,7 +2728,7 @@ def delhost(request, *args, **kwargs):
 <div class="mask hide"></div>
 <!-- add data modal -->
 <div class="modal hide">
-    <form action="/app1/host/" method="post">
+    <form>
         <input type="text" name="hostname" placeholder="HostName" id="hostname">
         <input type="text" name="ip" placeholder="IP Address" id="ip">
         <input type="text" name="port" placeholder="Port" id="port">
@@ -2893,7 +2893,7 @@ def delhost(request, *args, **kwargs):
 <div class="mask hide"></div>
 <!-- add data modal -->
 <div class="modal hide">
-    <form action="/app1/host/" method="post">
+    <form>
         <input type="text" name="hostname" placeholder="HostName" id="hostname">
         <input type="text" name="ip" placeholder="IP Address" id="ip">
         <input type="text" name="port" placeholder="Port" id="port">
