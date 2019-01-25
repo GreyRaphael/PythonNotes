@@ -3025,3 +3025,283 @@ def delhost(request, *args, **kwargs):
 
 example: modal edit data
 
+```bash
+app1/
+    urls.py
+    views.py
+    templates/
+        app1/
+            host.html
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('business/', views.business),
+    path('host/', views.host),
+    path('delhost/', views.delhost),
+    path('edithost/', views.edithost),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+
+def business(request, *args, **kwargs):
+    v1 = Business.objects.all()
+    return render(request, 'app1/business.html', {'v1': v1})
+
+
+def host(request, *args, **kwargs):
+    if request.method == 'GET':
+        v1 = Host.objects.all()
+        v2 = Business.objects.all()
+        return render(request, 'app1/host.html', {'v1': v1, 'v2': v2})
+    elif request.method == 'POST':
+        ret = {'status': True, 'error': None, 'data': None}
+        try:
+            h = request.POST.get('hostname')
+            i = request.POST.get('ip')
+            p = request.POST.get('port')
+            b_id = request.POST.get('business_id')
+
+            # verify hostname
+            if h and len(h) > 5:
+                Host.objects.create(
+                    hostname=h,
+                    ip=i,
+                    port=p,
+                    business_id=b_id
+                )
+                ret['data'] = 'OK'
+            else:
+                ret['status'] = False
+                ret['error'] = 'host name too short'
+        except Exception as e:
+            ret['status'] = False
+            # 因为格式不正确导致无法写入数据库造成的错误
+            ret['error'] = str(e)
+        import json
+        return HttpResponse(json.dumps(ret))
+
+
+def delhost(request, *args, **kwargs):
+    hid = request.POST.get('hid')
+    Host.objects.filter(id=hid).delete()
+    return HttpResponse('OK')
+
+
+def edithost(request, *arg, **kwargs):
+    ret = {'status': True, 'error': None, 'data': None}
+    try:
+        h_id = request.POST.get('hid')
+        h = request.POST.get('hostname')
+        i = request.POST.get('ip')
+        p = request.POST.get('port')
+        b_id = request.POST.get('business_id')
+
+        Host.objects.filter(id=h_id).update(
+            hostname=h,
+            ip=i,
+            port=p,
+            business_id=b_id,
+        )
+    except Exception as e:
+        ret['status'] = False
+        ret['error'] = str(e)
+    import json
+    return HttpResponse(json.dumps(ret))
+```
+
+```django
+<!-- app1/templates/app1/host.html -->
+<body>
+<div class="mask hide"></div>
+<!-- add data modal -->
+<div class="modal hide">
+    <form id="addForm">
+        <input type="text" name="hostname" placeholder="HostName">
+        <input type="text" name="ip" placeholder="IP Address">
+        <input type="text" name="port" placeholder="Port">
+        <select name="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="AjaxSubmit" id="btnAjax">
+            <input type="button" value="Cancel" id="btnCancel">
+            <span class="err_msg" style="color: red"></span>
+        </p>
+    </form>
+</div>
+<!-- edit data modal -->
+<div class="editModal hide">
+    <form id="editForm">
+        <input type="hidden" name="hid">
+        <input type="text" name="hostname">
+        <input type="text" name="ip">
+        <input type="text" name="port">
+        <select name="business_id">
+            {% for row in v2 %}
+                <option value="{{ row.id }}">{{ row.name }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="OK" id="btnEditOK">
+            <input type="button" value="Cancel" id="btnEditCancel">
+            <span class="err_msg" style="color: red"></span>
+        </p>
+    </form>
+</div>
+<div>
+    <input type="button" value="Add" id="btnAddHost">
+</div>
+<table border="1">
+    <thead>
+    <th>N.O.</th>
+    <th>HostName</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>BusinessName</th>
+    <th>Edit</th>
+    <th>Delete</th>
+    </thead>
+    <tbody>
+    {% for row in v1 %}
+        <tr hid="{{ row.id }}" bid="{{ row.business_id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.hostname }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.port }}</td>
+            <td>{{ row.business.name }}</td>
+            <td><a class="edit">Edit</a></td>
+            <td><a class="del">Delete</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .modal, .editModal {
+        position: fixed;
+        left: 50%;
+        top: 30%;
+        width: 400px;
+        height: 300px;
+        background-color: #fff;
+        margin-left: -200px;
+    }
+
+    form > input {
+        display: block;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        // AddHost
+        $('#btnAddHost').click(function () {
+            $('.mask, .modal').removeClass('hide');
+        });
+        // modal cancel
+        $('#btnCancel').click(function () {
+            $('.mask, .modal').addClass('hide');
+            // clear input
+            $('form > input').val('');
+            // clear err_msg
+            $('.err_msg').text('');
+        });
+        // modal ajax submit
+        $('#btnAjax').click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/host/',
+                data: $('#addForm').serialize(),
+            }).done(function (data) {
+                let d = JSON.parse(data); // from string to object
+                if (d.status) {
+                    // reload page
+                    location.reload();
+                } else {
+                    $('.err_msg').text(d.error);
+                }
+            });
+        });
+        // delete record
+        $('.del').click(function () {
+            let hostname = $(this).parent().parent().find('td:eq(1)').text();
+            let hid = $(this).parent().parent().attr('hid');
+            let res = confirm(`Delete record? ${hostname}`);
+            if (res == true) {
+                $.ajax({
+                    method: 'POST',
+                    url: '/app1/delhost/',
+                    data: {'hid': hid},
+                }).done(function (data) {
+                    if (data == 'OK') {
+                        $(`tr[hid=${hid}]`).remove();
+                    }
+                });
+            }
+        });
+        // edit record
+        $('.edit').click(function () {
+            $('.mask, .editModal').removeClass('hide');
+            let tr = $(this).parent().parent();
+            let hostname = tr.find('td:eq(1)').text();
+            let ip = tr.find('td:eq(2)').text();
+            let port = tr.find('td:eq(3)').text();
+            let hid = tr.attr('hid');
+            let bid = tr.attr('bid');
+
+            $('#editForm').find('input:eq(0)').val(hid)
+            $('#editForm').find('input:eq(1)').val(hostname);
+            $('#editForm').find('input:eq(2)').val(ip);
+            $('#editForm').find('input:eq(3)').val(port);
+            $('#editForm').find('select').val(bid);
+        });
+        // edit cancel
+        $('#btnEditCancel').click(function () {
+            $('.mask, .editModal').addClass('hide');
+            $('.err_msg').text('');
+        });
+        // edit ok
+        $('#btnEditOK').click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/edithost/',
+                // trick, 获得所有的 name: val 对
+                data: $('#editForm').serialize(),
+            }).done(function (data) {
+                let d = JSON.parse(data);
+                if (d.status) {
+                    location.reload();
+                } else {
+                    $('.err_msg').text(d.error);
+                }
+            });
+        });
+    })
+</script>
+</body>
+```
