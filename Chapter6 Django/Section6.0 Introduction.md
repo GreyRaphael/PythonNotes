@@ -3293,8 +3293,9 @@ def edithost(request, *arg, **kwargs):
                 url: '/app1/edithost/',
                 // trick, 获得所有的 name: val 对
                 data: $('#editForm').serialize(),
-            }).done(function (data) {
-                let d = JSON.parse(data);
+                // trick, 不需要每次都JSON.parse(data)
+                dataTyep: 'JSON',
+            }).done(function (d) { // d是已经经过JSON.parse的对象
                 if (d.status) {
                     location.reload();
                 } else {
