@@ -3654,3 +3654,7 @@ def ajax_addapp(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+模态框中CRUD vs 新url中CRUD
+- 模态框适合于较少数据量submit的情形
+- 新url适合于较大数据量submit的情形
