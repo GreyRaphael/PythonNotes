@@ -3372,3 +3372,285 @@ app.hobjs.set([3, 5, 7]) # 只剩下 1, 3; 1, 5; 1, 7
 app.hobjs.remove(2, 3)
 app.hobjs.clear() # 清除application_id=1的所有record
 ```
+
+example: ManyToMany Add data by `form` submit
+> 可以通过`form`来submit, 也可以通过`ajax`来submit
+
+```bash
+app1/
+    models.py
+    urls.py
+    views.py
+    templates/
+        app1/
+            app.html
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Host(models.Model):
+    hostname = models.CharField(max_length=32, db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+    port = models.IntegerField()
+
+class Application(models.Model):
+    name = models.CharField(max_length=32)
+    hobjs = models.ManyToManyField('Host')
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('app/', views.app),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+
+def app(request, *args, **kwargs):
+    if request.method == 'GET':
+        app_list = Application.objects.all()
+        host_list = Host.objects.all()
+
+        # # print data
+        # for app in app_list:
+        #     # print(app.name, app.hobjs.all())
+        #     print(app.name, end=':')
+        #     for host in app.hobjs.all():
+        #         print(host.hostname, end=', ')
+        #     print()
+
+        return render(request, 'app1/app.html', {'app_list': app_list, 'host_list': host_list})
+    elif request.method == 'POST':
+        app_name = request.POST.get('appname')
+        hosts = request.POST.getlist('hosts')
+        app = Application.objects.create(name=app_name)
+        app.hobjs.add(*hosts)
+        return redirect('/app1/app/')
+```
+
+```django
+<!-- app1/templates/app1/app.html -->
+<body>
+<input type="button" value="Add" id="btnAddApp">
+<div class="mask hide"></div>
+<!-- add app modal -->
+<div class="addModal hide">
+    <form action="/app1/app/" method="post">
+        <input type="text" name="appname" style="display: block;" placeholder="Application Name">
+        <select name="hosts" multiple>
+            {% for host in host_list %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="Cancel" id="btnAddCancel">
+            <input type="submit" value="OK">
+        </p>
+    </form>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Application</th>
+        <th>Hosts</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for app in app_list %}
+        <tr>
+            <td>{{ app.name }}</td>
+            <td>
+                {% for host in app.hobjs.all %}
+                    <span>{{ host.hostname }}</span>
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .addModal {
+        position: fixed;
+        left: 50%;
+        top: 20%;
+        width: 400px;
+        height: 300px;
+        margin-left: -200px;
+        background-color: #fff;
+    }
+
+    span {
+        display: inline-block;
+        background-color: pink;
+        border: 1px solid red;
+        padding: 3px;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $('#btnAddApp').click(function () {
+        $('.mask, .addModal').removeClass('hide');
+    });
+    $('#btnAddCancel').click(function () {
+        $('.mask, .addModal').addClass('hide');
+        $('.addModal > input').val('')
+    });
+</script>
+</body>
+```
+
+example: ManyToMany Add data by `ajax` submit
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('app/', views.app),
+    path('ajax_addapp/', views.ajax_addapp),
+]
+```
+
+```py
+# app1/views.py
+def ajax_addapp(request, *args, **kwargs):
+    ret = {'status': True, 'error': None, 'data': None}
+    if request.method == 'POST':
+        app_name = request.POST.get('appname')
+        hosts = request.POST.getlist('hosts')
+        app = Application.objects.create(name=app_name)
+        app.hobjs.add(*hosts)
+
+        import json
+        return HttpResponse(json.dumps(ret))
+```
+
+```django
+<!-- app1/templates/app1/app.html -->
+<body>
+<input type="button" value="Add" id="btnAddApp">
+<div class="mask hide"></div>
+<!-- add app modal -->
+<div class="addModal hide">
+    <form id="addForm">
+        <input type="text" name="appname" style="display: block;" placeholder="Application Name">
+        <select name="hosts" multiple>
+            {% for host in host_list %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="Cancel" id="btnAddCancel">
+            <input type="button" value="OK" id="btnAddOK">
+        </p>
+    </form>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Application</th>
+        <th>Hosts</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for app in app_list %}
+        <tr>
+            <td>{{ app.name }}</td>
+            <td>
+                {% for host in app.hobjs.all %}
+                    <span>{{ host.hostname }}</span>
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .addModal {
+        position: fixed;
+        left: 50%;
+        top: 20%;
+        width: 400px;
+        height: 300px;
+        margin-left: -200px;
+        background-color: #fff;
+    }
+
+    span {
+        display: inline-block;
+        background-color: pink;
+        border: 1px solid red;
+        padding: 3px;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $('#btnAddApp').click(function () {
+        $('.mask, .addModal').removeClass('hide');
+    });
+    $('#btnAddCancel').click(function () {
+        $('.mask, .addModal').addClass('hide');
+        $('.addModal > input').val('')
+    });
+    $('#btnAddOK').click(function () {
+        $.ajax({
+            method: 'POST',
+            url: '/app1/ajax_addapp/',
+            //// method1: traditional serialize
+            //data: {'appname': $('input[name="appname"]').val(), 'hosts': $('select[name="hosts"]').val()},
+            //traditional: true,
+
+            // method2: serialize()
+            data: $('#addForm').serialize(),
+            dataType: 'JSON',
+        }).done(function (obj) {
+            if (obj.status) {
+                console.log(obj);
+                $('#btnAddCancel').click();
+            }
+        }).fail(function () {
+
+        });
+    });
+</script>
+</body>
+```
