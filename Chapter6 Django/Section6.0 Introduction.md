@@ -7,6 +7,7 @@
   - [Django on Windows](#django-on-windows)
   - [Django `__`](#django)
   - [Ajax](#ajax)
+  - [many to many](#many-to-many)
 
 ## Framework
 
@@ -3304,4 +3305,69 @@ def edithost(request, *arg, **kwargs):
     })
 </script>
 </body>
+```
+
+## many to many
+
+django构造多对多的关联表:
+- method1: 自定义第三张表来将两者关联，第三张表还可以添加其他Field
+- method2: `ManyToManyField`自动生成第三张表
+
+```py
+# method1: DIY relationship table
+from django.db import models
+
+class Host(models.Model):
+    hostname = models.CharField(max_length=32, db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+    port = models.IntegerField()
+
+class Application(models.Model):
+    name = models.CharField(max_length=32)
+
+class Host2App(models.Model):
+    hobj = models.ForeignKey('Host', on_delete=models.CASCADE)
+    aobj = models.ForeignKey('Application', on_delete=models.CASCADE)
+```
+
+```py
+# method1的第三张表直接进行CRUD
+# 第三张表的Fields: id, hobj_id, aobj_id
+Host2App.objects.create(hobj_id=1, aobj_id=1)
+Host2App.objects.all()
+Host2App.objects.filter(id=1).update(hobj_id=1, aobj_id=22)
+Host2App.objects.filter(id=2).delete()
+```
+
+```py
+# method2: ManyToManyField
+from django.db import models
+
+class Host(models.Model):
+    hostname = models.CharField(max_length=32, db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+    port = models.IntegerField()
+
+class Application(models.Model):
+    name = models.CharField(max_length=32)
+    hobjs = models.ManyToManyField('Host')
+```
+
+```py
+# method2只能间接地对第三张表CRUD
+# 第三张表的Fields: id, application_id, host_id
+app=Application.objects.filter(id=1).first()
+
+app.hobjs.add(1)
+app.hobjs.add(2, 3) # 增加appliation_id = 1,host_id=2;appliation_id = 1, host_id=3;
+alist=[4, 5, 6]
+app.hobjs.add(*alist)
+
+app.hobjs.all() # 拿到的是Host的QuerySet对象
+app.hobjs.filter(id__gt=2) # 这里的id是host的id
+
+app.hobjs.set([3, 5, 7]) # 只剩下 1, 3; 1, 5; 1, 7
+
+app.hobjs.remove(2, 3)
+app.hobjs.clear() # 清除application_id=1的所有record
 ```
