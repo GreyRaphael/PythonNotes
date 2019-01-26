@@ -3658,3 +3658,240 @@ def ajax_addapp(request, *args, **kwargs):
 模态框中CRUD vs 新url中CRUD
 - 模态框适合于较少数据量submit的情形
 - 新url适合于较大数据量submit的情形
+
+example: ManyToMany delete & edit data by `ajax` submit
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('app/', views.app),
+    path('ajax_addapp/', views.ajax_addapp),
+    path('ajax_delapp/', views.ajax_delapp),
+    path('ajax_editapp/', views.ajax_editapp),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+def app(request, *args, **kwargs):
+    if request.method == 'GET':
+        app_list = Application.objects.all()
+        host_list = Host.objects.all()
+        return render(request, 'app1/app.html', {'app_list': app_list, 'host_list': host_list})
+    elif request.method == 'POST':
+        app_name = request.POST.get('appname')
+        hosts = request.POST.getlist('hosts')
+        app = Application.objects.create(name=app_name)
+        app.hobjs.add(*hosts)
+        return redirect('/app1/app/')
+
+def ajax_addapp(request, *args, **kwargs):
+    ret = {'status': True, 'error': None, 'data': None}
+    if request.method == 'POST':
+        app_name = request.POST.get('appname')
+        hosts = request.POST.getlist('hosts')
+        app = Application.objects.create(name=app_name)
+        app.hobjs.add(*hosts)
+
+        import json
+        return HttpResponse(json.dumps(ret))
+
+def ajax_delapp(request, *args, **kwargs):
+    aid = request.POST.get('aid')
+    hid = request.POST.get('hid')
+    app = Application.objects.filter(id=aid).first()
+    app.hobjs.remove(hid)
+    return HttpResponse('OK')
+
+def ajax_editapp(request, *arg, **kwargs):
+    aid = request.POST.get('aid')
+    app_name = request.POST.get('appname')
+    hosts = request.POST.getlist('hosts')
+    app = Application.objects.filter(id=aid)
+    app.update(name=app_name)
+    app.first().hobjs.set(hosts)
+
+    return HttpResponse('OK')
+```
+
+```django
+<!-- app1/templates/app1/app.html -->
+<body>
+<input type="button" value="Add" id="btnAddApp">
+<div class="mask hide"></div>
+<!-- add app modal -->
+<div class="addModal hide">
+    <form id="addForm">
+        <input type="text" name="appname" style="display: block;" placeholder="Application Name">
+        <select name="hosts" multiple>
+            {% for host in host_list %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="Cancel" id="btnAddCancel">
+            <input type="button" value="OK" id="btnAddOK">
+        </p>
+    </form>
+</div>
+<!-- edit app modal -->
+<div class="editModal hide">
+    <form id="editForm">
+        <input type="hidden" name="aid">
+        <input type="text" name="appname" style="display: block;">
+        <select name="hosts" multiple>
+            {% for host in host_list %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="Cancel" id="btnEditCancel">
+            <input type="button" value="ConfirmEdit" id="btnEditOK">
+        </p>
+    </form>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Application</th>
+        <th>Hosts</th>
+        <th>Edit</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for app in app_list %}
+        <tr aid="{{ app.id }}">
+            <td>{{ app.name }}</td>
+            <td>
+                {% for host in app.hobjs.all %}
+                    <span hid="{{ host.id }}">{{ host.hostname }}</span><a class="del">
+                    x</a> <!-- 这种方式可以删除inline-block之间的空白-->
+                {% endfor %}
+            </td>
+            <td><a class="edit">Edit</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .mask {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.5;
+    }
+
+    .addModal, .editModal {
+        position: fixed;
+        left: 50%;
+        top: 20%;
+        width: 400px;
+        height: 300px;
+        margin-left: -200px;
+        background-color: #fff;
+    }
+
+    span, a {
+        display: inline-block;
+        background-color: pink;
+        border: 1px solid red;
+        padding: 3px;
+        margin-left: -1px;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    // add record
+    $('#btnAddApp').click(function () {
+        $('.mask, .addModal').removeClass('hide');
+    });
+    $('#btnAddCancel').click(function () {
+        $('.mask, .addModal').addClass('hide');
+        $('.addModal > input').val('')
+    });
+    $('#btnAddOK').click(function () {
+        $.ajax({
+            method: 'POST',
+            url: '/app1/ajax_addapp/',
+            data: $('#addForm').serialize(),
+            dataType: 'JSON',
+        }).done(function (obj) {
+            if (obj.status) {
+                console.log(obj);
+                $('#btnAddCancel').click();
+            }
+        }).fail(function () {
+
+        });
+    });
+    // delete record
+    $('.del').click(function () {
+        let tr = $(this).parent().parent();
+        let aid = tr.attr('aid');
+
+        let sp = $(this).prev();
+        let hostname = sp.text();
+        let hid = sp.attr('hid');
+
+        let res = confirm(`Delete host ${hostname}`);
+        if (res) {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/ajax_delapp/',
+                data: {'aid': aid, 'hid': hid},
+            }).done(function (data) {
+                if (data == 'OK') {
+                    sp.next().remove();
+                    sp.remove();
+                }
+            })
+        }
+    });
+    // edit record
+    $('.edit').click(function () {
+        $('.mask, .editModal').removeClass('hide');
+
+        let tr = $(this).parent().parent();
+        let aid = tr.attr('aid');
+        let appname = tr.find('td:eq(0)').text();
+        let host_list = [];
+
+        tr.find('td:eq(1) span').each(function () {
+            host_list.push($(this).attr('hid'));
+        });
+
+        $('input:hidden').val(aid);
+        $('input[name="appname"]').val(appname);
+        $('select[name="hosts"]').val(host_list);
+    });
+
+    $('#btnEditCancel').click(function () {
+        $('.mask, .editModal').addClass('hide');
+    });
+    $('#btnEditOK').click(function () {
+        $.ajax({
+            method: 'POST',
+            url: '/app1/ajax_editapp/',
+            data: $('#editForm').serialize(),
+        }).done(function (data) {
+            if (data == 'OK') {
+                location.reload();
+            }
+        });
+    });
+</script>
+</body>
+```
