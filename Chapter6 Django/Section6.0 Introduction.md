@@ -3895,3 +3895,180 @@ def ajax_editapp(request, *arg, **kwargs):
 </script>
 </body>
 ```
+
+example: ManyToMany delete & edit data by **newurl** submit
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('app/', views.app),
+    path('ajax_addapp/', views.ajax_addapp),
+    path('ajax_delapp/', views.ajax_delapp),
+    path('ajax_editapp/', views.ajax_editapp),
+    re_path(r'url_editapp/(?P<aid>\d+)/', views.url_editapp),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+
+def app(request, *args, **kwargs):
+    pass
+
+
+def ajax_addapp(request, *args, **kwargs):
+    pass
+
+
+def ajax_delapp(request, *args, **kwargs):
+    pass
+
+
+def ajax_editapp(request, *arg, **kwargs):
+    pass
+
+
+def url_editapp(request, *args, **kwargs):
+    aid = kwargs.get('aid')
+    if request.method == 'GET':
+        host_list = Host.objects.all()
+        app = Application.objects.filter(id=aid).first()
+        hosts = app.hobjs.all().values_list('id')
+        selected_hosts = list(*zip(*hosts))
+        return render(request, 'app1/edit.html', {'hostlist': host_list, 'app': app, 'selected_hosts': selected_hosts})
+    elif request.method == 'POST':
+        app_name = request.POST.get('appname')
+        hosts = request.POST.getlist('hosts')
+        app = Application.objects.filter(id=aid)
+        app.update(name=app_name)
+        app.first().hobjs.set(hosts)
+        return redirect('/app1/app/')
+```
+
+```django
+<!-- app1/templates/app1/app.html -->
+<body>
+<input type="button" value="Add" id="btnAddApp">
+<div class="mask hide"></div>
+<!-- add app modal -->
+<div class="addModal hide">
+    <form id="addForm">
+        <input type="text" name="appname" style="display: block;" placeholder="Application Name">
+        <select name="hosts" multiple>
+            {% for host in host_list %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endfor %}
+        </select>
+        <p>
+            <input type="button" value="Cancel" id="btnAddCancel">
+            <input type="button" value="OK" id="btnAddOK">
+        </p>
+    </form>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Application</th>
+        <th>Hosts</th>
+        <th>Edit</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for app in app_list %}
+        <tr aid="{{ app.id }}">
+            <td>{{ app.name }}</td>
+            <td>
+                {% for host in app.hobjs.all %}
+                    <span hid="{{ host.id }}">{{ host.hostname }}</span><a class="del">
+                    x</a> <!-- 这种方式可以删除inline-block之间的空白-->
+                {% endfor %}
+            </td>
+            <td><a class="edit" href="/app1/url_editapp/{{ app.id }}/">Edit</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<style>
+    /** same as previous **/
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    // add record
+    $('#btnAddApp').click(function () {
+        $('.mask, .addModal').removeClass('hide');
+    });
+    $('#btnAddCancel').click(function () {
+        $('.mask, .addModal').addClass('hide');
+        $('.addModal > input').val('')
+    });
+    $('#btnAddOK').click(function () {
+        $.ajax({
+            method: 'POST',
+            url: '/app1/ajax_addapp/',
+            data: $('#addForm').serialize(),
+            dataType: 'JSON',
+        }).done(function (obj) {
+            if (obj.status) {
+                console.log(obj);
+                $('#btnAddCancel').click();
+            }
+        }).fail(function () {
+
+        });
+    });
+    // delete record
+    $('.del').click(function () {
+        let tr = $(this).parent().parent();
+        let aid = tr.attr('aid');
+
+        let sp = $(this).prev();
+        let hostname = sp.text();
+        let hid = sp.attr('hid');
+
+        let res = confirm(`Delete host ${hostname}`);
+        if (res) {
+            $.ajax({
+                method: 'POST',
+                url: '/app1/ajax_delapp/',
+                data: {'aid': aid, 'hid': hid},
+            }).done(function (data) {
+                if (data == 'OK') {
+                    sp.next().remove();
+                    sp.remove();
+                }
+            })
+        }
+    });
+</script>
+</body>
+```
+
+```django
+<!-- app1/templates/app1/edit.html -->
+<body>
+<form action="/app1/url_editapp/{{ app.id }}/" method="post">
+    Application:
+    <input type="text" name="appname" value="{{ app.name }}"><br>
+    HostList:
+    <select name="hosts" multiple>
+        {% for host in hostlist %}
+            {% if host.id in selected_hosts %}
+                <option value="{{ host.id }}" selected>{{ host.hostname }}</option>
+            {% else %}
+                <option value="{{ host.id }}">{{ host.hostname }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <p>
+        <input type="button" value="Cancel" onclick="history.go(-1); return false;">
+        <input type="submit" value="ConfirmModify">
+    </p>
+</form>
+</body>
+```
