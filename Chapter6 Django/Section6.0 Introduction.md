@@ -8,6 +8,7 @@
   - [Django `__`](#django)
   - [Ajax](#ajax)
   - [many to many](#many-to-many)
+  - [Django Summary](#django-summary)
 
 ## Framework
 
@@ -4072,3 +4073,82 @@ def url_editapp(request, *args, **kwargs):
 </form>
 </body>
 ```
+
+## Django Summary
+
+> Django生命周期：路由系统(urlpatterns)→views.py→拿数据拿模板，揉和，返回字符串
+
+路由系统:
+- `re_path` with regex parameters, `path`
+- 后台python `reverse()`利用`path`、`re_path`中的`name`参数自动生成url; template语言中自动生成url `{% url 'xxx' 1 2 %}`
+- `include('app1.urls')`路由分发
+- default value for `re_path` or `path`
+- `include` parameter:  `namespace`
+
+example: default value for `re_path` or `path`
+
+```py
+# appx/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index, {'user': 'grey'}),
+]
+```
+
+```py
+# appx/views.py
+def index(request, *args, **kwargs):
+    print(kwargs)  # {'user': 'grey'}
+    return HttpResponse('OK')
+```
+
+example: `include` parameter:  `namespace`
+> 两个前缀使用同一个views.py
+
+```bash
+mysite/
+    urls.py
+app1/
+    urls.py
+    views.py
+```
+
+```py
+# mysite/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('ap1/', include('app1.urls', namespace='a1')),
+    path('ap2/', include('app1.urls', namespace='a2')),
+]
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+app_name = 'app1' # 这个必须有
+
+urlpatterns = [
+    path('testnamespace/', views.test_namespace, name='ttt'),
+]
+```
+
+```py
+# app1/views.py
+def test_namespace(request, *args, **kwargs):
+    if request.path_info == reverse('a1:ttt'): # /ap1/testnamespace/
+        return render(request, 'app1/index1.html')
+    elif request.path_info == reverse('a2:ttt'): # /ap2/testnamespace/
+        return render(request, 'app1/index2.html')
+```
+
+```django
+<!-- template语言中使用namespace -->
+{% url 'a1:ttt' %}
+``
