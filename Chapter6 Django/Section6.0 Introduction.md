@@ -4152,3 +4152,4 @@ def test_namespace(request, *args, **kwargs):
 <!-- template语言中使用namespace -->
 {% url 'a1:ttt' %}
 ``
+
