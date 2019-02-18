@@ -2307,8 +2307,8 @@ def host(request, *args, **kwargs):
 ## Ajax
 
 Ajax本质: 悄悄地Submit
-> `form` submit的时候，要么跳转到其他页面(post到其他页面)，要么刷新本页面(post到本页面)  
-> `ajax` submit的时候，不会跳转到其他页面，刷新本页面要另外操作`location.reload()`, 所以对于ajax, `redirect()`函数没有用处，而为了获得后台的数据，`render()`也没有必要
+> `form` submit的时候，要么是`render()`返回template, 要么`redirect()`到其他页面  
+> `ajax` submit的时候，只是为了获取从后台传递过来的数据，为了方便`JSON.parse()`，只需要`HttpResponse()`不需要`render()`；从后台得到数据之后才跳转，需要在`<scrip></script>`中使用`location.reload()`和`location.href='https://www.baidu.com'`，所以views.py中不需要`redirect()`函数
 
 example: test ajax
 
