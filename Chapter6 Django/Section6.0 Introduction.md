@@ -2384,6 +2384,17 @@ def test_ajax(request, *args, **kwargs):
 </body>
 ```
 
+```django
+<script>
+    $.ajax({
+            url: "/app1/test_ajax/",
+            type: "GET",
+            // ajax传递数据的形式
+            data: {'k1': "John", 'k2': [1, 2, 3], 'k3': JSON.stringify({'k11':'v11', 'k22': 'v22'})},
+        })
+</script>
+```
+
 example: ajax submit
 
 ```bash
