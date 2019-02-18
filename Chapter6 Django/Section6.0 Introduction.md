@@ -4162,5 +4162,17 @@ def test_namespace(request, *args, **kwargs):
 ```django
 <!-- template语言中使用namespace -->
 {% url 'a1:ttt' %}
-``
+```
 
+example: `requests.environ`
+
+```py
+# views.py
+def index(request, *args, **kwargs):
+    print(type(request))  # django.core.handlers.wsgi.WSGIRequest
+    # 查看WSGIRequest的 reference
+    # from django.core.handlers.wsgi import WSGIRequest
+    # 所有的信息都在environ中
+    print(request.environ)
+    return HttpResponse('OK')
+```
