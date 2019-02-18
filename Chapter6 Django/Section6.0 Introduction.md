@@ -10,6 +10,7 @@
   - [many to many](#many-to-many)
   - [Django Summary](#django-summary)
   - [Templates inheritance](#templates-inheritance)
+  - [templates filter & simple_tag](#templates-filter--simpletag)
 
 ## Framework
 
@@ -4336,3 +4337,115 @@ def p2(requests, *args, **kwargs):
     <input type="submit" value="OK">
 </form>
 ```
+
+## templates filter & simple_tag
+
+example: built-in filters `upper`, `lower`, `first`
+
+```django
+<!-- app1/templates/app1/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ name|upper }},{{ name|first|upper }}
+</body>
+</html>
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index),
+]
+```
+
+```py
+# app1/views.py
+def index(requests, *args, **kwargs):
+    return render(requests, 'app1/index.html', {'name': 'grey'})
+```
+
+example: custom filter & simple_tag
+- `settings.py`中`INSTALLED_APPS`
+- app目录创建`templatetags`目录
+- 模板html中`{%load %}`。如果有`{%extends%}`，则`{%load %}`在其下面
+
+```bash
+app1/
+    templatetags/
+        filter1.py
+    templates/
+        app1/
+            index.html
+    urls.py
+    views.py
+```
+
+```django
+<!-- app1/templates/app1/index.html -->
+{% load filter1 %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ name|upper }},
+    {{ name|first|upper }},
+    {% func1 %},
+    {% func2 10 20 %},
+    <!-- :后面没有空格 -->
+    {{ 'James'|func3:' Alpha' }},
+    {{ name|func3:' Alpha' }},
+    {{ name|func4 }},
+    {{ name|func5:'chris,tom,moris' }}
+</body>
+</html>
+<!-- results: -->
+<!-- GREY, G, 123, 30, James Alpha, grey Alpha, GREY, greychris tom moris -->
+```
+
+```py
+# app1/templatetags/filter1.py
+from django import template
+
+register = template.Library()
+
+@register.simple_tag
+def func1():
+    return 123
+
+@register.simple_tag
+def func2(a, b):
+    return a + b
+
+# filter常用于{%if xxx %}中
+@register.filter
+def func3(a, b):
+    return a + b
+
+@register.filter
+def func4(a):
+    return a.upper()
+
+@register.filter
+def func5(a, b):
+    # 最多只能2个参数; 多个参数的trick
+    args = b.split(',')
+    return a + ' '.join(args)
+```
+
+||优点|缺点
+---|---|---
+`filter`|可以作为`{%if%}`条件|传入的参数最多2个
+`simple_tag`|传入的参数个数没有限制|不可以作为`{%if%}`条件
+
