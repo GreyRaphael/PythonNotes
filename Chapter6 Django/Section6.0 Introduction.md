@@ -9,6 +9,7 @@
   - [Ajax](#ajax)
   - [many to many](#many-to-many)
   - [Django Summary](#django-summary)
+  - [Templates inheritance](#templates-inheritance)
 
 ## Framework
 
@@ -4175,4 +4176,163 @@ def index(request, *args, **kwargs):
     # 所有的信息都在environ中
     print(request.environ)
     return HttpResponse('OK')
+```
+
+## Templates inheritance
+
+example: `extends` & `include`
+
+```bash
+untitled3/
+    settings.py
+    urls.py
+app1/
+    templates/
+        app1/
+            parent.html
+            p1.html
+            p2.html
+            form1.html    
+            form2.html    
+    urls.py
+    views.py
+static/
+    common.css
+```
+
+```css
+/* static/common.css */
+.pg-header {
+    height: 48px;
+    background-color: #000;
+    color: #fff;
+}
+
+.pg-footer{
+    height: 48px;
+    background-color: #000;
+    color: #fff;
+}
+```
+
+```py
+# untitled3/settings.py
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+```
+
+```py
+# untitled3/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('app1/', include('app1.urls'))
+]
+```
+
+```django
+<!-- app1/templates/app1/parent.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/common.css"/>
+
+    <title>{% block title %}{% endblock %}</title>
+    {% block custom_css %}{% endblock %}
+</head>
+<body>
+<div class="pg-header">This is Header</div>
+
+{% block content %}{% endblock %}
+
+<div class="pg-footer">This is Footer</div>
+
+{% block custom_js %}{% endblock %}
+</body>
+</html>
+```
+
+```django
+<!-- app1/templates/app1/p1.html -->
+{% extends 'app1/parent.html' %}
+
+{% block title %}
+    Page1
+{% endblock %}
+
+{% block content %}
+    This is page1
+    {% for k in N %}
+        {% include 'app1/form1.html' with i=k %}
+    {% endfor %}
+{% endblock %}
+
+{% block custom_css %}
+    <style>
+        body {
+            background-color: green;
+        }
+    </style>
+{% endblock %}
+```
+
+```django
+<!-- app1/templates/app1/p2.html -->
+{% extends 'app1/parent.html' %}
+
+{% block title %}
+    Page2
+{% endblock %}
+
+{% block content %}
+    This is page2
+    {% for j in N %}
+        {% include 'app1/form2.html'%}
+    {% endfor %}
+{% endblock %}
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('page1/', views.p1),
+    path('page2/', views.p2),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+
+def p1(requests, *args, **kwargs):
+    return render(requests, 'app1/p1.html', {'N': [11, 22, 33]})
+
+def p2(requests, *args, **kwargs):
+    return render(requests, 'app1/p2.html', {'N': [1, 2, 3]})
+```
+
+```django
+<!-- app1/templates/app1/form1.html -->
+<form>
+    {{ i }}
+    <input type="text">
+    <input type="submit" value="OK">
+</form>
+```
+
+```django
+<!-- app1/templates/app1/form2.html -->
+<form>
+    {{ N }}
+    <input type="text">
+    <input type="submit" value="OK">
+</form>
 ```
