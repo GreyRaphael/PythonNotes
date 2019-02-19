@@ -12,6 +12,7 @@
   - [Templates inheritance](#templates-inheritance)
   - [templates filter & simple_tag](#templates-filter--simpletag)
   - [Pagination](#pagination)
+  - [Cookie & Session](#cookie--session)
 
 ## Framework
 
@@ -4725,4 +4726,78 @@ def users(requests, *args, **kwargs):
 
         return render(requests, 'app1/users.html',
                       {'data': data, 'pagination': pagination.pagination_str(base_url='/app1/users')})
+```
+
+## Cookie & Session
+
+所有网站的验证机制：浏览器第一次输入用户名密码并发送给服务器端，服务器端验证，验证成功后给浏览器发key-value字符串，浏览器保存该key-value字符串到文件；浏览器第二次访问该网站，会携带key-value字符串并发送给服务器端。
+> 禁用cookie之后，任何网站都无法登陆
+
+example: simple login with cookie
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index),
+    path('login/', views.login)
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+
+def index(requests, *args, **kwargs):
+    v = requests.COOKIES.get('Name')
+    if not v:
+        # 第一次登录没有cookie
+        return redirect('/app1/login')
+    else:
+        return render(requests, 'app1/index.html', {'uname': v})
+
+USERS = {
+    'grey': '123',
+    'jack': '456'
+}
+
+def login(requests, *args, **kwargs):
+    info = ''
+    if requests.method == 'GET':
+        return render(requests, 'app1/login.html', {'info': info})
+    elif requests.method == 'POST':
+        uname = requests.POST.get('uname')
+        pwd = requests.POST.get('pwd')
+        p = USERS.get(uname)
+        if not p:
+            info = 'no such user'
+            return render(requests, 'app1/login.html', {'info': info})
+
+        if p == pwd:
+            res = redirect('/app1/index')
+            res.set_cookie('Name', uname)
+            return res
+        else:
+            return redirect('/app1/login')
+```
+
+```django
+<!-- app1/templates/app1/index.html -->
+<body>
+Welcome {{ uname }}
+</body>
+```
+
+```django
+<!-- app1/templates/app1/login.html -->
+<body>
+<span>{{ info }}</span>
+<form action="/app1/login/" method="post">
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <input type="submit" value="Login">
+</form>
+</body>
 ```
