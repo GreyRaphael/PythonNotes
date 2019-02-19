@@ -13,6 +13,7 @@
   - [templates filter & simple_tag](#templates-filter--simpletag)
   - [Pagination](#pagination)
   - [Cookie & Session](#cookie--session)
+  - [FBV, CBV with decorator](#fbv-cbv-with-decorator)
 
 ## Framework
 
@@ -4934,3 +4935,83 @@ def login(request, *args, **kwargs):
     #...
 ```
 
+## FBV, CBV with decorator
+
+example: FBV with decorator
+
+```py
+# app1/views.py
+def auth(func):
+    def inner(request, *args, **kwargs):
+        v = request.COOKIES.get('Name')
+        if not v:
+            return redirect('/app1/login')
+        else:
+            return func(request, *args, **kwargs)
+
+    return inner
+
+
+@auth
+def index(request, *args, **kwargs):
+    v = request.COOKIES.get('Name')
+    return render(request, 'app1/index.html', {'uname': v})
+```
+
+example: DBV with decorator
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('order/', views.Order.as_view()),
+    path('login/', views.login)
+]
+```
+
+```py
+# app1/views.py
+from django import views
+from django.utils.decorators import method_decorator
+
+def auth(func):
+    pass
+
+class Order(views.View):
+    # 只装饰一个method
+    @method_decorator(auth)
+    def get(self, request):
+        v = request.COOKIES.get('Name')
+        return render(request, 'app1/index.html', {'uname', v})
+```
+
+```py
+# app1/views.py
+# 所有的request方式都装饰method1
+from django import views
+from django.utils.decorators import method_decorator
+
+def auth(func):
+    pass
+
+class Order(views.View):
+    @method_decorator(auth)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        v = request.COOKIES.get('Name')
+        return render(request, 'app1/index.html', {'uname', v})
+```
+
+```py
+# app1/views.py
+# 所有的request方式都装饰method2
+@method_decorator(auth, name='dispatch')
+class Order(views.View):
+    def get(self, request):
+        v = request.COOKIES.get('Name')
+        return render(request, 'app1/index.html', {'uname', v})
+```
