@@ -4732,7 +4732,8 @@ def users(requests, *args, **kwargs):
 
 所有网站的验证机制：浏览器第一次输入用户名密码并发送给服务器端，服务器端验证，验证成功后给浏览器发key-value字符串，浏览器保存该key-value字符串到文件；浏览器第二次访问该网站，会携带key-value字符串并发送给服务器端。
 > 禁用cookie之后，任何网站都无法登陆  
-> 注销的本质就是清除cookie
+> 注销的本质就是清除cookie  
+> cookie在服务器端和客户端都是readable, writable
 
 example: simple login with cookie
 
@@ -4807,7 +4808,7 @@ Welcome {{ uname }}
 cookie参数:`set_cookie(self, key, value='', max_age=None, expires=None, path='/',domain=None, secure=False, httponly=False, samesite=None)`
 - max_age: 以second为单位
 - expires: 直接过期的时间节点
-- path: Cookie生效的路径，常用于**当前页面显示50项**而不干扰其他页面的显示
+- path: Cookie生效的路径, 默认是当前page
 - domain: Cookie生效的域名，只能是当前域名及其二级域名
 - secure: https传输
 - httponly: 无法在console中使用JS代码`document.cookie`获取（不是绝对，底层抓包可以获取到也可以被覆盖）
@@ -4828,3 +4829,86 @@ if p == pwd:
 
 > 清除Cookie的Trick: 设置超时时间为当前时间，就相当于清除掉了
 
+example: pagination & count_per_page with cookie
+> ![](res/cookie01.png)
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('users/', views.users),
+]
+```
+
+```py
+# app1.views.py
+class Pagination:
+    pass
+
+N = 309
+USERS = [i for i in range(N)]
+
+def users(requests, *args, **kwargs):
+    if requests.method == 'GET':
+        current_p = int(requests.GET.get('p', 1))
+
+        n = int(requests.COOKIES.get('count_per_pg', 10))
+        pagination = Pagination(N, current_p, count_per_pg=n)
+
+        if current_p > pagination.pg_count or current_p < 1:
+            return HttpResponse('Request Error!')
+
+        data = USERS[pagination.item_start:pagination.item_end]
+
+        return render(requests, 'app1/users.html',
+                      {'data': data, 'pagination': pagination.pagination_str(base_url='/app1/users')})
+```
+
+```django
+<!-- app1/templates/app1/users.html -->
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .paginator {
+            display: inline-block;
+            padding: 5px;
+            background-color: cyan;
+            margin-left: 10px;
+        }
+
+        .active {
+            background-color: brown;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+{% for i in data %}
+    <li>{{ i }}</li>
+{% endfor %}
+<div>
+    <select onchange="ChangeCountPerPage(this);">
+        <option>10</option>
+        <option>30</option>
+        <option>50</option>
+    </select> items/page
+</div>
+{{ pagination|safe }}
+<script>
+    // ready event
+    document.addEventListener("DOMContentLoaded", function () {
+        let v = document.cookie.match('count_per_pg' + '=(\\d+)')[1];
+        document.querySelector('select').value = v;
+    });
+
+    function ChangeCountPerPage(t) {
+        let v = t.value;
+        document.cookie = `count_per_pg=${v};`;
+        location.reload();
+    }
+</script>
+</body>
+```
