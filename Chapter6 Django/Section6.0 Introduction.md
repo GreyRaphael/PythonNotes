@@ -11,6 +11,7 @@
   - [Django Summary](#django-summary)
   - [Templates inheritance](#templates-inheritance)
   - [templates filter & simple_tag](#templates-filter--simpletag)
+  - [Pagination](#pagination)
 
 ## Framework
 
@@ -4449,3 +4450,279 @@ def func5(a, b):
 `filter`|可以作为`{%if%}`条件|传入的参数最多2个
 `simple_tag`|传入的参数个数没有限制|不可以作为`{%if%}`条件
 
+## Pagination
+
+xss攻击: 论坛评论`<script>aler(666)</script>`之后，会显示给其他人，那么之后的所有人都会弹窗; 所以后端默认会对`<script>aler(666)</script>`进行转义，防止xss攻击
+
+example: safe html by template
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('home/', views.home),
+]
+```
+
+```py
+# app1/views.py
+def home(requests, *args, **kwargs):
+    html = '<li>hello</li>'
+    return render(requests, 'app1/home.html', {'datastr': html})
+```
+
+```django
+<!-- app1/templates/app1/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ datastr|safe }}
+</body>
+</html>
+```
+
+example: safe html by python
+
+```py
+# app1/views.py
+def home(requests, *args, **kwargs):
+    from django.utils.safestring import mark_safe
+    html = '<li>hello</li>'
+    html = mark_safe(html)
+    return render(requests, 'app1/home.html', {'datastr': html})
+```
+
+```django
+<!-- app1/templates/app1/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {{ datastr }}
+</body>
+</html>
+```
+
+example: pagination by templates
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('users/', views.users),
+]
+```
+
+```py
+# app1/views.py
+N = 109
+count_per_page = 10
+USERS = [i for i in range(N)]
+page_numbers = (N - 1) // count_per_page + 1
+
+def users(requests, *args, **kwargs):
+    if requests.method == 'GET':
+        current_page = int(requests.GET.get('p', 1))
+        start_page = (current_page - 1) * count_per_page
+        end_page = current_page * count_per_page
+        data = USERS[start_page:end_page]
+        return render(requests, 'app1/users.html', {'data': data, 'pnum': range(1, page_numbers+1), 'current': current_page})
+```
+
+```django
+<!-- app1/templates/app1/users.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .paginator {
+            display: inline-block;
+            padding: 5px;
+            background-color: cyan;
+            margin-left: 10px;
+        }
+
+        .active {
+            background-color: brown;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+{% for i in data %}
+    <li>{{ i }}</li>
+{% endfor %}
+{% for p in pnum %}
+    {% if p == current %}
+        <a class="paginator active" href="/app1/users/?p={{ p }}">{{ p }}</a>
+    {% else %}
+        <a class="paginator" href="/app1/users/?p={{ p }}">{{ p }}</a>
+    {% endif %}
+{% endfor %}
+</body>
+</html>
+```
+
+example: pagination by python
+
+```py
+# app1/views.py
+N = 109
+count_per_page = 10
+USERS = [i for i in range(N)]
+page_numbers = (N - 1) // count_per_page + 1
+
+def users(requests, *args, **kwargs):
+    if requests.method == 'GET':
+        current_page = int(requests.GET.get('p', 1))
+        start_page = (current_page - 1) * count_per_page
+        end_page = current_page * count_per_page
+        data = USERS[start_page:end_page]
+
+        page_list = []
+        for i in range(1, page_numbers+1):
+            if i == current_page:
+                temp = f'<a class="paginator active" href="/app1/users/?p={i}">{i}</a>'
+            else:
+                temp = f'<a class="paginator" href="/app1/users/?p={i}">{i}</a>'
+            page_list.append(temp)
+        pagination = ''.join(page_list)
+        return render(requests, 'app1/users.html', {'data': data, 'pagination': pagination})
+```
+
+```django
+<!-- app1/templates/app1/users.html -->
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .paginator {
+            display: inline-block;
+            padding: 5px;
+            background-color: cyan;
+            margin-left: 10px;
+        }
+
+        .active {
+            background-color: brown;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+{% for i in data %}
+    <li>{{ i }}</li>
+{% endfor %}
+
+{{ pagination|safe }}
+</body>
+```
+
+examle: pagination complete
+
+```django
+<!-- app1/templates/app1/users.html -->
+<!-- same as above -->
+```
+
+```py
+# app1/views.py
+class Pagination:
+    def __init__(self, item_count, current_p, count_per_pg=10, paginator_number=9):
+        self.pg_count = (item_count - 1) // count_per_pg + 1
+        self.current_p = current_p
+        self.count_per_pg = count_per_pg
+        self.paginator_number = paginator_number
+
+    @property
+    def item_start(self):
+        return (self.current_p - 1) * self.count_per_pg
+
+    @property
+    def item_end(self):
+        return self.current_p * self.count_per_pg
+
+    def pagination_str(self, base_url):
+        # first, last, previous, next, goto paginators
+        first_pgi = f'<a class="paginator" href="{base_url}/?p=1">First</a>'
+        last_pgi = f'<a class="paginator" href="{base_url}/?p={self.pg_count}">Last</a>'
+        prev_pgi = f'<a class="paginator" href="{base_url}/?p={self.current_p - 1}">Prev</a>'
+        next_pgi = f'<a class="paginator" href="{base_url}/?p={self.current_p + 1}">Next</a>'
+        if self.current_p == 1:
+            # href=''或者href='#'会刷新页面，用javascript:void(0)效果更好
+            prev_pgi = f'<a class="paginator" href="javascript:void(0)">Prev</a>'
+        elif self.current_p == self.pg_count:
+            next_pgi = f'<a class="paginator" href="javascript:void(0)">Next</a>'
+
+        goto_pgi = '''
+        <input type="text">
+        <button onclick="jumpTo(this);">GoTo</button>
+        <script>
+            function jumpTo(t) {
+                let v = t.previousElementSibling.value;
+                if (v) {
+                    location.href = '%s/?p=' + v;
+                }
+            }
+        </script>
+        ''' % base_url
+
+        # number paginators
+        side_number = (self.paginator_number - 1) // 2
+        center_number = (self.paginator_number + 1) // 2
+        if self.pg_count < self.paginator_number:
+            start_index = 1
+            end_index = self.pg_count
+        elif self.current_p <= center_number:
+            start_index = 1
+            end_index = self.paginator_number
+        elif self.current_p > self.pg_count - side_number:
+            end_index = self.pg_count
+            start_index = self.pg_count - self.paginator_number + 1
+        else:
+            start_index = self.current_p - side_number
+            end_index = self.current_p + side_number
+
+        pg_list = [first_pgi, prev_pgi]
+        for i in range(start_index, end_index + 1):
+            if i == self.current_p:
+                temp = f'<a class="paginator active" href="{base_url}/?p={i}">{i}</a>'
+            else:
+                temp = f'<a class="paginator" href="{base_url}/?p={i}">{i}</a>'
+            pg_list.append(temp)
+        pg_list.append(next_pgi)
+        pg_list.append(last_pgi)
+        pg_list.append(goto_pgi)
+        return ''.join(pg_list)
+
+
+N = 309
+USERS = [i for i in range(N)]
+
+
+def users(requests, *args, **kwargs):
+    if requests.method == 'GET':
+        current_p = int(requests.GET.get('p', 1))
+        pagination = Pagination(N, current_p)
+
+        if current_p > pagination.pg_count or current_p < 1:
+            return HttpResponse('Request Error!')
+
+        data = USERS[pagination.item_start:pagination.item_end]
+
+        return render(requests, 'app1/users.html',
+                      {'data': data, 'pagination': pagination.pagination_str(base_url='/app1/users')})
+```
