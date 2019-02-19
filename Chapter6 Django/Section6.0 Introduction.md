@@ -5015,3 +5015,67 @@ class Order(views.View):
         v = request.COOKIES.get('Name')
         return render(request, 'app1/index.html', {'uname', v})
 ```
+
+example: request.META & request.body
+
+```bash
+# request报文分成4部分: request line, request headers, blank line,request body
+GET /app1/index/ HTTP/1.1 # request line
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,ja;q=0.6,zh-TW;q=0.5
+Cache-Control: max-age=0
+Connection: keep-alive
+Cookie: Name=grey
+Host: 127.0.0.1:8000
+Referer: http://127.0.0.1:8000/app1/login/
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36\r\n
+\r\n # blank line, 每一个header都以\r\n结尾，所以最后一个header看起来是\r\n\r\n
+uname=grey&pwd=123 # body data: e.g. post data
+```
+
+`request.META`对应着request line和request headers, 其中的数据被提取到如下变量:
+- `request.GET`
+- `request.path_info`
+- `request.method`
+- `request.COOKIES`
+
+`request.body`对应着body, 其中的数据被提取到如下变量:
+- `request.POST`
+- `request.FILES`
+- 当`request.method`是PUT的时候，并没有`request.PUT`，那么需要自己从`request.body`提取数据
+
+```bash
+# response报文包含4部分status line, response headers, blank link, response body
+HTTP/1.1 200 OK # status line
+Content-Length: 137
+Content-Type: text/html; charset=utf-8
+Date: Tue, 19 Feb 2019 15:49:28 GMT
+Server: WSGIServer/0.2 CPython/3.7.2
+X-Frame-Options: SAMEORIGIN\r\n
+\r\n # blank line
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+Welcome {{ uname }}
+</body>
+</html>
+```
+
+```py
+if p == pwd:
+    response = redirect('/app1/index')
+    response.set_cookie('Name', uname) # cookie写入response headers中然后传给客户端，客户端也将cookie放在request headers中然后传递给服务器端
+    return response
+```
+
+```py
+# 设置响应头
+response=HttpResponse('ok')
+response['hhh']='666' # 这个会以key-value出现在response headers中
+```
