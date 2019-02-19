@@ -4731,7 +4731,8 @@ def users(requests, *args, **kwargs):
 ## Cookie & Session
 
 所有网站的验证机制：浏览器第一次输入用户名密码并发送给服务器端，服务器端验证，验证成功后给浏览器发key-value字符串，浏览器保存该key-value字符串到文件；浏览器第二次访问该网站，会携带key-value字符串并发送给服务器端。
-> 禁用cookie之后，任何网站都无法登陆
+> 禁用cookie之后，任何网站都无法登陆  
+> 注销的本质就是清除cookie
 
 example: simple login with cookie
 
@@ -4777,6 +4778,7 @@ def login(requests, *args, **kwargs):
 
         if p == pwd:
             res = redirect('/app1/index')
+            # 默认关闭Browser, cookie失效
             res.set_cookie('Name', uname)
             return res
         else:
@@ -4801,3 +4803,28 @@ Welcome {{ uname }}
 </form>
 </body>
 ```
+
+cookie参数:`set_cookie(self, key, value='', max_age=None, expires=None, path='/',domain=None, secure=False, httponly=False, samesite=None)`
+- max_age: 以second为单位
+- expires: 直接过期的时间节点
+- path: Cookie生效的路径，常用于**当前页面显示50项**而不干扰其他页面的显示
+- domain: Cookie生效的域名，只能是当前域名及其二级域名
+- secure: https传输
+- httponly: 无法在console中使用JS代码`document.cookie`获取（不是绝对，底层抓包可以获取到也可以被覆盖）
+
+```py
+# set expire time
+if p == pwd:
+    res = redirect('/app1/index')
+    # method1: by max_age
+    res.set_cookie('Name', uname, max_age=30)
+
+    # # method2: by expires
+    # import datetime
+    # expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=30)
+    # res.set_cookie('Name', uname, expires=expiry_time)
+    return res
+```
+
+> 清除Cookie的Trick: 设置超时时间为当前时间，就相当于清除掉了
+
