@@ -4315,11 +4315,11 @@ urlpatterns = [
 # app1/views.py
 from django.shortcuts import render
 
-def p1(requests, *args, **kwargs):
-    return render(requests, 'app1/p1.html', {'N': [11, 22, 33]})
+def p1(request,*args, **kwargs):
+    return render(request,'app1/p1.html', {'N': [11, 22, 33]})
 
-def p2(requests, *args, **kwargs):
-    return render(requests, 'app1/p2.html', {'N': [1, 2, 3]})
+def p2(request,*args, **kwargs):
+    return render(request,'app1/p2.html', {'N': [1, 2, 3]})
 ```
 
 ```django
@@ -4370,8 +4370,8 @@ urlpatterns = [
 
 ```py
 # app1/views.py
-def index(requests, *args, **kwargs):
-    return render(requests, 'app1/index.html', {'name': 'grey'})
+def index(request,*args, **kwargs):
+    return render(request,'app1/index.html', {'name': 'grey'})
 ```
 
 example: custom filter & simple_tag
@@ -4469,9 +4469,9 @@ urlpatterns = [
 
 ```py
 # app1/views.py
-def home(requests, *args, **kwargs):
+def home(request,*args, **kwargs):
     html = '<li>hello</li>'
-    return render(requests, 'app1/home.html', {'datastr': html})
+    return render(request,'app1/home.html', {'datastr': html})
 ```
 
 ```django
@@ -4492,11 +4492,11 @@ example: safe html by python
 
 ```py
 # app1/views.py
-def home(requests, *args, **kwargs):
+def home(request,*args, **kwargs):
     from django.utils.safestring import mark_safe
     html = '<li>hello</li>'
     html = mark_safe(html)
-    return render(requests, 'app1/home.html', {'datastr': html})
+    return render(request,'app1/home.html', {'datastr': html})
 ```
 
 ```django
@@ -4532,13 +4532,13 @@ count_per_page = 10
 USERS = [i for i in range(N)]
 page_numbers = (N - 1) // count_per_page + 1
 
-def users(requests, *args, **kwargs):
+def users(request,*args, **kwargs):
     if requests.method == 'GET':
         current_page = int(requests.GET.get('p', 1))
         start_page = (current_page - 1) * count_per_page
         end_page = current_page * count_per_page
         data = USERS[start_page:end_page]
-        return render(requests, 'app1/users.html', {'data': data, 'pnum': range(1, page_numbers+1), 'current': current_page})
+        return render(request,'app1/users.html', {'data': data, 'pnum': range(1, page_numbers+1), 'current': current_page})
 ```
 
 ```django
@@ -4586,7 +4586,7 @@ count_per_page = 10
 USERS = [i for i in range(N)]
 page_numbers = (N - 1) // count_per_page + 1
 
-def users(requests, *args, **kwargs):
+def users(request,*args, **kwargs):
     if requests.method == 'GET':
         current_page = int(requests.GET.get('p', 1))
         start_page = (current_page - 1) * count_per_page
@@ -4601,7 +4601,7 @@ def users(requests, *args, **kwargs):
                 temp = f'<a class="paginator" href="/app1/users/?p={i}">{i}</a>'
             page_list.append(temp)
         pagination = ''.join(page_list)
-        return render(requests, 'app1/users.html', {'data': data, 'pagination': pagination})
+        return render(request,'app1/users.html', {'data': data, 'pagination': pagination})
 ```
 
 ```django
@@ -4714,7 +4714,7 @@ N = 309
 USERS = [i for i in range(N)]
 
 
-def users(requests, *args, **kwargs):
+def users(request,*args, **kwargs):
     if requests.method == 'GET':
         current_p = int(requests.GET.get('p', 1))
         pagination = Pagination(N, current_p)
@@ -4724,7 +4724,7 @@ def users(requests, *args, **kwargs):
 
         data = USERS[pagination.item_start:pagination.item_end]
 
-        return render(requests, 'app1/users.html',
+        return render(request,'app1/users.html',
                       {'data': data, 'pagination': pagination.pagination_str(base_url='/app1/users')})
 ```
 
@@ -4752,30 +4752,30 @@ urlpatterns = [
 # app1/views.py
 from django.shortcuts import render, redirect, HttpResponse
 
-def index(requests, *args, **kwargs):
+def index(request,*args, **kwargs):
     v = requests.COOKIES.get('Name')
     if not v:
         # 第一次登录没有cookie
         return redirect('/app1/login')
     else:
-        return render(requests, 'app1/index.html', {'uname': v})
+        return render(request,'app1/index.html', {'uname': v})
 
 USERS = {
     'grey': '123',
     'jack': '456'
 }
 
-def login(requests, *args, **kwargs):
+def login(request,*args, **kwargs):
     info = ''
     if requests.method == 'GET':
-        return render(requests, 'app1/login.html', {'info': info})
+        return render(request,'app1/login.html', {'info': info})
     elif requests.method == 'POST':
         uname = requests.POST.get('uname')
         pwd = requests.POST.get('pwd')
         p = USERS.get(uname)
         if not p:
             info = 'no such user'
-            return render(requests, 'app1/login.html', {'info': info})
+            return render(request,'app1/login.html', {'info': info})
 
         if p == pwd:
             res = redirect('/app1/index')
@@ -4850,7 +4850,7 @@ class Pagination:
 N = 309
 USERS = [i for i in range(N)]
 
-def users(requests, *args, **kwargs):
+def users(request,*args, **kwargs):
     if requests.method == 'GET':
         current_p = int(requests.GET.get('p', 1))
 
@@ -4862,7 +4862,7 @@ def users(requests, *args, **kwargs):
 
         data = USERS[pagination.item_start:pagination.item_end]
 
-        return render(requests, 'app1/users.html',
+        return render(request,'app1/users.html',
                       {'data': data, 'pagination': pagination.pagination_str(base_url='/app1/users')})
 ```
 
@@ -4912,3 +4912,25 @@ def users(requests, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: cookie with salt
+
+```py
+# app1/views.py
+def index(request, *args, **kwargs):
+    v = request.get_signed_cookie('Name', default=False, salt='666666')
+    if not v:
+        # 第一次登录没有cookie
+        return redirect('/app1/login')
+    else:
+        return render(request, 'app1/index.html', {'uname': v})
+
+def login(request, *args, **kwargs):
+    # ...
+        if p == pwd:
+        res = redirect('/app1/index')
+        res.set_signed_cookie('Name', uname, salt='666666')
+        return res
+    #...
+```
+
