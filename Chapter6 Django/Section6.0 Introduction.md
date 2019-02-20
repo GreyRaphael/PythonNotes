@@ -15,6 +15,7 @@
   - [Cookie & Session](#cookie--session)
   - [FBV, CBV with decorator](#fbv-cbv-with-decorator)
   - [Session](#session)
+- [session configuration](#session-configuration)
 
 ## Framework
 
@@ -5293,3 +5294,50 @@ def login(request, *args, **kwargs):
 
 session默认两周超时可以在`settings.py`中设置， `set_expiry()`的优先级更高
 
+# session configuration
+
+```py
+# settings.py对session的默认设置
+SESSION_COOKIE_NAME ＝ "sessionid"      # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串
+SESSION_COOKIE_PATH ＝ "/"              # Session的cookie保存的路径
+SESSION_COOKIE_DOMAIN = None            # Session的cookie保存的域名
+SESSION_COOKIE_SECURE = False           # 是否Https传输cookie
+SESSION_COOKIE_HTTPONLY = True          # 是否Session的cookie只支持http传输
+SESSION_COOKIE_AGE = 1209600            # Session的cookie失效日期（2周）
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False # 是否关闭浏览器使得Session过期
+# 默认第一次访问才保存session，后面的不保存session到数据库
+# 设置为True之后，每次请求都会重新保存session，那么超时时间可以往后推迟
+SESSION_SAVE_EVERY_REQUEST = False      # 是否每次请求都保存Session，默认修改之后才保存
+```
+
+```py
+# settings.py中设置session保存的位置
+# 1.数据库，默认，优势不大
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' # 引擎（默认）
+
+# 2.缓存
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache' # 引擎
+SESSION_CACHE_ALIAS = 'default' # 使用的缓存别名（默认内存缓存，也可以是memcache），此处别名依赖缓存的设置
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+            # "PASSWORD": "密码",
+        }
+    }
+}
+
+# 3.文件
+SESSION_ENGINE = 'django.contrib.sessions.backends.file' # 引擎
+SESSION_FILE_PATH = os.path.join(BASE_DIR, 'cache') # 缓存文件路径，如果为None，则使用tempfile模块获取一个临时地址tempfile.gettempdir()
+
+# 4.缓存+数据库Session： 数据库用于做持久化，缓存用于提高效率
+# 先去缓存中拿，没有再去数据库中拿
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# 5. 加密cookie session
+# 全都写在cookie中，只是加了个密；并不是保存在服务器端，保存在客户端
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
