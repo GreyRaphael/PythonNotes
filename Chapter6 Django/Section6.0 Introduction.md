@@ -5084,8 +5084,8 @@ response['hhh']='666' # 这个会以key-value出现在response headers中
 ## Session
 
 Definition:
-- cookie: 保存在浏览器的key-value对，存在文件中
-- session: 保存在服务器的key-value对，存在djang_session数据库表中
+- cookie: 保存在浏览器的key-value对
+- session: 保存在服务器的key-value对
 
 基于cookie做用户认证，敏感信息不适合放在cookie中；那么将敏感信息保存在服务器的session中
 > 认证流程: 第一次输入密码，服务器端验证，验证通过之后发送随机字符串给浏览器，浏览器保存随机字符串到cookie；浏览器第二次带着cookie访问，根据该随机字符串在session中找到`is_login`，决定是否通过验证。所以session的验证依赖cookie
@@ -5094,14 +5094,13 @@ cookie的缺点:
 - cookie在客户端可以被js修改，进而可能获取root权限
 - cookie可以复制到其他客户端，进而登录(不算缺点)
 
-cookie的优点:
-- cookie是本地文件，对服务器压力小
+cookie的优点: cookie是本地文件，对服务器压力小
 
 ```py
-# request.session本质是一个字典
+# session本质是一个字典, request.session只是其中的一条数据
 session={
     # A用户的某次会话
-    # key 随机字符串, value 敏感信息
+    # key 随机字符串; value 敏感信息，print(request.sesson)就是该value
     'll3aax4mdnzts0u8yjpf6zb52edqwyz7':{
         'is_login' : True,
         'Name' : 'grey',
@@ -5121,12 +5120,13 @@ session={
 # 'sessionid':'ll3aax4mdnzts0u8yjpf6zb52edqwyz7'
 ```
 
-session默认保存在`django_session`数据库表中，内存中的`request.session`本质是字典
+django中默认session保存在`django_session`数据库表中(也可以像cookie一样保存在文件中，也可以缓存中，内存中)，内存中的`request.session`本质是字典
 session_key|session_data|expire_date|
 ---|---|---
 ll3aax4mdnzts0u8yjpf6zb52edqwyz7|YTJmMjcwOTk4M2JmNTg1MDhiZWYz|2019-03-06 02:20:58.832349
 hkwzazdhvwyhi2b7cxoc1jmntian767b|YTdxjahteheahtejahe1MDhiZWYz|2019-03-06 02:34:03.446261
-> `session_data`本质是对内存中的敏感信息value进行了加密
+> `session_data`本质是对内存中的敏感信息value进行了加密  
+> `expire_date`：如果一个用户删了cookie随机字符串，那么需要重新登录，就会又生成一条record，那么之前的record就是脏数据，`python manage.py clearsessions`会自动清理`expire_date`到期的脏数据。也可以手动删除脏数据`request.session.clear_expired()`
 
 example: login with session
 
@@ -5207,5 +5207,58 @@ def index(request, *args, **kwargs):
 <!-- app1/tempaltes/app1/index.html -->
 <body>
 Welcome: {{ name }}
+</body>
+```
+
+```py
+# 删除某个session敏感信息中的一条
+del request.session['Name']
+# 删除session_key对应的session
+request.session.delete("session_key")
+# 删除当前session: 主要用于注销
+request.session.clear() # 相当于request.session.delete(request.session.session_key)
+
+# django中session默认的保质期是2周
+request.session.set_expiry(value)
+# 如果value是个整数，session会在些秒数后失效。
+# 如果value是个datatime或timedelta，session就会在这个时间后失效。
+# 如果value是0,用户关闭浏览器session就会失效。
+# 如果value是None,session会依赖全局session失效策略。
+```
+
+example: logout by session
+
+```py
+# app1/urls.py
+urlpatterns = [
+    path('index/', views.index),
+    path('login/', views.login),
+    path('logout/', views.logout),
+]
+```
+
+```py
+# app1/views.py
+def login(request, *args, **kwargs):
+    pass
+
+
+def index(request, *args, **kwargs):
+    if request.session.get('is_login'):
+        return render(request, 'app1/index.html') # 默认request已经传递给index.html，不需要另外传递
+    else:
+        return redirect('/app1/login')
+
+
+def logout(request, *args, **kwargs):
+    request.session.clear() # 注销清除session
+    return redirect('/app1/login')
+```
+
+```django
+<!-- app1/templates/app1/index.html -->
+<body>
+Welcome: {{ request.session.Name }}
+<a href="/app1/logout">Logout</a>
 </body>
 ```
