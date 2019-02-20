@@ -5129,6 +5129,7 @@ hkwzazdhvwyhi2b7cxoc1jmntian767b|YTdxjahteheahtejahe1MDhiZWYz|2019-03-06 02:34:0
 > `expire_date`：如果一个用户删了cookie随机字符串，那么需要重新登录，就会又生成一条record，那么之前的record就是脏数据，`python manage.py clearsessions`会自动清理`expire_date`到期的脏数据。也可以手动删除脏数据`request.session.clear_expired()`
 
 example: login with session
+> 使用session需要`python manage.py makemigrations`, `python manage.py migrate`
 
 ```bash
 app1/
@@ -5262,3 +5263,33 @@ Welcome: {{ request.session.Name }}
 <a href="/app1/logout">Logout</a>
 </body>
 ```
+
+example: remember 5 seconds
+> ![](res/r5s.png)
+
+```django
+<!-- app1/tempaltes/app1/login.html -->
+<form action="/app1/login/" method="post">
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <br>Remember 5 second<input type="checkbox" name="remember5s" value="1">
+    <input type="submit" value="Submit">
+</form>
+```
+
+```py
+# app1/views.py
+def login(request, *args, **kwargs):
+    # ...some code...
+    if pwd == p:
+        request.session['Name'] = uname
+        request.session['is_login'] = True
+        if request.POST.get('remember5s') == '1':
+            request.session.set_expiry(5) # 5s超时，既给浏览器设置，也给服务器端设置
+        return redirect('/app1/index')
+    else:
+        return redirect('/app1/login')
+```
+
+session默认两周超时可以在`settings.py`中设置， `set_expiry()`的优先级更高
+
