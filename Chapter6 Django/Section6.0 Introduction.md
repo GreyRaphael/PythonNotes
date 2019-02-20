@@ -5341,3 +5341,5 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 # 5. 加密cookie session
 # 全都写在cookie中，只是加了个密；并不是保存在服务器端，保存在客户端
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+```
+
