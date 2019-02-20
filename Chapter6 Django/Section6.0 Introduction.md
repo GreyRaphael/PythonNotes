@@ -14,6 +14,7 @@
   - [Pagination](#pagination)
   - [Cookie & Session](#cookie--session)
   - [FBV, CBV with decorator](#fbv-cbv-with-decorator)
+  - [Session](#session)
 
 ## Framework
 
@@ -5078,4 +5079,133 @@ if p == pwd:
 # 设置响应头
 response=HttpResponse('ok')
 response['hhh']='666' # 这个会以key-value出现在response headers中
+```
+
+## Session
+
+Definition:
+- cookie: 保存在浏览器的key-value对，存在文件中
+- session: 保存在服务器的key-value对，存在djang_session数据库表中
+
+基于cookie做用户认证，敏感信息不适合放在cookie中；那么将敏感信息保存在服务器的session中
+> 认证流程: 第一次输入密码，服务器端验证，验证通过之后发送随机字符串给浏览器，浏览器保存随机字符串到cookie；浏览器第二次带着cookie访问，根据该随机字符串在session中找到`is_login`，决定是否通过验证。所以session的验证依赖cookie
+
+cookie的缺点:
+- cookie在客户端可以被js修改，进而可能获取root权限
+- cookie可以复制到其他客户端，进而登录(不算缺点)
+
+cookie的优点:
+- cookie是本地文件，对服务器压力小
+
+```py
+# request.session本质是一个字典
+session={
+    # A用户的某次会话
+    # key 随机字符串, value 敏感信息
+    'll3aax4mdnzts0u8yjpf6zb52edqwyz7':{
+        'is_login' : True,
+        'Name' : 'grey',
+    },
+    # A用户的另一次会话
+    'hkwzazdhvwyhi2b7cxoc1jmntian767b':{
+        'is_login' : True,
+        'Name' : 'grey',
+    },
+    # B用户的某一次会话
+    'adsadhgahje':{
+        'is_login': True, 
+        'Name':'jack',
+    }
+}
+# 保存在浏览器中的cookie
+# 'sessionid':'ll3aax4mdnzts0u8yjpf6zb52edqwyz7'
+```
+
+session默认保存在`django_session`数据库表中，内存中的`request.session`本质是字典
+session_key|session_data|expire_date|
+---|---|---
+ll3aax4mdnzts0u8yjpf6zb52edqwyz7|YTJmMjcwOTk4M2JmNTg1MDhiZWYz|2019-03-06 02:20:58.832349
+hkwzazdhvwyhi2b7cxoc1jmntian767b|YTdxjahteheahtejahe1MDhiZWYz|2019-03-06 02:34:03.446261
+> `session_data`本质是对内存中的敏感信息value进行了加密
+
+example: login with session
+
+```bash
+app1/
+    templates/
+        app1/
+            index.html
+            login.html
+    urls.py
+    views.py
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index),
+    path('login/', views.login),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect
+
+USERS = {
+    'grey': '123',
+    'jack': '456',
+}
+
+def login(request, *args, **kwargs):
+    if request.method == 'GET':
+        return render(request, 'app1/login.html')
+    elif request.method == 'POST':
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+        p = USERS.get(uname)
+        if not p:
+            return redirect('/app1/login')
+
+        if pwd == p:
+            # request.session设置值进行的操作:
+            # 1. 生成随机字符串，并写入response headers的cookie
+            # 2. 保存随机字符串到session中，其中key为随机字符串，value为敏感信息
+            request.session['Name'] = uname
+            request.session['is_login'] = True
+            return redirect('/app1/index')
+        else:
+            return redirect('/app1/login')
+
+
+def index(request, *args, **kwargs):
+    # request.session获取值进行的操作
+    # 1. 获取cookie中的随机字符串
+    # 2. 根据随机字符串到数据库中找到对应的信息
+    if request.session.get('is_login'):
+        name = request.session['Name']
+        return render(request, 'app1/index.html', {'name': name})
+    else:
+        return redirect('/app1/login')
+```
+
+```django
+<!-- app1/templates/app1/login.html -->
+<body>
+<form action="/app1/login/" method="post">
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <input type="submit" value="Submit">
+</form>
+</body>
+```
+
+```django
+<!-- app1/tempaltes/app1/index.html -->
+<body>
+Welcome: {{ name }}
+</body>
 ```
