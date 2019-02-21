@@ -16,6 +16,7 @@
   - [FBV, CBV with decorator](#fbv-cbv-with-decorator)
   - [Session](#session)
 - [session configuration](#session-configuration)
+  - [CSRF](#csrf)
 
 ## Framework
 
@@ -5344,3 +5345,43 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 ```
 
+## CSRF
+
+![](res/csrf01.png)
+> 
+
+防御CSRF, `post`才需要防御, `get`不需要:
+- recaptcha
+- Referer
+- csrf token: 浏览器第一次get请求的时候，服务器发送一个随机字符串给浏览器，并写入浏览器的cookie；然后浏览器post请求需要带着该随机字符串，没有该字符串或者字符串错误，就会被服务器Forbidden
+
+example: Form post protected by `csrf_token`
+> 不要注释settings.py中的`'django.middleware.csrf.CsrfViewMiddleware'`
+
+```django
+<!-- app1/templates/app1/login.html -->
+<form action="/app1/login/" method="post">
+    {{ csrf_token }}
+    {% csrf_token %}
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <br>Remember 5 second<input type="checkbox" name="remember5s" value="1">
+    <input type="submit" value="Submit">
+</form>
+```
+
+```html
+<!-- F12 Element查看的Form -->
+<form action="/app1/login/" method="post">
+    <!-- {{csrf_token}} 也可以当变量使用 -->
+    "K0Ot6i1KjpVeTPnAxsBCKSUoqjGbxnDETG8qorOetPEauygx4Y2oocLCo8oZpp4j"
+    <!-- {%csrf_token%} 生成的随机字符串 -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="K0Ot6i1KjpVeTPnAxsBCKSUoqjGbxnDETG8qorOetPEauygx4Y2oocLCo8oZpp4j">
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <br>Remember 5 second<input type="checkbox" name="remember5s" value="1">
+    <input type="submit" value="Submit">
+</form>
+<!-- F12 Network查看cookie, 与上面的value不同 -->
+csrftoken: SUWGv5irLMu2FNvhareoPwbLmQWWhR58JpmGDNG19Mp4gnpPXIVrkWDPFcujb1Ag	
+```
