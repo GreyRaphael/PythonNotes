@@ -4457,6 +4457,7 @@ def func5(a, b):
 ## Pagination
 
 xss攻击: 论坛评论`<script>aler(666)</script>`之后，会显示给其他人，那么之后的所有人都会弹窗; 所以后端默认会对`<script>aler(666)</script>`进行转义，防止xss攻击
+> xss攻击举例: 银行网站遭到xss攻击，用户A访问银行网站的时候cookie被拿走，攻击者B利用该cookie登录
 
 example: safe html by template
 
