@@ -5353,7 +5353,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 防御CSRF, `post`才需要防御, `get`不需要:
 - recaptcha
 - Referer
-- csrf token: 浏览器第一次get请求的时候，服务器发送一个随机字符串给浏览器，并写入浏览器的cookie；然后浏览器post请求需要带着该随机字符串，没有该字符串或者字符串错误，就会被服务器Forbidden
+- csrf token: 浏览器第一次get请求的时候，服务器发送一个随机字符串给浏览器，并写入浏览器的cookie；然后浏览器post请求需要带着该随机字符串+cookie，没有该字符串或者字符串错误(利用cookie中的value运算结果与随机字符串比较)，就会被服务器Forbidden
 
 example: Form post protected by `csrf_token`
 > 不要注释settings.py中的`'django.middleware.csrf.CsrfViewMiddleware'`
@@ -5384,4 +5384,70 @@ example: Form post protected by `csrf_token`
 </form>
 <!-- F12 Network查看cookie, 与上面的value不同 -->
 csrftoken: SUWGv5irLMu2FNvhareoPwbLmQWWhR58JpmGDNG19Mp4gnpPXIVrkWDPFcujb1Ag	
+```
+
+
+example: Ajax post protected by cookie key `csrftoken`
+
+method1: 在每个ajax请求中设置header
+
+```django
+<!-- app1/templates/app1/login.html -->
+<body>
+<form action="/app1/login/" method="post">
+    {% csrf_token %}
+    <input type="text" name="uname" placeholder="UserName">
+    <input type="password" name="pwd" placeholder="Password">
+    <br>Remember 5 second<input type="checkbox" name="remember5s" value="1">
+    <input type="submit" value="Submit">
+    <input id="btn" type="button" value="AjaxSubmit">
+</form>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+        $('#btn').click(function () {
+            $.ajax({
+                url: "/app1/login/",
+                type: "POST",
+                data: {'user': "grey", 'pwd': "123"},
+                // 必须要将cookie中的csrftoken补发过去
+                headers: {'X-CSRFtoken': t},
+            }).done(function (data) {
+
+            });
+        });
+    })
+</script>
+</body>
+```
+
+method2: 全局设置ajax请求header
+
+```django
+<!-- app1/templates/app1/login.html -->
+<script>
+    $(function () {
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+
+        // 对整个页面所有ajax的请求进行配置
+        $.ajaxSetup({
+            beforeSend: function (xhr, settins) {
+                // xhr: xml http request对象，是所有ajax的底层
+                xhr.setRequestHeader('X-CSRFtoken', t);
+            }
+        });
+
+
+        $('#btn').click(function () {
+            $.ajax({
+                url: "/app1/login/",
+                type: "POST",
+                data: {'user': "grey", 'pwd': "123"},
+            }).done(function (data) {
+
+            });
+        });
+    })
+</script>
 ```
