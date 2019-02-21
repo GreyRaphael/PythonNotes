@@ -17,6 +17,7 @@
   - [Session](#session)
 - [session configuration](#session-configuration)
   - [CSRF](#csrf)
+  - [Middleware](#middleware)
 
 ## Framework
 
@@ -5519,4 +5520,195 @@ def login2(request, *args, **kwargs):
 
 def login100(request, *args, **kwargs):
     pass
+```
+
+## Middleware
+
+![](res/middleware01.png)
+
+example: how to write middleware
+
+```py
+# csrf.py
+class CsrfViewMiddleware(MiddlewareMixin):
+    pass
+    # 自定义中间件需要继承MiddlewwareMixin
+```
+
+```py
+# deprecation.py
+class MiddlewareMixin:
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request):
+        response = None
+
+        # Middleware的本质就是要进行process_reques, process_response
+        if hasattr(self, 'process_request'):
+            response = self.process_request(request)
+        response = response or self.get_response(request)
+        if hasattr(self, 'process_response'):
+            response = self.process_response(request, response)
+        return response
+```
+
+example: DIY middleware
+
+```bash
+app1/
+    urls.py
+    views.py
+middles/
+    DIYmiddle.py
+```
+
+```py
+# settings.py
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'middles.DIYmiddle.M1',
+    'middles.DIYmiddle.M2',
+    'middles.DIYmiddle.M3',
+]
+```
+> ![](res/middleware02.png)  
+> 红色: M1; 蓝色: M2; 绿色: M3
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('test/', views.test)
+]
+```
+
+```py
+# situation1: 测试process_exception
+# middles/DIYmiddle.py
+from django.utils.deprecation import MiddlewareMixin
+from django.shortcuts import HttpResponse
+
+class M1(MiddlewareMixin):
+    def process_request(self, request):
+        print('M1 process_request')
+
+    def process_view(selfs, request, view_func, view_func_args, view_func_kwargs):
+        # request, view_func, view_func_args, view_func_kwargs
+        # 分别对应view_func(request, *args, **kwargs)
+        print('M1 process_view')
+
+    def process_template_response(self, request, response):
+        # view_func中具有render()，那么就会被执行
+        print('M1 process_template_response')
+        return response
+
+    def process_response(self, request, response):
+        print('M1 process_response')
+        return response
+
+    def process_exception(self, request, exception):
+        # view_func出错会执行这里
+        print('view_func error')
+        if isinstance(exception, ValueError):
+            return HttpResponse('view_func ValueError')
+
+class M2(MiddlewareMixin):
+    def process_request(self, request):
+        print('M2 process_request')
+        # return HttpResponse('GUN')  # 有return, 那么M3不起作用了
+
+    def process_view(selfs, request, view_func, view_func_args, view_func_kwargs):
+        print('M2 process_view')
+
+    def process_response(self, request, response):
+        print('M2 process_response')
+        return response
+
+
+class M3(MiddlewareMixin):
+    def process_request(self, request):
+        print('M3 process_request')
+
+    def process_view(selfs, request, view_func, view_func_args, view_func_kwargs):
+        print('M3 process_view')
+
+    def process_response(self, request, response):
+        print('M3 process_response')
+        return response
+
+# app1/view.py
+def test(request, *args, **kwargs):
+    # 测试process_exception
+    int('abc')
+    return HttpResponse('no money')
+
+# # terminal result
+# M1 process_request
+# M2 process_request
+# M3 process_request
+# M1 process_view
+# M2 process_view
+# M3 process_view
+# view_func error
+# M3 process_response
+# M2 process_response
+# M1 process_response
+```
+
+```py
+# situation2: 测试process_template_response
+# app1/views.py
+class Foo:
+    # 这里是为了懒得写test.html,所以这么干
+    def render(self):
+        return HttpResponse('no money')
+
+def test(request, *args, **kwargs):
+    return Foo()
+
+# 标准做法
+def test(request, *args, **kwargs):
+    return render(request, 'app1/test.html')
+
+# # terminal result
+# M1 process_request
+# M2 process_request
+# M3 process_request
+# M1 process_view
+# M2 process_view
+# M3 process_view
+# M1 process_template_response
+# M3 process_response
+# M2 process_response
+# M1 process_response
+```
+
+```py
+# situation3: 测试process_request有return
+# middles/DIYmiddle.py
+class M2(MiddlewareMixin):
+    def process_request(self, request):
+        print('M2 process_request')
+        return HttpResponse('GUN')  # 有return, 那么M3不起作用了
+
+# app1/views.py
+def test(request, *args, **kwargs):
+    return HttpResponse('no money')
+
+# # terminal result
+# M1 process_request
+# M2 process_request
+# M2 process_response
+# M1 process_response
 ```
