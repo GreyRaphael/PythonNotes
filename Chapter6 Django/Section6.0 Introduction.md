@@ -5431,6 +5431,7 @@ method2: 全局设置ajax请求header
         let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
 
         // 对整个页面所有ajax的请求进行配置
+        // 不管是post还是get都会加这个header
         $.ajaxSetup({
             beforeSend: function (xhr, settins) {
                 // xhr: xml http request对象，是所有ajax的底层
@@ -5451,3 +5452,24 @@ method2: 全局设置ajax请求header
     })
 </script>
 ```
+
+```django
+<script>
+    let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+
+    function csrfSafeMethod(method) {
+        // 用regex规定不需要进行csrf保护的method
+        // 也就是不加X-CSRFToken这个header
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", t);
+            }
+        }
+    });
+</script>
+```
+
