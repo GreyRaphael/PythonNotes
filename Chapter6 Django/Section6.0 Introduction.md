@@ -5473,3 +5473,50 @@ method2: 全局设置ajax请求header
 </script>
 ```
 
+example: `csrf_protect` & `csrf_exempt`
+
+```py
+# situation1: 100个网页中两个不需要csrf保护，其他都需要
+# settings.py
+MIDDLEWARE = [
+    'django.middleware.csrf.CsrfViewMiddleware',
+]
+
+# app1/views.py
+from django.views.decorators.csrf import csrf_exempt,csrf_protect
+@csrf_exempt
+def login1(request, *args, **kwargs):
+    pass
+
+@csrf_exempt
+def login2(request, *args, **kwargs):
+    pass
+
+.......
+
+def login100(request, *args, **kwargs):
+    pass
+```
+
+```py
+# situation2: 100个网页中两个需要csrf保护，其他都不需要
+# settings.py
+MIDDLEWARE = [
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+]
+
+# app1/views.py
+from django.views.decorators.csrf import csrf_exempt,csrf_protect
+@csrf_protect
+def login1(request, *args, **kwargs):
+    pass
+
+@csrf_protect
+def login2(request, *args, **kwargs):
+    pass
+
+.......
+
+def login100(request, *args, **kwargs):
+    pass
+```
