@@ -5729,21 +5729,21 @@ django cache方式:
 - Redis缓存
 
 ```py
-# method1: 开发测试
+# method1: 开发测试, 本质上并没有使用缓存
 # settings.py
 CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',# 引擎
-            'TIMEOUT': 300,                                          # 缓存超时时间（默认300，None表示永不过期，0表示立即过期）
-            'OPTIONS':{
-                'MAX_ENTRIES': 300,                                  # 最大缓存个数（默认300）
-                'CULL_FREQUENCY': 3,                                 # 缓存到达最大个数之后，剔除缓存个数的比例，即：1/CULL_FREQUENCY（默认3）
-            },
-            'KEY_PREFIX': '',                                        # 缓存key的前缀（默认空）
-            'VERSION': 1,                                            # 缓存key的版本（默认1）
-            # 'KEY_FUNCTION': 函数名                                  # 生成key的函数（默认函数会生成为：【前缀:版本:key】）
-        }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',# 引擎
+        'TIMEOUT': 300,                                          # 缓存超时时间（默认300，None表示永不过期，0表示立即过期）
+        'OPTIONS':{
+            'MAX_ENTRIES': 300,                                  # 最大缓存个数（默认300）
+            'CULL_FREQUENCY': 3,                                 # 缓存到达最大个数之后，剔除缓存个数的比例，即：1/CULL_FREQUENCY（默认3）
+        },
+        'KEY_PREFIX': '',                                        # 缓存key的前缀（默认空）
+        'VERSION': 1,                                            # 缓存key的版本（默认1）
+        # 'KEY_FUNCTION': 函数名                                  # 生成key的函数（默认函数会生成为：【前缀:版本:key】）
     }
+}
 ```
 
 ```py
@@ -5762,31 +5762,31 @@ def default_key_func(key, key_prefix, version):
 ```py
 # method2: 内存
 CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake', # 内存大字典的变量名，必须唯一
-        }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake', # 内存大字典的变量名，必须唯一
     }
+}
 ```
 
 ```py
 # method3: 文件
 CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-            'LOCATION': '/var/tmp/django_cache',
-        }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
     }
+}
 ```
 
 ```py
 # method4: 数据库
 CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'my_cache_table', # 数据库表
-        }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table', # 数据库表
     }
+}
 
 # 设置完settings.py需要python manage.py createcachetable
 ```
