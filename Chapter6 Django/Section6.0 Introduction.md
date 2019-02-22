@@ -19,6 +19,7 @@
   - [CSRF](#csrf)
   - [Middleware](#middleware)
   - [cache](#cache)
+  - [signal](#signal)
 
 ## Framework
 
@@ -5978,4 +5979,160 @@ CACHE_MIDDLEWARE_KEY_PREFIX = ""
 def cache(request, *args, **kwargs):
     import time
     return render(request, 'app1/cache.html', {'cache_time': time.time()})
+```
+
+## signal
+
+Django中提供了“信号调度”，用于在框架执行操作时解耦。
+
+example: 每一次数据库保存操作，都进行一个记录
+
+```py
+# base.py
+def save_base(self, raw=False, force_insert=False,force_update=False, using=None, update_fields=None):
+    # Signal that the save is complete
+    if not meta.auto_created:
+        # 当obj.save()的时候触发信号
+        # 本质就是：post_save提前register了一些函数，当save执行的时候，会将post_save注册的函数挨个执行一遍
+        signals.post_save.send(
+            sender=origin, instance=self, created=(not updated),
+            update_fields=update_fields, raw=raw, using=using,
+        )
+```
+> 所以将**记录函数**register进入signals, 每一次数据库操作都会执行registered的**记录函数**
+
+```py
+# django支持的信号
+Model signals
+    pre_init              # django的modal执行其构造方法前，自动触发；UserInfo.objects.create(name='Grey')执行前触发
+    post_init             # django的modal执行其构造方法后，自动触发
+    pre_save              # django的modal对象保存前，自动触发
+    post_save             # django的modal对象保存后，自动触发
+    pre_delete            # django的modal对象删除前，自动触发
+    post_delete           # django的modal对象删除后，自动触发
+    m2m_changed           # django的modal中使用m2m字段操作第三张表（add,remove,clear）前后，自动触发
+    class_prepared        # 程序启动时，检测已注册的app中modal类，对于每一个类，自动触发
+
+Management signals
+    pre_migrate           # 执行migrate命令前，自动触发
+    post_migrate          # 执行migrate命令后，自动触发
+
+Request/response signals
+    request_started       # 请求到来前，自动触发
+    request_finished      # 请求结束后，自动触发
+    got_request_exception # 请求异常后，自动触发
+
+Test signals
+    setting_changed       # 使用test测试修改配置文件时，自动触发
+    template_rendered     # 使用test测试渲染模板时，自动触发
+
+Database Wrappers
+    connection_created    # 创建数据库连接时，自动触发
+```
+
+example: log everytime when DB save event happens
+
+```bash
+xxx/
+    app1/
+        urls.py
+        views.py
+    xxx/
+        __init__.py
+        settings.py
+    mysignals.py
+```
+
+```py
+# xxx/mysignals.py
+from django.core.signals import request_finished
+from django.core.signals import request_started
+from django.core.signals import got_request_exception
+
+from django.db.models.signals import class_prepared
+from django.db.models.signals import pre_init, post_init
+from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_delete, post_delete
+from django.db.models.signals import m2m_changed
+from django.db.models.signals import pre_migrate, post_migrate
+
+from django.test.signals import setting_changed
+from django.test.signals import template_rendered
+
+from django.db.backends.signals import connection_created
+
+def log_func1(sender, **kwargs):
+    print('log func1')
+    # print(sender, kwargs)
+
+
+def log_func2(sender, **kwargs):
+    print('log func2')
+
+
+# 可以注册多个回掉函数，按照顺序执行
+post_save.connect(log_func1)
+post_save.connect(log_func2)
+```
+
+```py
+# xxx/xxx/__init__.py
+# 程序每次启动会执行该文件
+import mysignals
+```
+
+```py
+# app1/views.py
+def signal(request, *args, **kwargs):
+    obj1 = UserInfo(name='moris')
+    obj1.save()
+    print('*' * 30)
+
+    obj2 = UserInfo(name='chris')
+    obj2.save()
+
+    return HttpResponse('ok')
+
+# # result
+# log func1
+# log func2
+# ******************************
+# log func1
+# log func2
+```
+
+example: custom signal
+> 需要创建信号，触发信号，自定义回掉函数(register function)
+
+```py
+# mysignals.py
+
+# 1. 创建信号
+import django.dispatch
+# pizza_done是信号名
+# 触发信号的时候必须提供后两个参数: toppings, size
+pizza_done = django.dispatch.Signal(providing_args=["toppings", "size"])
+
+# 2. 注册信号回掉函数
+def callback(sender, **kwargs):
+    print("callback")
+    print(sender,kwargs)
+ 
+pizza_done.connect(callback)
+```
+
+```py
+# app1/views.py
+def signal(request, *args, **kwargs):
+    # 触发信号
+    from mysignals import pizza_done
+    # 一般是在一定条件下才触发信号
+    # 信号的一个好处在于可以解耦，mysignals.py可以随便改，不影响views.py
+    pizza_done.send(sender='grey', toppings=123, size='M')
+
+    return HttpResponse('ok')
+
+# # terminal result
+# callback
+# grey {'signal': <django.dispatch.dispatcher.Signal object at 0x00000289B7D9F898>, 'toppings': 123, 'size': 'M'}
 ```
