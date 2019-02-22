@@ -18,6 +18,7 @@
 - [session configuration](#session-configuration)
   - [CSRF](#csrf)
   - [Middleware](#middleware)
+  - [cache](#cache)
 
 ## Framework
 
@@ -5711,4 +5712,161 @@ def test(request, *args, **kwargs):
 # M2 process_request
 # M2 process_response
 # M1 process_response
+```
+
+## cache
+
+将views中渲染完的字符串进行缓存，如果一段时间内有相同的请求，那么直接从缓存中将渲染完的字符串传递给用户
+> 除了django其他的web框架都没有缓存
+
+django cache方式:
+- 开发测试: 本质上并没有使用缓存
+- 内存: 内存中的大字典
+- 文件: 文件保存渲染完毕的字符串
+- 数据库: 数据库保存渲染完毕的字符串，并且会自动设置超时时间
+- Memcache缓存(python-memcached模块)
+- Memcache缓存(pylibmc模块): 两者的区别在于连接Memcache的方式不同
+- Redis缓存
+
+```py
+# method1: 开发测试
+# settings.py
+CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',# 引擎
+            'TIMEOUT': 300,                                          # 缓存超时时间（默认300，None表示永不过期，0表示立即过期）
+            'OPTIONS':{
+                'MAX_ENTRIES': 300,                                  # 最大缓存个数（默认300）
+                'CULL_FREQUENCY': 3,                                 # 缓存到达最大个数之后，剔除缓存个数的比例，即：1/CULL_FREQUENCY（默认3）
+            },
+            'KEY_PREFIX': '',                                        # 缓存key的前缀（默认空）
+            'VERSION': 1,                                            # 缓存key的版本（默认1）
+            # 'KEY_FUNCTION': 函数名                                  # 生成key的函数（默认函数会生成为：【前缀:版本:key】）
+        }
+    }
+```
+
+```py
+# 生成key的默认函数
+def default_key_func(key, key_prefix, version):
+    """
+    Default function to generate keys.
+
+    Constructs the key used by all other methods. By default it prepends
+    the `key_prefix'. KEY_FUNCTION can be used to specify an alternate
+    function with custom key making behavior.
+    """
+    return '%s:%s:%s' % (key_prefix, version, key)
+```
+
+```py
+# method2: 内存
+CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake', # 内存大字典的变量名，必须唯一
+        }
+    }
+```
+
+```py
+# method3: 文件
+CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/var/tmp/django_cache',
+        }
+    }
+```
+
+```py
+# method4: 数据库
+CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'my_cache_table', # 数据库表
+        }
+    }
+
+# 设置完settings.py需要python manage.py createcachetable
+```
+
+```py
+# method5: Memcache缓存(python-memcached模块)
+# 简单的方式
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+# 本地文件的方式
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'unix:/tmp/memcached.sock',
+    }
+}
+
+# 集群的方式: 假设集群数目为N, python-memcached模块先将请求的url转换为数字d, 然后判断 d%N 进行均匀分配
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': [
+            '172.19.26.240:11211',
+            '172.19.26.242:11211',
+        ]
+    }
+}
+
+# 集群的方式并且加权重: 判断 d%25 < 10即可，类似一致性hash
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': [
+            ('172.19.26.240:11211', 10),
+            ('172.19.26.242:11211', 15),
+        ]
+    }
+}
+```
+
+```py
+# method6: Memcache缓存(pylibmc模块)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': '/tmp/memcached.sock',
+    }
+}   
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': [
+            '172.19.26.240:11211',
+            '172.19.26.242:11211',
+        ]
+    }
+}
+```
+
+```py
+# method7: redis, pip3 install django-redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+            # "PASSWORD": "密码",
+        }
+    }
+}
 ```
