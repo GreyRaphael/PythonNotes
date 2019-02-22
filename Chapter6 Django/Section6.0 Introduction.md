@@ -5870,3 +5870,112 @@ CACHES = {
     }
 }
 ```
+
+example: 整个页面缓存
+
+```bash
+cache/
+app1/
+    templates/
+        cache.html
+    urls.py
+    views.py
+```
+
+```py
+# settings.py
+# 文件缓存
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache'),
+    }
+}
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('cache/', views.cache),
+]
+```
+
+```py
+# app1/views.py
+from django.views.decorators.cache import cache_page
+
+# 10 second, 优先级比那个默认300s的高
+# 10s内刷新，页面不变
+@cache_page(10)
+def cache(request, *args, **kwargs):
+    import time
+    return render(request, 'app1/cache.html', {'cache_time': time.time()})
+```
+
+```django
+<!-- app1/templates/app1/cache.html -->
+<body>
+{{ cache_time }}
+</body>
+```
+
+example: 页面局部缓存
+> 不变的数据就缓存，经常变化的就不缓存。比如商品详情就缓存，商品评论就不缓存
+
+```py
+# app1/views.py
+def cache(request, *args, **kwargs):
+    import time
+    return render(request, 'app1/cache.html', {'cache_time': time.time()})
+```
+
+```django
+<!-- app1/templates/app1/cache.html -->
+{% load cache %}
+
+<body>
+{{ cache_time }}
+{{ cache_time }}
+<!-- 只有最后一条缓存 -->
+{% cache 10 key1 %}
+    {{ cache_time }}
+{% endcache %}
+</body>
+```
+
+example: 全栈缓存
+> 每一个url, 每一个request都缓存。比如blog  
+> 采用Middleware来实现  
+> 中间件缓存的优先级最高，可以根据整个请求生命周期来分析；因为有中间件，第二次请求的时候，views就不会执行了
+
+```py
+# settings.py
+MIDDLEWARE = [
+    # 顺序很重要
+    'django.middleware.cache.UpdateCacheMiddleware',  # 只有process_response
+    # 其他middleware
+    'django.middleware.cache.FetchFromCacheMiddleware',  # 只有process_view
+]
+
+CACHE_MIDDLEWARE_ALIAS = ""
+CACHE_MIDDLEWARE_SECONDS = ""
+CACHE_MIDDLEWARE_KEY_PREFIX = ""
+```
+> ![](res/cache01.png)
+
+```django
+<!-- app1/templates/app1/cache.html -->
+<body>
+{{ cache_time }}
+</body>
+```
+
+```py
+# app1/views.py
+def cache(request, *args, **kwargs):
+    import time
+    return render(request, 'app1/cache.html', {'cache_time': time.time()})
+```
