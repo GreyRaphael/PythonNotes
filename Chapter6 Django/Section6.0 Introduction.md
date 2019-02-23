@@ -20,6 +20,7 @@
   - [Middleware](#middleware)
   - [cache](#cache)
   - [signal](#signal)
+  - [Form](#form)
 
 ## Framework
 
@@ -6135,4 +6136,59 @@ def signal(request, *args, **kwargs):
 # # terminal result
 # callback
 # grey {'signal': <django.dispatch.dispatcher.Signal object at 0x00000289B7D9F898>, 'toppings': 123, 'size': 'M'}
+```
+
+## Form
+
+example: form 验证功能
+
+```bash
+/app1
+    templates/
+        fm.html
+    urls.py
+    views.py
+```
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+    <form action="/app1/fm/" method="post">
+        {% csrf_token %}
+        <input type="text" name="uname" placeholder="Name">
+        <input type="password" name="pwd" placeholder="Password">
+        <input type="text" name="email" placeholder="Email">
+        <input type="submit" value="OK">
+    </form>
+</body>
+```
+
+```py
+# app1/views.py
+from django import forms
+
+
+class FM(forms.Form):
+    # 变量名必须与<form>里面的name对应
+    uname = forms.CharField(error_messages={'required': '用户名不为空'})
+    pwd = forms.CharField(
+        min_length=6,
+        max_length=11,
+        error_messages={'required': '密码不为空', 'min_length': '密码太短', 'max_length': '密码太长'}
+    )
+    email = forms.EmailField(error_messages={'required': '邮箱不为空', 'invalid': '格式错误'})
+
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        return render(request, 'app1/fm.html')
+    elif request.method == 'POST':
+        obj = FM(request.POST)
+        if obj.is_valid(): # 验证post的内容
+            # print(obj.cleaned_data)  # dict
+            return HttpResponse('ok')
+        else:
+            # print(obj.errors) # html
+            # print(obj.errors.as_json())  # dict
+            return HttpResponse(f'{obj.errors}')
 ```
