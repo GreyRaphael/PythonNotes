@@ -6644,3 +6644,98 @@ SplitDateTimeWidget
 SplitHiddenDateTimeWidget
 SelectDateWidget
 ```
+
+example: 将数据传递给新url
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+<form action="/app1/fm/" method="post" novalidate>
+    {% csrf_token %}
+    <p>
+        {{ obj.uname.label_tag }}
+        {{ obj.uname }}
+        {{ obj.errors.uname.0 }}
+    </p>
+    <p>
+        {{ obj.pwd.label }}
+        {{ obj.pwd }}
+        {{ obj.errors.pwd.0 }}
+    </p>
+    <p>
+        {{ obj.email.label }}
+        {{ obj.email }}
+        {{ obj.errors.email.0 }}
+    </p>
+    <p>
+        {{ obj.city }}
+        {{ obj.hobby }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+<style>
+    .c1 {
+        color: red;
+    }
+</style>
+</body>
+```
+
+```py
+# app1/views.py
+class FM(forms.Form):
+    uname = fields.CharField(
+        error_messages={'required': '用户名不为空'},
+        widget=widgets.Textarea(attrs={'class': 'c1', 'placeholder': 'Name'}),
+        label='用户名:',
+        initial='root',
+        validators=[RegexValidator(r'^\w+$', '输入字母数字下划线'), ],
+    )
+    pwd = fields.CharField(
+        min_length=6,
+        max_length=11,
+        error_messages={'required': '密码不为空', 'min_length': '密码太短', 'max_length': '密码太长'},
+        widget=widgets.PasswordInput(attrs={'placeholder': 'Password'}),
+        label='密码:',
+    )
+    email = fields.EmailField(
+        error_messages={'required': '邮箱不为空', 'invalid': '格式错误'},
+        widget=widgets.TextInput(attrs={'placeholder': 'Email'}),
+        label='邮箱:',
+        required=False,
+    )
+    # 单选
+    city = fields.ChoiceField(
+        choices=[(0, 'beijing'), (1, 'shanghai'), (2, 'hongkong')]
+    )
+    # 多选，返回list
+    hobby = fields.MultipleChoiceField(
+        choices=[(0, 'badminton'), (1, 'football'), (2, 'basketball')]
+    )
+
+
+USERS = {
+    '1': {'uname': 'grey', 'pwd': '123456', 'email': 'ge@qq.com', 'city': 2, 'hobby': [0, 2]},
+    '2': {'uname': 'jack', 'pwd': '123456', 'email': 'jack@qq.com', 'city': 1, 'hobby': [1, 2]}
+}
+
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        # http://127.0.0.1:8000/app1/fm/?uid=1
+        uid = request.GET.get('uid')
+        # 也可以query数据库，这里为了方便直接用dict
+        u_dict = USERS.get(uid)
+        obj = FM(initial=u_dict)
+        return render(request, 'app1/fm.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = FM(request.POST, request.FILES)  # 为了提取文件
+        if obj.is_valid():  # 对所有的Field都验证
+            file_obj = obj.cleaned_data.get('file')
+            with open(f'upload/{file_obj.name}', 'wb') as file:
+                for c in file_obj.chunks():  # chunks() is iter
+                    file.write(c)
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
