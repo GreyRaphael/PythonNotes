@@ -6148,6 +6148,7 @@ example: form 验证功能
         fm.html
     urls.py
     views.py
+    models.py
 ```
 
 ```django
@@ -6191,4 +6192,117 @@ def fm(request, *args, **kwargs):
             # print(obj.errors) # html
             # print(obj.errors.as_json())  # dict
             return HttpResponse(f'{obj.errors}')
+```
+
+example: form验证+error message
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+<form action="/app1/fm/" method="post">
+    {% csrf_token %}
+    <p>
+        <input type="text" name="uname" placeholder="Name">
+        {{ obj.errors.uname.0 }}
+    </p>
+    <p>
+        <input type="password" name="pwd" placeholder="Password">
+        {{ obj.errors.pwd.0 }}
+    </p>
+    <p>
+        <input type="text" name="email" placeholder="Email">
+        {{ obj.errors.email.0 }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+</body>
+```
+
+```py
+# app1/views.py
+from django import forms
+
+class FM(forms.Form):
+    pass
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        return render(request, 'app1/fm.html')
+    elif request.method == 'POST':
+        obj = FM(request.POST)
+        if obj.is_valid():
+            print(obj.cleaned_data)  # dict
+            return HttpResponse('ok')
+        else:
+            # obj.erros类型是ErrorDict; 用as_json()可以看到ErrorDict的结构
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
+
+example: form验证+生成html+保留上一次post的数据避免重复输入
+
+```py
+# app1/models.py
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=64)
+    pwd = models.CharField(max_length=64)
+    email = models.EmailField()
+```
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+<form action="/app1/fm/" method="post">
+    {% csrf_token %}
+    <p>
+        {{ obj.uname }}
+        {{ obj.errors.uname.0 }}
+    </p>
+    <p>
+        {{ obj.pwd }}
+        {{ obj.errors.pwd.0 }}
+    </p>
+    <p>
+        {{ obj.email }}
+        {{ obj.errors.email.0 }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+</body>
+```
+
+```py
+# app1/views.py
+from django import forms
+
+class FM(forms.Form):
+    pass
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = FM()
+        return render(request, 'app1/fm.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = FM(request.POST)
+        if obj.is_valid():
+            # 直接写入数据库
+            UserInfo.objects.create(**obj.cleaned_data)
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
+
+example: `<form>`几乎全自动生成, 不适合定制
+> ![](res/django_forms01.png)
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<form action="/app1/fm/" method="post">
+    {% csrf_token %}
+    {{ obj.as_p }}
+    {{ obj.as_ul }}
+    <table>
+        {{ obj.as_table }}
+    </table>
+    <input type="submit" value="OK">
+</form>
 ```
