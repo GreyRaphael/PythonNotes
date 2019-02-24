@@ -6306,3 +6306,133 @@ example: `<form>`几乎全自动生成, 不适合定制
     <input type="submit" value="OK">
 </form>
 ```
+
+[Django Forms](http://www.cnblogs.com/wupeiqi/articles/6144178.html)
+
+```py
+Field
+    required=True,            # 是否允许为空
+    widget=None,              # HTML插件
+    label=None,               # 用于生成Label标签或显示内容
+    initial=None,             # 初始值
+    help_text='',             # 帮助信息(在标签旁边显示)
+    error_messages=None,      # 错误信息 {'required': '不能为空', 'invalid': '格式错误'}
+    show_hidden_initial=False,# 是否在当前插件后面再加一个隐藏的且具有默认值的插件（可用于检验两次输入是否一直）
+    validators=[],            # 自定义regex验证规则
+    localize=False,           # 是否支持本地化
+    disabled=False,           # 是否可以编辑
+    label_suffix=None         # Label内容后缀, 用于{{obj.as_table}}中的label后缀冒号
+
+CharField(Field)
+    max_length=None,          # 最大长度
+    min_length=None,          # 最小长度
+    strip=True                # 是否移除用户输入空白
+
+IntegerField(Field)
+    max_value=None,           # 最大值
+    min_value=None,           # 最小值
+
+DecimalField(IntegerField)
+    max_value=None,           # 最大值
+    min_value=None,           # 最小值
+    max_digits=None,          # 总长度
+    decimal_places=None,      # 小数位长度
+
+RegexField(CharField)
+    # 相当于CharField+validators
+    regex,                    # 自定制正则表达式
+    max_length=None,          # 最大长度
+    min_length=None,          # 最小长度
+    error_message=None,       # 忽略，错误信息使用 error_messages={'invalid': '...'}
+
+EmailField(CharField)
+    ...
+
+FileField(Field)
+    allow_empty_file=False     是否允许空文件
+ 
+ImageField(FileField)      
+    ...
+    # 注：需要PIL模块，pip3 install Pillow
+    # 以上两个字典使用时，需要注意两点：
+    #     - form表单中 enctype="multipart/form-data"
+    #     - view函数中 obj = MyForm(request.POST, request.FILES)
+```
+
+example: form with some parameters
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+<!-- novalidate是为了让浏览器自带的error_message禁用 -->
+<form action="/app1/fm/" method="post" novalidate>
+    {% csrf_token %}
+    <p>
+        {{ obj.uname.label_tag }}
+        {{ obj.uname }}
+        {{ obj.errors.uname.0 }}
+    </p>
+    <p>
+        {{ obj.pwd.label }}
+        {{ obj.pwd }}
+        {{ obj.errors.pwd.0 }}
+    </p>
+    <p>
+        {{ obj.email.label }}
+        {{ obj.email }}
+        {{ obj.errors.email.0 }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+<style>
+    .c1{
+        color: red;
+    }
+</style>
+</body>
+```
+
+```py
+# app1/views.py
+from django import forms
+from django.forms import fields
+from django.forms import widgets
+from django.core.validators import RegexValidator
+
+
+class FM(forms.Form):
+    uname = fields.CharField(
+        error_messages={'required': '用户名不为空'},
+        # widgets专门生成html;fields专门用于验证
+        # 可以修改widget，进而还可以修改css
+        # CharField默认的widget=widget.TextInput
+        widget=widgets.Textarea(attrs={'class': 'c1', 'placeholder': 'Name'}),
+        label='用户名:',
+        initial='root',
+        validators=[RegexValidator(r'^\w+$', '输入字母数字下划线'), ],
+    )
+    pwd = fields.CharField(
+        min_length=6,
+        max_length=11,
+        error_messages={'required': '密码不为空', 'min_length': '密码太短', 'max_length': '密码太长'},
+        widget=widgets.PasswordInput(attrs={'placeholder': 'Password'}),
+        label='密码:',
+    )
+    email = fields.EmailField(
+        error_messages={'required': '邮箱不为空', 'invalid': '格式错误'},
+        widget=widgets.TextInput(attrs={'placeholder': 'Email'}),
+        label='邮箱:',
+        required=False,
+    )
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = FM()
+        return render(request, 'app1/fm.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = FM(request.POST)
+        if obj.is_valid():  # 对所有的Field都验证
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
