@@ -6349,7 +6349,7 @@ EmailField(CharField)
     ...
 
 FileField(Field)
-    allow_empty_file=False     是否允许空文件
+    allow_empty_file=False   # 是否允许空文件
  
 ImageField(FileField)      
     ...
@@ -6436,3 +6436,52 @@ def fm(request, *args, **kwargs):
         else:
             return render(request, 'app1/fm.html', {'obj': obj})
 ```
+
+example: forms with file upload
+> form表单中 enctype="multipart/form-data"  
+> view函数中 obj = FM(request.POST, request.FILES)
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<body>
+<form action="/app1/fm/" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <p>
+        {{ obj.file }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+</body>
+```
+
+```py
+# app1/views.py
+from django import forms
+from django.forms import fields
+from django.forms import widgets
+from django.core.validators import RegexValidator
+
+
+class FM(forms.Form):
+    # 上传的文件也在obj.clean_data中，然后自己拿出来保存
+    file = fields.FileField(required=False)
+
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = FM()
+        return render(request, 'app1/fm.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = FM(request.POST, request.FILES)
+        if obj.is_valid():
+            print(obj.cleaned_data)
+            # {'uname': 'root', 'pwd': '1234568', 'email': 'aj@qq.com', 'file': <InMemoryUploadedFile: hayns1978.pdf (application/pdf)>}
+            file_obj = obj.cleaned_data.get('file')
+            with open(f'upload/{file_obj.name}', 'wb') as file:
+                for c in file_obj.chunks():  # chunks() is iter
+                    file.write(c)
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
+
