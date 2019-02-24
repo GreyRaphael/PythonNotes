@@ -6485,3 +6485,162 @@ def fm(request, *args, **kwargs):
             return render(request, 'app1/fm.html', {'obj': obj})
 ```
 
+```py
+ComboField(Field)
+    fields=()                # 使用多个验证，如下：即验证最大长度20，又验证邮箱格式；fields.ComboField(fields=[fields.CharField(max_length=20), fields.EmailField(),])
+ 
+MultiValueField(Field)
+    # 抽象类，只能被继承，子类中可以实现聚合多个字典去匹配一个值，要配合MultiWidget使用
+    # 实现一个field对应多个input框: 国家-省-市
+
+# 下面本质上就是django已经写好regex的CharField
+SplitDateTimeField(MultiValueField)
+    input_date_formats=None, # 格式列表：['%Y--%m--%d', '%m%d/%Y', '%m/%d/%y']
+    input_time_formats=None  # 格式列表：['%H:%M:%S', '%H:%M:%S.%f', '%H:%M']
+ 
+FilePathField(ChoiceField)   # 文件选项，目录下文件显示在页面中
+    path,                    # 文件夹路径
+    match=None,              # 正则匹配
+    recursive=False,         # 递归下面的文件夹
+    allow_files=True,        # 允许文件
+    allow_folders=False,     # 允许文件夹
+    required=True,
+    widget=None,
+    label=None,
+    initial=None,
+    help_text=''
+ 
+GenericIPAddressField
+    protocol='both',         # both,ipv4,ipv6支持的IP格式
+    unpack_ipv4=False        # 解析ipv4地址，如果是::ffff:192.0.2.1时候，可解析为192.0.2.1， PS：protocol必须为both才能启用
+ 
+SlugField(CharField)         
+    # 数字，字母，下划线，减号（连字符）
+ 
+UUIDField(CharField)         
+    # uuid类型
+```
+
+example: `FilePathField(ChoiceField)`
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<p>
+    {{ obj.p }}
+</p>
+<input type="submit" value="OK">
+```
+
+```py
+# app1/views.py
+class FM(forms.Form):
+    p = fields.FilePathField(path='untitled3')
+```
+
+```py
+ChoiceField(Field)
+    choices=(),     # 选项，如：choices = ((0,'上海'),(1,'北京'),)
+    required=True,  # 是否必填
+    widget=None,    # 插件，默认select插件
+    label=None,     # Label内容
+    initial=None,   # 初始值
+    help_text='',   # 帮助提示
+
+MultipleChoiceField(ChoiceField)
+    # 多选
+
+ModelChoiceField(ChoiceField)
+    # django.forms.models.ModelChoiceField
+    queryset,                  # 查询数据库中的数据
+    empty_label="---------",   # 默认空显示内容
+    to_field_name=None,        # HTML中value的值对应的字段
+    limit_choices_to=None      # ModelForm中对queryset二次筛选
+     
+ModelMultipleChoiceField(ModelChoiceField)
+    # django.forms.models.ModelMultipleChoiceField
+     
+TypedChoiceField(ChoiceField)
+    coerce = lambda val: val   # 对选中的值进行一次转换
+    empty_value= ''            # 空值的默认值
+ 
+TypedMultipleChoiceField(MultipleChoiceField)
+    coerce = lambda val: val   # 对选中的每一个值进行一次转换
+    empty_value= ''            # 空值的默认值
+```
+
+example: select & multiselect
+
+```django
+<!-- app1/templates/app1/fm.html -->
+<form action="/app1/fm/" method="post" novalidate>
+    {% csrf_token %}
+    <p>
+        {{ obj.city }}
+        {{ obj.hobby }}
+        {{ obj.gender }}
+        {{ obj.position }}
+        {{ obj.married }}
+    </p>
+    <input type="submit" value="OK">
+</form>
+```
+
+```py
+# app1/views.py
+from django import forms
+from django.forms import fields
+from django.forms import widgets
+
+
+class FM(forms.Form):
+    # 单选
+    city = fields.ChoiceField(
+        choices=[(0, 'beijing'), (1, 'shanghai'), (2, 'hongkong')]
+    )
+    # 多选，返回list
+    hobby = fields.MultipleChoiceField(
+        choices=[(0, 'badminton'), (1, 'football'), (2, 'basketball')]
+    )
+    # radio单选
+    gender = fields.ChoiceField(
+        choices=[(0, 'Female'), (1, 'Male')],
+        initial=1,
+        widget=widgets.RadioSelect
+    )
+    # checkbox多选，返回list
+    position = fields.ChoiceField(
+        choices=((0, 'student'), (1, 'teacher')),
+        widget=widgets.CheckboxSelectMultiple
+    )
+    # checkbox单选
+    married = fields.CharField(
+        initial=1,
+        widget=widgets.CheckboxInput
+    )
+```
+
+```py
+# some widgets
+TextInput(Input)
+NumberInput(TextInput)
+EmailInput(TextInput)
+URLInput(TextInput)
+PasswordInput(TextInput)
+HiddenInput(TextInput)
+Textarea(Widget)
+DateInput(DateTimeBaseInput)
+DateTimeInput(DateTimeBaseInput)
+TimeInput(DateTimeBaseInput)
+CheckboxInput
+Select
+NullBooleanSelect
+SelectMultiple
+RadioSelect
+CheckboxSelectMultiple
+FileInput
+ClearableFileInput
+MultipleHiddenInput
+SplitDateTimeWidget
+SplitHiddenDateTimeWidget
+SelectDateWidget
+```
