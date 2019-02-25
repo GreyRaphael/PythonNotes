@@ -6803,3 +6803,6 @@ def fm(request, *args, **kwargs):
         else:
             return render(request, 'app1/fm.html', {'obj': obj})
 ```
+
+- 简单的应用: ModelForm，耦合太严重，不方便后期修改
+- 复杂的应用: Model和Form分离
