@@ -6730,12 +6730,75 @@ def fm(request, *args, **kwargs):
         obj = FM(initial=u_dict)
         return render(request, 'app1/fm.html', {'obj': obj})
     elif request.method == 'POST':
-        obj = FM(request.POST, request.FILES)  # 为了提取文件
+        obj = FM(request.POST)
         if obj.is_valid():  # 对所有的Field都验证
-            file_obj = obj.cleaned_data.get('file')
-            with open(f'upload/{file_obj.name}', 'wb') as file:
-                for c in file_obj.chunks():  # chunks() is iter
-                    file.write(c)
+            # USERS添加数据
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/fm.html', {'obj': obj})
+```
+
+example: 传递数据到新url+DataBase
+- `models.py`中`fields`无法限定存数据的格式，
+- `views.py`中的`fields`才能用于regex验证
+- `views.py`中的`widget`用于生成html
+
+实现方式:
+- 将多选的结果转成字符串，存进数据库；查询的时候，再将字符串序列化
+- 使用`ManyToMany`: 略
+
+```django
+<!-- app1/templates -->
+<!-- same as above -->
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32)
+    pwd = models.CharField(max_length=64)
+    # models.EmailField并不能进行regex验证，本质是CharField
+    # regex验证发生在views.py的fields.EmailField()中
+    email = models.EmailField()
+    city = models.CharField(max_length=32)
+    # 将多选结果用','.jon组成字符串存进来
+    hobby = models.CharField(max_length=64)
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from .models import *
+
+from django import forms
+from django.forms import fields
+from django.forms import widgets
+from django.core.validators import RegexValidator
+
+
+class FM(forms.Form):
+    # same as above
+
+
+def fm(request, *args, **kwargs):
+    if request.method == 'GET':
+        uid = request.GET.get('uid')
+        u = UserInfo.objects.filter(id=uid).values('uname', 'pwd', 'email', 'city', 'hobby').first()
+        if u:
+            # 将数据库中的字符串变成list
+            u['hobby'] = u.get('hobby').split(',')
+            obj = FM(initial=u)
+        else:
+            obj = FM()
+        return render(request, 'app1/fm.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = FM(request.POST)
+        if obj.is_valid():
+            # 将多选的list组合成字符串，存进数据库
+            obj.cleaned_data['hobby'] = ','.join(obj.cleaned_data.get('hobby'))
+            UserInfo.objects.create(**obj.cleaned_data)
             return HttpResponse('ok')
         else:
             return render(request, 'app1/fm.html', {'obj': obj})
