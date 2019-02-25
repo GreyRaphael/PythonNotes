@@ -6519,6 +6519,7 @@ SlugField(CharField)
  
 UUIDField(CharField)         
     # uuid类型
+    # UUID是根据MAC以及当前时间等创建的不重复的随机字符串
 ```
 
 example: `FilePathField(ChoiceField)`
