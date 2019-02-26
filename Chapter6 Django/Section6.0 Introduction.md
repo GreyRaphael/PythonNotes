@@ -7139,3 +7139,109 @@ class UserInfoModelForm(forms.ModelForm):
         old = self.cleaned_data['uname']
         return old.upper()
 ```
+
+example: `ModelForm` with session
+
+```bash
+app1/
+    templates/
+        app1/
+            index.html
+            login.html
+    urls.py
+    models.py
+    views.py
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32)
+    pwd = models.CharField(max_length=64)
+```
+
+```django
+<!-- app1/templates/app1/index.html -->
+<body>
+welcome: {{ uname }}
+</body>
+```
+
+```django
+<!-- app1/templates/app1/login.html -->
+<body>
+<form action="/app1/login/" method="post" novalidate>
+    {% csrf_token %}
+    {{ obj.as_p }}
+    <input type="submit" value="Submit">
+</form>
+</body>
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index),
+    path('login/', views.login),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect
+from django import forms
+from django.forms import fields as F
+from django.forms import widgets as wg
+from .models import *
+
+
+class UserInfoModelForm(forms.ModelForm):
+    class Meta:
+        model = UserInfo
+        fields = '__all__'
+        widgets = {
+            'uname': wg.TextInput(attrs={'placeholder': 'Name'}),
+            'pwd': wg.PasswordInput(attrs={'placeholder': 'Password'})
+        }
+
+    # 额外的字段，不写入数据库的
+    # is_remember配合session或者cookie
+    is_remember = F.CharField(
+        widget=wg.CheckboxInput()
+    )
+
+
+def index(request, *args, **kwargs):
+    if request.session.get('is_login'):
+        name = request.session.get('Name')
+        return render(request, 'app1/index.html', {'uname': name})
+    else:
+        return redirect('/app1/login')
+
+
+def login(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = UserInfoModelForm()
+        return render(request, 'app1/login.html', {'obj': obj})
+    else:
+        obj = UserInfoModelForm(request.POST)
+        if obj.is_valid():
+            uname = obj.cleaned_data.get('uname')
+            pwd = obj.cleaned_data.get('pwd')
+            u = UserInfo.objects.filter(uname=uname).first()
+            if u.pwd == pwd:
+                request.session['is_login'] = True
+                request.session['Name'] = uname
+                if obj.cleaned_data.get('is_remember') == 'True':
+                    request.session.set_expiry(5)
+                return redirect('/app1/index')
+            else:
+                return render(request, 'app1/login.html', {'obj': obj})
+        else:
+            return render(request, 'app1/login.html', {'obj': obj})
+```
