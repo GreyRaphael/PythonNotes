@@ -6739,7 +6739,7 @@ def fm(request, *args, **kwargs):
 ```
 
 example: 传递数据到新url+DataBase
-- `models.py`中`fields`无法限定存数据的格式，
+- `models.py`中`Field`无法限定存数据的格式，可以用`clean()`做简单的验证
 - `views.py`中的`fields`才能用于regex验证
 - `views.py`中的`widget`用于生成html
 
@@ -6804,5 +6804,204 @@ def fm(request, *args, **kwargs):
             return render(request, 'app1/fm.html', {'obj': obj})
 ```
 
-- 简单的应用: ModelForm，耦合太严重，不方便后期修改
-- 复杂的应用: Model和Form分离
+Form vs ModelForm
+- 简单的应用: ModelForm，耦合太严重，不方便后期修改; 同时具有验证+生成html+数据库操作功能
+- 复杂的应用: Model和Form分离；
+
+example: `forms` with ForeignKey
+
+```django
+<!-- app1/templates/app1/index.html -->
+<body>
+<form action="/app1/index/" method="post" novalidate>
+    {% csrf_token %}
+    {{ obj.as_p }}
+    <input type="submit" value="Submit">
+</form>
+</body>
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Group(models.Model):
+    caption = models.CharField(max_length=32)
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32)
+    email = models.EmailField()
+    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, HttpResponse, redirect
+from django import forms
+from django.forms import fields
+from .models import *
+
+
+class UserInfoForm(forms.Form):
+    uname = fields.CharField(max_length=32)
+    email = fields.EmailField()
+    group_id = fields.ChoiceField(
+        choices=Group.objects.values_list('id', 'caption')
+    )
+
+    # 每次刷新页面会更新下拉框的choices
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['group_id'].choices = Group.objects.values_list('id', 'caption')
+
+
+def index(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = UserInfoForm()
+        return render(request, 'app1/index.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = UserInfoForm(request.POST)
+        if obj.is_valid():
+            UserInfo.objects.create(**obj.cleaned_data)
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/index.html', {'obj': obj})
+```
+
+example: `ModelForm`　with ForeignKey
+
+```django
+<!-- app1/templates/app1/index.html -->
+<!-- same as above -->
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Group(models.Model):
+    caption = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.caption
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32, verbose_name='用户名')
+    email = models.EmailField()
+    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, HttpResponse
+from django import forms
+from django.forms import fields as F
+from .models import *
+from django.forms import widgets as wg
+
+class UserInfoModelForm(forms.ModelForm):
+    class Meta:
+        model = UserInfo
+        fields = '__all__'  # 等价于fields = ['uname', 'email', 'group']
+        # fields = ['uname', 'email'] 等价于 exclude = ['group']
+        labels = {'email': '邮箱', }
+        widgets = {
+            'uname': wg.TextInput(attrs={'placeholder': 'Name'}),
+            'email': wg.TextInput(attrs={'placeholder': 'Email'})
+        }
+        error_messages = {
+            'uname': {'required': 'must enter'},
+            'email': {'required': 'must enter', 'invalid': 'format error'}
+        }
+        # field_classes = {
+        #     # 将uname原始的CharField变成URLField
+        #     'uname': F.URLField
+        # }
+
+def index(request, *args, **kwargs):
+    if request.method == 'GET':
+        obj = UserInfoModelForm()
+        return render(request, 'app1/index.html', {'obj': obj})
+    elif request.method == 'POST':
+        obj = UserInfoModelForm(request.POST)
+        if obj.is_valid():
+            # method1: UserInfo.objects.create(**obj.cleaned_data)
+            # method2: 只是对于ModelForm
+            obj.save()
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/index.html', {'obj': obj})
+```
+
+example: `ModelForm`　with ManyToMany
+
+```django
+<!-- app1/templates/app1/index.html -->
+<!-- same as above -->
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+
+class Group(models.Model):
+    caption = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.caption
+
+
+class Hobby(models.Model):
+    name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32, verbose_name='用户名')
+    email = models.EmailField()
+    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+    hobby = models.ManyToManyField(Hobby)
+
+# python manage.py makemigratons, python manage.py migrate 生成4个table
+# app1_userinfo, app1_hobby, app1_group, app1_userinfo_hobby
+# app1_userinfo_hobby就是多对多关系表
+```
+
+```py
+# app1/views.py
+# same as above
+# obj.save()功能强大，可以保存ManyToMany关系，不需要另外修改views.py中的代码
+```
+
+```py
+# forms.py source code
+    def save(self, commit=True):
+        if commit:
+            # If committing, save the instance and the m2m data immediately.
+            # 会保存ManyToMany的关系到两个
+            self.instance.save()
+            self._save_m2m()
+        else:
+            # If not committing, add a method to the form to allow deferred
+            # saving of m2m data.
+            self.save_m2m = self._save_m2m
+        return self.instance
+```
+
+```py
+# 基于form.py source code的分析，修改views.py
+if obj.is_valid():
+    instance=obj.save(commit=False):
+    instance.save() # 这里只是保存到了app1_userinfo表，并没有保存到app1_userinfo_hobby表
+```
+
+```py
+if obj.is_valid():
+    # 下面等价于obj.save()，只是拆成了3步
+    instance=obj.save(commit=False):
+    instance.save()
+    obj.save_m2m()
+```
