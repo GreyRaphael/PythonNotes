@@ -7005,3 +7005,118 @@ if obj.is_valid():
     instance.save()
     obj.save_m2m()
 ```
+
+example: `ModelForm` newurl edit user
+> ![](res/modelform01.png)  
+> ![](res/modelform02.png)
+
+```bash
+app1/
+    templates/
+        users.html
+        edit.html
+    urls.py
+    views.py
+    models.py
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    path('users/', views.users),
+    re_path(r'edit-(?P<nid>\d+)', views.edit)
+]
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Group(models.Model):
+    caption = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.caption
+
+class Hobby(models.Model):
+    name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=32, verbose_name='用户名')
+    email = models.EmailField()
+    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+    hobby = models.ManyToManyField(Hobby)
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render, redirect, HttpResponse
+from django import forms
+from .models import *
+from django.forms import widgets as wg
+
+
+class UserInfoModelForm(forms.ModelForm):
+    class Meta:
+        model = UserInfo
+        fields = '__all__'
+        widgets = {
+            'uname': wg.TextInput(attrs={'placeholder': 'Name'}),
+            'email': wg.TextInput(attrs={'placeholder': 'Email'})
+        }
+
+
+def users(request, *args, **kwargs):
+    users = UserInfo.objects.select_related('group').all()
+    if request.method == 'GET':
+        return render(request, 'app1/users.html', {'users': users})
+
+
+def edit(request, *args, **kwargs):
+    nid = kwargs.get('nid')
+    if request.method == 'GET':
+        u = UserInfo.objects.filter(id=nid).first()
+        obj = UserInfoModelForm(instance=u)
+        return render(request, 'app1/edit.html', {'obj': obj, 'nid': nid})
+    elif request.method == 'POST':
+        u = UserInfo.objects.filter(id=nid).first()
+        # 如果没有instance=u, 那么DB create一个record
+        # 如果有instance=u, 那么DB modify一个record
+        obj = UserInfoModelForm(request.POST, instance=u)
+        if obj.is_valid():
+            obj.save()
+            return redirect('/app1/users/')
+        else:
+            return render(request, 'app1/edit.html', {'obj': obj})
+```
+
+```django
+<!-- app1/templates/app1/users.html -->
+<body>
+<ul>
+    {% for row in users %}
+        <li>
+            {{ row.uname }}--{{ row.group }}
+            <a href="/app1/edit-{{ row.id }}">Edit</a>
+        </li>
+    {% endfor %}
+</ul>
+</body>
+```
+
+```django
+<!-- app1/templates/app1/edit.html -->
+<body>
+<form action="/app1/edit-{{ nid }}" method="post">
+    {% csrf_token %}
+    {{ obj.as_p }}
+    <input type="submit" value="Submit">
+</form>
+</body>
+```
