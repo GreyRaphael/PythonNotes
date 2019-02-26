@@ -7245,3 +7245,10 @@ def login(request, *args, **kwargs):
         else:
             return render(request, 'app1/login.html', {'obj': obj})
 ```
+
+`select_related()` vs `prefetch_related()`:
+> `select_related`数据库查询1次；`prefetch_related`数据库查询2次  
+> 前者join发生在数据库，数据库压力大；后者join发生在python，python压力大  
+> [difference between select_related and prefetch_related](https://stackoverflow.com/a/31237071/7951943)
+- `select_related("parameter")`: parameter是`ForeignKey`, `OneToOne`, `ManyToMany`的变量名；`objs=UserInfo.objects.all().select_related('group')`操作会在Database中进行两个表的`JOIN`得到返回值，那么之后不需要跨表查询；适合两个表`JOIN`之后的表不是太大的情况
+- `prefetch_related("parameter")`: 先在第一个modeld的Database中query遍历所有的`foreignkey_id`，然后`WHERE IN(id1, id2,....idN)`减少join的次数；适合两个表在Database中`JOIN`之后的表太大的情况，也适用于多表联表查询的时候
