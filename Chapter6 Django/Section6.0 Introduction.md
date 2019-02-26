@@ -7120,3 +7120,22 @@ def edit(request, *args, **kwargs):
 </form>
 </body>
 ```
+
+example: `ModelForm` with hook
+
+```py
+# views.py
+class UserInfoModelForm(forms.ModelForm):
+    class Meta:
+        model = UserInfo
+        fields = '__all__'
+        widgets = {
+            'uname': wg.TextInput(attrs={'placeholder': 'Name'}),
+            'email': wg.TextInput(attrs={'placeholder': 'Email'})
+        }
+
+    def clean_uname(self):
+        # 对uname进行自定义验证，然后返回
+        old = self.cleaned_data['uname']
+        return old.upper()
+```
