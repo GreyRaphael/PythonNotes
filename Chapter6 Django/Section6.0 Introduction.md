@@ -7238,7 +7238,11 @@ def login(request, *args, **kwargs):
                 request.session['is_login'] = True
                 request.session['Name'] = uname
                 if obj.cleaned_data.get('is_remember') == 'True':
-                    request.session.set_expiry(5)
+                    # expire in minute
+                    request.session.set_expiry(60)
+                else:
+                    # expire when close
+                    request.session.set_expiry(0)
                 return redirect('/app1/index')
             else:
                 return render(request, 'app1/login.html', {'obj': obj})
