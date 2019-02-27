@@ -7241,6 +7241,7 @@ def login(request, *args, **kwargs):
                     # expire in minute
                     request.session.set_expiry(60)
                 else:
+                    # 要用ie测试；firefox, chrome会自己保持session
                     # expire when close
                     request.session.set_expiry(0)
                 return redirect('/app1/index')
