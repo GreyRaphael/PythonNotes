@@ -7312,7 +7312,7 @@ def json_ajax(request, *args, **kwargs):
 <script>
     function ajax1() {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', '/app1/json/?name=root&pwd=666', true);
+        xhr.open('GET', '/app1/json_ajax/?name=root&pwd=666', true);
         // bind callback func
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -7357,7 +7357,7 @@ example: native Ajax with `POST`
 def navtiveAjax(request, *args, **kwargs):
     return render(request, 'app1/nativeAjax.html')
 
-def json(request, *args, **kwargs):
+def json_ajax(request, *args, **kwargs):
     import json
     ret = {'status': True, 'data': None}
     if request.method == 'GET':
@@ -7376,7 +7376,7 @@ def json(request, *args, **kwargs):
 <script>
     function ajax1() {
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', '/app1/json/', true);
+        xhr.open('POST', '/app1/json_ajax/', true);
         // bind callback func
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -7414,7 +7414,7 @@ example: compatible with IE
 
     function ajax1() {
         let xhr = GetXHR();
-        xhr.open('POST', '/app1/json/', true);
+        xhr.open('POST', '/app1/json_ajax/', true);
         // bind callback func
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -7427,6 +7427,56 @@ example: compatible with IE
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset-UTF-8');
         xhr.setRequestHeader('X-CSRFtoken', t);
         xhr.send('name=grey;pwd=888');
+    }
+</script>
+</body>
+```
+
+example: iframe 伪ajax
+> ![](res/iframe01.png)  
+> 修改url，然后点击button，前面的input框内容不变，证明是偷偷发请求的伪ajax
+
+```django
+<!-- app1/templates/app1/nativeAjax.html -->
+<body>
+<input type="text">
+<input type="text" id="url">
+<input type="button" id="btn" value="Send iFrame Request" onclick="iframe_request();"><br>
+<iframe id="ifm" src="http://www.baidu.com/"></iframe>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script></script>
+<script>
+    $(function () {
+        $('#btn').click(function () {
+            let url = $('#url').val();
+            $('#ifm').attr('src', url);
+        });
+    });
+</script>
+</body>
+```
+
+example: iframe get response
+> ![](res/iframe02.png)
+
+```django
+<!-- app1/templates/app1/nativeAjax.html -->
+<body>
+<input type="text">
+<form action="/app1/json_ajax/" method="post" target="ifm">
+    {% csrf_token %}
+    <iframe name="ifm" id="ifm1"></iframe>
+    <input type="text" name="uname">
+    <input type="email" name="email">
+    <input type="submit" value="OK" onclick="submit_form();">
+</form>
+<script>
+    function submit_form() {
+        document.getElementById('ifm1').onload = function () {
+            let t = document.getElementById('ifm1').contentWindow.document.body.innerHTML;
+            let obj = JSON.parse(t);
+            console.log(obj); // {status: true, data: "Hello Post"}
+        }
     }
 </script>
 </body>
