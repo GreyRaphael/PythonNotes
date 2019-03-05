@@ -7331,7 +7331,7 @@ def json_ajax(request, *args, **kwargs):
 // xhr methods and properties
 void open(String method,String url,Boolean async) // async: 是否异步
 void send(String body) 
-void setRequestHeader(String header,String value) //{header1:value1,...}
+void setRequestHeader(String header,String value) //{header:value}
 String getAllResponseHeaders()
 String getResponseHeader(String header)
 void abort()
@@ -7348,4 +7348,48 @@ String responseText // 服务器返回字符串
 XMLDocument responseXML // 服务器返回xml对象
 Number states   // 200, 404, 5000
 String statesText // OK, NotFound, ...
+```
+
+example: native Ajax with `POST`
+
+```py
+# app1/views.py
+def navtiveAjax(request, *args, **kwargs):
+    return render(request, 'app1/nativeAjax.html')
+
+def json(request, *args, **kwargs):
+    import json
+    ret = {'status': True, 'data': None}
+    if request.method == 'GET':
+        print(request.GET.get('name'), request.GET.get('pwd'))
+        return HttpResponse(json.dumps(ret))
+    elif request.method == 'POST':
+        ret['data'] = 'Hello Post'
+        print(request.POST.get('name'), request.POST.get('pwd'))
+        return HttpResponse(json.dumps(ret))
+```
+
+```django
+<!-- app1/templates/app1/nativeAjax.html -->
+<body>
+<input type="button" value="NativeAjax" onclick="ajax1();">
+<script>
+    function ajax1() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/app1/json/', true);
+        // bind callback func
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                // received response
+                let obj = JSON.parse(xhr.responseText);
+                console.log(obj, xhr.responseText);
+            }
+        };
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset-UTF-8');
+        xhr.setRequestHeader('X-CSRFtoken', t);
+        xhr.send('name=grey;pwd=888');
+    }
+</script>
+</body>
 ```
