@@ -7393,3 +7393,41 @@ def json(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: compatible with IE
+
+```django
+<!-- app1/templates/app1/nativeAjax.html -->
+<body>
+<input type="button" value="NativeAjax" onclick="ajax1();">
+<script>
+    function GetXHR() {
+        var xhr = null;
+        if (XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        return xhr;
+
+    }
+
+    function ajax1() {
+        let xhr = GetXHR();
+        xhr.open('POST', '/app1/json/', true);
+        // bind callback func
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                // received response
+                let obj = JSON.parse(xhr.responseText);
+                console.log(obj, xhr.responseText);
+            }
+        };
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset-UTF-8');
+        xhr.setRequestHeader('X-CSRFtoken', t);
+        xhr.send('name=grey;pwd=888');
+    }
+</script>
+</body>
+```
