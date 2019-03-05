@@ -7444,7 +7444,6 @@ example: iframe 伪ajax
 <input type="button" id="btn" value="Send iFrame Request" onclick="iframe_request();"><br>
 <iframe id="ifm" src="http://www.baidu.com/"></iframe>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script></script>
 <script>
     $(function () {
         $('#btn').click(function () {
@@ -7477,6 +7476,99 @@ example: iframe get response
             let obj = JSON.parse(t);
             console.log(obj); // {status: true, data: "Hello Post"}
         }
+    }
+</script>
+</body>
+```
+
+example: upload by native ajax & jQuery
+
+```bash
+app1/
+    templates/
+        app1/
+            upload.html
+    urls.py
+    views.py
+```
+
+```py
+# app1/urls.py
+urlpatterns = [
+    path('upload/', views.upload),
+    path('files/', views.files)
+]
+```
+
+```py
+# app1/views.py
+def upload(request, *args, **kwargs):
+    return render(request, 'app1/upload.html')
+
+def files(request, *args, **kwargs):
+    ret = {'status': True, 'data': None}
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        obj = request.FILES.get('file')
+        print(name)
+        with open(f'uploaded/{obj.name}', 'wb') as file:
+            for c in obj.chunks():
+                file.write(c)
+        return HttpResponse(json.dumps(ret))
+```
+
+```django
+<!-- app1/templates/app1/upload.html -->
+<body>
+<input type="file" id="file1"><br>
+<input type="button" value="NativeUpload" onclick="native_upload();">
+<input type="button" value="jQueryUpload" onclick="jquery_upload();">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    function native_upload() {
+        let file_obj = document.querySelector('#file1').files[0];
+
+        // form data
+        let fd = new FormData();
+        fd.append('name', 'grey');
+        fd.append('file', file_obj);
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/app1/files/', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                // received
+                let obj = JSON.parse(xhr.responseText);
+                console.log(obj);
+            }
+        };
+        // csrf token
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+        xhr.setRequestHeader('X-CSRFtoken', t);
+
+        xhr.send(fd)
+    }
+
+    function jquery_upload() {
+        let t = document.cookie.match('csrftoken' + '=(\\w+)')[1];
+        let file_obj = $('#file1').prop('files')[0];
+
+        let fd = new FormData();
+        fd.append('name', 'grey');
+        fd.append('file', file_obj);
+
+        $.ajax({
+            url: '/app1/files/',
+            type: 'POST',
+            data: fd,
+            processData: false,  // tell jQuery not to process the data
+            contentType: false,  // tell jQuery not to set contentType
+            headers: {'X-CSRFtoken': t},
+        }).done(function (data, arg2, arg3) {
+            console.log(data); // {"status": true, "data": null}
+            console.log(arg2); // success 
+            console.log(arg3); // xhr object
+        })
     }
 </script>
 </body>
