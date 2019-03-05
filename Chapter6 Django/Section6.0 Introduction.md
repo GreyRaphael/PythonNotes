@@ -7573,3 +7573,29 @@ def files(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: upload by iframe
+> 适合所有浏览器，兼容性很高，一般上传头像和图片都是这么做的
+
+```django
+<!-- app1/templates/app1/upload.html -->
+<body>
+<form action="/app1/files/" method="post" target="ifm" enctype="multipart/form-data">
+    {% csrf_token %}
+    <iframe name="ifm" id="ifm1"></iframe>
+    <br>
+    <input type="text" name="name">
+    <input type="file" name="file">
+    <input type="submit" value="iFrameUpload" onclick="iframe_upload();">
+</form>
+<script>
+    function iframe_upload() {
+        document.getElementById('ifm1').onload = function () {
+            let t = document.getElementById('ifm1').contentWindow.document.body.innerHTML;
+            let obj = JSON.parse(t);
+            console.log(obj); // {status: true, data: null}
+        }
+    }
+</script>
+</body>
+```
