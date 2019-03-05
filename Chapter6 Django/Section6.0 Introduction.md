@@ -21,6 +21,7 @@
   - [cache](#cache)
   - [signal](#signal)
   - [Form](#form)
+  - [Ajax Adv](#ajax-adv)
 
 ## Framework
 
@@ -7257,3 +7258,94 @@ def login(request, *args, **kwargs):
 > [difference between select_related and prefetch_related](https://stackoverflow.com/a/31237071/7951943)
 - `select_related("parameter")`: parameter是`ForeignKey`, `OneToOne`, `ManyToMany`的变量名；`objs=UserInfo.objects.all().select_related('group')`操作会在Database中进行两个表的`JOIN`得到返回值，那么之后不需要跨表查询；适合两个表`JOIN`之后的表不是太大的情况
 - `prefetch_related("parameter")`: 先在第一个modeld的Database中query遍历所有的`foreignkey_id`，然后`WHERE IN(id1, id2,....idN)`减少join的次数；适合两个表在Database中`JOIN`之后的表太大的情况，也适用于多表联表查询的时候
+
+## Ajax Adv
+
+[Ajax Tutorial](https://www.cnblogs.com/wupeiqi/articles/5703697.html)
+> Chrome, Firefox的Ajax操作主要是使用了xhr Object；IE6~8主要是使用了ActiveXObject;   
+> jQuery 1.x支持ActiveXObject和xhr Object，所以IE6~8可以进行ajax操作；  
+> jQuery 2.x, 3.x仅仅支持xhr Object， 所以IE6~8无法ajax操作；
+
+example: native Ajax with `GET`
+
+```bash
+app1/
+    templates/
+        app1/
+            nativeAjax.html
+    urls.py
+    views.py
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('navtiveAjax/', views.navtiveAjax),
+    path('json_ajax/', views.json_ajax),
+]
+```
+
+```py
+# app1/views.py
+def navtiveAjax(request, *args, **kwargs):
+    return render(request, 'app1/nativeAjax.html')
+
+def json_ajax(request, *args, **kwargs):
+    import json
+    ret = {'status': True, 'data': None}
+    if request.method == 'GET':
+        print(request.GET.get('name'), request.GET.get('pwd'))
+        # 状态码太少，一般不这么用，而是用上面的json数据
+        # return HttpResponse(json.dumps(ret), status=404, reason='Not Found')
+        return HttpResponse(json.dumps(ret))
+    elif request.method == 'POST':
+        pass
+```
+
+```django
+<!-- app1/templates/app1/nativeAjax.html -->
+<body>
+<input type="button" value="NativeAjax" onclick="ajax1();">
+<script>
+    function ajax1() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', '/app1/json/?name=root&pwd=666', true);
+        // bind callback func
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                // received response
+                let obj = JSON.parse(xhr.responseText);
+                console.log(obj, xhr.responseText)
+            }
+        };
+        xhr.send()
+    }
+</script>
+</body>
+```
+
+```js
+// xhr methods and properties
+void open(String method,String url,Boolean async) // async: 是否异步
+void send(String body) 
+void setRequestHeader(String header,String value) //{header1:value1,...}
+String getAllResponseHeaders()
+String getResponseHeader(String header)
+void abort()
+
+//xhr properties
+Number readyState
+    // 0-未初始化，尚未调用open()方法；
+    // 1-启动，调用了open()方法，未调用send()方法；
+    // 2-发送，已经调用了send()方法，未接收到响应；
+    // 3-接收，已经接收到部分响应数据；
+    // 4-完成，已经接收到全部响应数据；
+Function onreadystatechange
+String responseText // 服务器返回字符串
+XMLDocument responseXML // 服务器返回xml对象
+Number states   // 200, 404, 5000
+String statesText // OK, NotFound, ...
+```
