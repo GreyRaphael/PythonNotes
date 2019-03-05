@@ -7599,3 +7599,50 @@ example: upload by iframe
 </script>
 </body>
 ```
+
+example: goodlooking upload button
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .container {
+            position: relative;
+            width: 100px;
+            height: 50px;
+        }
+
+        .container > div {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+
+            text-align: center;
+            line-height: 50px;
+            color: #fff;
+            background-color: #2459A2;
+
+            z-index: 1;
+        }
+
+        .container > input {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            opacity: 0;
+            z-index: 11;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <input type="file" name="file"/>
+    <div>Upload</div>
+</div>
+</body>
+```
