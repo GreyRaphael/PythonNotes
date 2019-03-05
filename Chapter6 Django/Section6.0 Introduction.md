@@ -7646,3 +7646,57 @@ example: goodlooking upload button
 </div>
 </body>
 ```
+
+Ajax选用时机:
+- 普通json数据: jQuery > native ajax > iframe
+- 上传文件: iframe > jQuery > native ajax
+
+example: iframe with preview
+
+```py
+# app1/views.py
+def upload(request, *args, **kwargs):
+    return render(request, 'app1/upload.html')
+
+def files(request, *args, **kwargs):
+    ret = {'status': True, 'data': None}
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        obj = request.FILES.get('file')
+        print(name)
+        img_path = f'static/images/{obj.name}'
+        ret['data'] = img_path
+        with open(img_path, 'wb') as file:
+            for c in obj.chunks():
+                file.write(c)
+        return HttpResponse(json.dumps(ret))
+```
+
+```django
+<!-- app1/templates/app1/upload.html -->
+<body>
+<div id="preview"></div>
+<form action="/app1/files/" method="post" target="ifm" enctype="multipart/form-data">
+    {% csrf_token %}
+    <iframe name="ifm" id="ifm1" style="display: none;"></iframe>
+    <input type="text" name="name">
+    <input type="file" name="file" onchange="iframe_upload();">
+</form>
+<script>
+    function iframe_upload() {
+        document.getElementById('ifm1').onload = function () {
+            let t = document.getElementById('ifm1').contentWindow.document.body.innerHTML;
+            let obj = JSON.parse(t);
+
+            let img_tag = document.createElement('img');
+            img_tag.src = `/${obj['data']}`;
+            let p = document.querySelector('#preview');
+            p.innerHTML = ''; // clear previous image
+            p.append(img_tag);
+        };
+        // submit by js
+        document.querySelector('form').submit();
+    }
+</script>
+</body>
+```
