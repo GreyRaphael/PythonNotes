@@ -8376,3 +8376,58 @@ def filter_article_type(article_types, arg_dict):
 </body>
 </html>
 ```
+
+example: combo query with simpletags & choices
+
+```py
+# app1/models.py; python manage.py makemigrations; python manage.py migrate
+from django.db import models
+
+class Category(models.Model):
+    name = models.CharField(max_length=16)
+
+class Article(models.Model):
+    title = models.CharField(max_length=32)
+    content = models.CharField(max_length=255)
+
+    category = models.ForeignKey(to='Category', on_delete=models.CASCADE)
+    type_choices = (
+        # trick: 从1开始
+        (1, 'Python'),
+        (2, 'Java'),
+        (3, 'Golang'),
+        (4, 'C/C++'),
+        (5, 'C#'),
+    )
+    article_type_id = models.IntegerField(choices=type_choices)
+```
+
+```py
+# app1/views.py
+def article(request, *args, **kwargs):
+    kwargs = kwargs or {'category_id': '0', 'article_type_id': '0'}
+    # here changed
+    article_types = Article.type_choices
+    categories = Category.objects.all()
+
+    # save as above
+```
+
+```django
+<!-- app1/templates/app1/article.html -->
+<!-- same as above -->
+```
+
+```py
+# app1/templatetags/filter1.py; t[0], t[1]
+@register.simple_tag
+def filter_article_type(article_types, arg_dict):
+    ret = []
+    for t in article_types:
+        if t[0] == arg_dict['article_type_id']:
+            temp = f'<a class="active" href="/app1/article/{arg_dict["category_id"]}-{t[0]}">{t[1]}</a>'
+        else:
+            temp = f'<a href="/app1/article/{arg_dict["category_id"]}-{t[0]}">{t[1]}</a>'
+        ret.append(temp)
+    return mark_safe(''.join(ret))
+```
