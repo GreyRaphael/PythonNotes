@@ -7998,3 +7998,131 @@ def upload(request, *args, **kwargs):
 </script>
 </body>
 ```
+
+example: kindeditor with FileManger
+> ![](res/kindeditor01.png)
+
+```bash
+app1/
+    templates/
+        app1/
+            kind.html
+    urls.py
+    views.py
+static
+    uploaded
+    kindeditor
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('kind/', views.kind),
+    path('upload/', views.upload),
+    path('filemanager/', views.file_manager),
+]
+```
+
+```django
+<!-- app1/templates/app1/kind.html -->
+<body>
+<div class="container" style="width:800px;margin: 0 auto;">
+    <textarea id="content"></textarea>
+</div>
+<script src="/static/kindeditor/kindeditor-all-min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        let kind = KindEditor.create('#content', {
+            width: '100%',
+            height: '500px',
+            uploadJson: '/app1/upload/',
+            extraFileUploadParams: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            allowFileManager: true,
+            fileManagerJson: '/app1/filemanager/',
+        });
+    })
+</script>
+</body>
+```
+
+```py
+# app1/views.py
+def kind(request, *args, **kwargs):
+    return render(request, 'app1/kind.html')
+
+def upload(request, *args, **kwargs):
+    dic = {}
+    if request.method == 'POST':
+        if request.GET.get('dir') == 'image':
+            file_obj = request.FILES.get('imgFile')
+            path = f'static/uploaded/{file_obj.name}'
+            print(request.FILES)
+            print(path)
+            with open(path, 'wb') as file:
+                for c in file_obj.chunks():  # chunks() is iter
+                    file.write(c)
+
+            dic = {
+                'error': 0,
+                'url': f'/{path}',
+                'message': 'upload error!!!',
+            }
+        # 内部原理就是iframe+form
+        return HttpResponse(json.dumps(dic))
+
+
+def file_manager(request, *args, **kwargs):
+    dic = {}
+    root_path = r'D:\ProgrammingTools\JetBrains\PyCharm\PycharmProjects\untitled5\static'
+    static_root_path = '/static/'
+    request_path = request.GET.get('path')
+    if request_path:
+        abs_current_dir_path = os.path.join(root_path, request_path)
+        move_up_dir_path = os.path.dirname(request_path.rstrip('/'))
+        dic['moveup_dir_path'] = move_up_dir_path + '/' if move_up_dir_path else move_up_dir_path
+
+    else:
+        abs_current_dir_path = root_path
+        dic['moveup_dir_path'] = ''
+
+    dic['current_dir_path'] = request_path
+    dic['current_url'] = os.path.join(static_root_path, request_path)
+
+    file_list = []
+    for item in os.listdir(abs_current_dir_path):
+        abs_item_path = os.path.join(abs_current_dir_path, item)
+        a, exts = os.path.splitext(item)
+        is_dir = os.path.isdir(abs_item_path)
+        if is_dir:
+            temp = {
+                'is_dir': True,
+                'has_file': True,
+                'filesize': 0,
+                'dir_path': '',
+                'is_photo': False,
+                'filetype': '',
+                'filename': item,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            }
+        else:
+            temp = {
+                'is_dir': False,
+                'has_file': False,
+                'filesize': os.stat(abs_item_path).st_size,
+                'dir_path': '',
+                'is_photo': True if exts.lower() in ['.jpg', '.png', '.jpeg'] else False,
+                'filetype': exts.lower().strip('.'),
+                'filename': item,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            }
+
+        file_list.append(temp)
+    dic['file_list'] = file_list
+    return HttpResponse(json.dumps(dic))
+```
