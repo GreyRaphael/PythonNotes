@@ -8266,3 +8266,113 @@ def article(request, *args, **kwargs):
 </ul>
 </body>
 ```
+
+example: simple combo query with simpletags
+
+```bash
+app1/
+    templatetags/
+        filter1.py
+    templates/
+        app1/
+            article.html
+    urls.py
+    views.py
+    models.py
+```
+
+```py
+# app1/urls.py, app1/views.py, app1/models.py
+# same as above
+```
+
+```py
+# app1/templatetags/filter1.py
+from django import template
+from django.utils.safestring import mark_safe
+
+register = template.Library()
+
+
+@register.simple_tag
+def filter_all(arg_dict, key):
+    temp = None
+    if key == 'category_id':
+        if arg_dict[key] == 0:
+            temp = f'<a class="active" href="/app1/article/0-{arg_dict["article_type_id"]}">All</a>'
+        else:
+            temp = f'<a href="/app1/article/0-{arg_dict["article_type_id"]}">All</a>'
+    elif key == 'article_type_id':
+        if arg_dict[key] == 0:
+            temp = f'<a class="active" href="/app1/article/{arg_dict["category_id"]}-0">All</a>'
+        else:
+            temp = f'<a href="/app1/article/{arg_dict["category_id"]}-0">All</a>'
+    return mark_safe(temp)
+
+
+@register.simple_tag
+def filter_category(categories, arg_dict):
+    ret = []
+    for c in categories:
+        if c.id == arg_dict['category_id']:
+            temp = f'<a class="active" href="/app1/article/{c.id}-{arg_dict["article_type_id"]}">{c.name}</a>'
+        else:
+            temp = f'<a href="/app1/article/{c.id}-{arg_dict["article_type_id"]}">{c.name}</a>'
+        ret.append(temp)
+    return mark_safe(''.join(ret))
+
+
+@register.simple_tag
+def filter_article_type(article_types, arg_dict):
+    ret = []
+    for t in article_types:
+        if t.id == arg_dict['article_type_id']:
+            temp = f'<a class="active" href="/app1/article/{arg_dict["category_id"]}-{t.id}">{t.name}</a>'
+        else:
+            temp = f'<a href="/app1/article/{arg_dict["category_id"]}-{t.id}">{t.name}</a>'
+        ret.append(temp)
+    return mark_safe(''.join(ret))
+```
+
+```django
+<!-- app1/templates/app1/article.html -->
+{% load filter1 %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        div a {
+            display: inline-block;
+            padding: 3px 5px;
+            border: 1px solid #333;
+            margin: 5px;
+        }
+
+        a.active {
+            background-color: blue;
+        }
+    </style>
+</head>
+<body>
+<h3>Filters:</h3>
+<div>
+    {% filter_all arg_dict 'category_id' %}
+    {% filter_category categories arg_dict %}
+</div>
+
+<div>
+    {% filter_all arg_dict 'article_type_id' %}
+    {% filter_article_type article_types arg_dict %}
+</div>
+<h3>Result:</h3>
+<ul>
+    {% for a in articles %}
+        <li>{{ a.title }}</li>
+    {% endfor %}
+</ul>
+</body>
+</html>
+```
