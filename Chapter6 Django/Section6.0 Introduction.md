@@ -7929,3 +7929,72 @@ def kind(request, *args, **kwargs):
 </body>
 ```
 
+example: kindeditor upload image & preview
+
+```bash
+app1/
+    templates/
+        app1/
+            kind.html
+    urls.py
+    views.py
+static
+    uploaded
+    kindeditor
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('kind/', views.kind),
+    path('upload/', views.upload),
+]
+```
+
+```py
+# app1/views.py
+def kind(request, *args, **kwargs):
+    return render(request, 'app1/kind.html')
+
+def upload(request, *args, **kwargs):
+    if request.method == 'POST':
+        file_obj = request.FILES.get('imgFile')
+        path = f'static/uploaded/{file_obj.name}'
+        with open(path, 'wb') as file:
+            for c in file_obj.chunks():  # chunks() is iter
+                file.write(c)
+
+        dic = {
+            'error': 0,
+            'url': f'/{path}',
+            'message': 'upload error!!!',
+        }
+        # 内部原理就是iframe+form
+        return HttpResponse(json.dumps(dic))
+```
+
+```django
+<!-- app1/templates/app1/kind.html -->
+<body>
+<div class="container" style="width:800px;margin: 0 auto;">
+    <textarea id="content"></textarea>
+</div>
+<script src="/static/kindeditor/kindeditor-all-min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        let kind = KindEditor.create('#content', {
+            width: '100%',
+            height: '500px',
+            uploadJson: '/app1/upload/',
+            extraFileUploadParams: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+        });
+    })
+</script>
+</body>
+```
