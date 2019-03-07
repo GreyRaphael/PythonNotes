@@ -22,6 +22,7 @@
   - [signal](#signal)
   - [Form](#form)
   - [Ajax Adv](#ajax-adv)
+  - [KindEditor](#kindeditor)
 
 ## Framework
 
@@ -7875,3 +7876,56 @@ def create_captcha(size=(120, 30),
 
     return img, strs
 ```
+
+## KindEditor
+
+[KindEditor Official](http://kindeditor.net/demo.php)
+
+example: kindeditor usage
+
+```bash
+app1/
+    templates/
+        app1/
+            kind.html
+    urls.py
+    views.py
+static/
+    kindeditor # download from official site
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('kind/', views.kind),
+]
+```
+
+```py
+# app1/views.py
+def kind(request, *args, **kwargs):
+    return render(request, 'app1/kind.html')
+```
+
+```django
+<!-- app1/templates/app1/kind.html -->
+<body>
+<div class="container" style="width:800px;margin: 0 auto;">
+    <textarea id="content"></textarea>
+</div>
+<script src="/static/kindeditor/kindeditor-all-min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(function () {
+        let kind = KindEditor.create('#content', {
+            width:'100%',
+            height: '500px',
+        });
+    })
+</script>
+</body>
+```
+
