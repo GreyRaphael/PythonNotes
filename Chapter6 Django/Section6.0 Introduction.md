@@ -23,6 +23,7 @@
   - [Form](#form)
   - [Ajax Adv](#ajax-adv)
   - [KindEditor](#kindeditor)
+  - [combo query](#combo-query)
 
 ## Framework
 
@@ -8125,4 +8126,143 @@ def file_manager(request, *args, **kwargs):
         file_list.append(temp)
     dic['file_list'] = file_list
     return HttpResponse(json.dumps(dic))
+```
+
+## combo query
+
+example: simple combo query
+> ![](res/combo_query01.png)
+
+```bash
+app1/
+    templates/
+        app1/
+            article.html
+    urls.py
+    views.py
+    models.py
+```
+
+```py
+# app1/models.py
+from django.db import models
+
+class Category(models.Model):
+    name = models.CharField(max_length=16)
+
+class Article_Type(models.Model):
+    name = models.CharField(max_length=16)
+
+class Article(models.Model):
+    title = models.CharField(max_length=32)
+    content = models.CharField(max_length=255)
+
+    category = models.ForeignKey(to='Category', on_delete=models.CASCADE)
+    article_type = models.ForeignKey(to='Article_Type', on_delete=models.CASCADE)
+```
+
+```py
+# app1/urls.py
+from django.urls import path, re_path
+from . import views
+
+urlpatterns = [
+    re_path(r'article/(?P<category_id>\d+)-(?P<article_type_id>\d+)', views.article, name='article_path'),
+    path('article/', views.article),
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+from .models import *
+
+def article(request, *args, **kwargs):
+    kwargs = kwargs or {'category_id': '0', 'article_type_id': '0'}
+    article_types = Article_Type.objects.all()
+    categories = Category.objects.all()
+
+    # 组合搜索
+    condition = {}
+    for k, v in kwargs.items():
+        if v == '0':
+            # query All
+            pass
+        else:
+            condition[k] = v
+        # parse value to int
+        kwargs[k] = int(v)
+
+    articles = Article.objects.filter(**condition)
+    return render(request,
+                  'app1/article.html',
+                  {
+                      'articles': articles,
+                      'article_types': article_types,
+                      'categories': categories,
+                      # trick
+                      'arg_dict': kwargs,
+                  })
+```
+
+```django
+<!-- app1/templates/app1/article.html -->
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        div a {
+            display: inline-block;
+            padding: 3px 5px;
+            border: 1px solid #333;
+            margin: 5px;
+        }
+
+        a.active {
+            background-color: blue;
+        }
+    </style>
+</head>
+<body>
+<h3>Filters:</h3>
+<div>
+    {% if arg_dict.category_id == 0 %}
+        <a class="active" href="/app1/article/0-{{ arg_dict.article_type_id }}">All</a>
+    {% else %}
+        <a href="/app1/article/0-{{ arg_dict.article_type_id }}">All</a>
+    {% endif %}
+
+    {% for c in categories %}
+        {% if c.id == arg_dict.category_id %}
+            <a class="active" href="/app1/article/{{ c.id }}-{{ arg_dict.article_type_id }}">{{ c.name }}</a>
+        {% else %}
+            <a href="/app1/article/{{ c.id }}-{{ arg_dict.article_type_id }}">{{ c.name }}</a>
+        {% endif %}
+
+    {% endfor %}
+</div>
+
+<div>
+    {% if arg_dict.article_type_id == 0 %}
+        <a class="active" href="/app1/article/{{ arg_dict.category_id }}-0">All</a>
+    {% else %}
+        <a href="/app1/article/{{ arg_dict.category_id }}-0">All</a>
+    {% endif %}
+
+    {% for t in article_types %}
+        {% if t.id == arg_dict.article_type_id %}
+            <a class="active" href="/app1/article/{{ arg_dict.category_id }}-{{ t.id }}">{{ t.name }}</a>
+        {% else %}
+            <a href="/app1/article/{{ arg_dict.category_id }}-{{ t.id }}">{{ t.name }}</a>
+        {% endif %}
+
+    {% endfor %}
+</div>
+<h3>Result:</h3>
+<ul>
+    {% for a in articles %}
+        <li>{{ a.title }}</li>
+    {% endfor %}
+</ul>
+</body>
 ```
