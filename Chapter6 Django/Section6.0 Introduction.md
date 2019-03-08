@@ -24,6 +24,7 @@
   - [Ajax Adv](#ajax-adv)
   - [KindEditor](#kindeditor)
   - [combo query](#combo-query)
+  - [JSONP](#jsonp)
 
 ## Framework
 
@@ -8431,3 +8432,206 @@ def filter_article_type(article_types, arg_dict):
         ret.append(temp)
     return mark_safe(''.join(ret))
 ```
+
+## JSONP
+
+- json就是一个被多种语言都支持的**字符串格式**; e.g. `"{'name':'grey', 'pwd':'123'}"`
+- jsonp是一种请求方式。
+
+因为浏览器具有同源策略(相同域名)，通过ajax向其他网站发请求获取数据，浏览器会拒绝接收；但是具有`src`属性的标签都不受同源策略的影响；
+
+example: 采用服务器作为中介
+> 缺点：效率低
+
+```bash
+app1/
+    templates/
+        app1/
+            crosssite.html
+    urls.py
+    views.py
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('req/', views.req)
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+import requests
+
+def req(request, *args, **kwargs):
+    response = requests.get('http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301')
+    json_string1 = response.content.decode('utf8')
+    return render(request, 'app2/crosssite.html', {'json_string1': json_string1})
+```
+
+```django
+<!-- app1/templates/app1/crosssite.html -->
+<body>
+<h3>requests as proxy</h3>
+{{ json_string1 }}
+</body>
+```
+
+example: jsonp principle
+
+- 当前浏览器创建script标签，scr=不同源服务器远程地址，就会请求不同源服务器
+- 不同源服务器返回js格式的数据
+- 当前浏览器执行返回的js数据
+
+```bash
+# this is remote server
+app1/
+    urls.py
+    views.py
+untitled7
+    settings.py
+```
+
+```bash
+# "C:\Windows\System32\drivers\etc\hosts"
+127.0.0.1 gewei.com
+127.0.0.1 grey.com
+```
+
+```py
+# untitled7/settings.py
+ALLOWED_HOSTS = ['gewei.com']
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('index/', views.index)
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import HttpResponse
+
+# 访问http://gewei.com:8000/app1/index/
+def index(request, *args, **kwargs):
+    print(request.GET)
+    return HttpResponse('alter(123);') # 返回js格式数据
+```
+
+```bash
+# this is project want to crosssite request
+app1/
+    templates/
+        app1/
+            crosssite.html
+    urls.py
+    views.py
+```
+
+```py
+# app1/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('req/', views.req)
+]
+```
+
+```py
+# app1/views.py
+from django.shortcuts import render
+import requests
+
+# 访问127.0.0.1:8001/app1/req/
+def req(request, *args, **kwargs):
+    pass
+```
+
+```django
+<!-- app1/templates/app1/crosssite.html -->
+<body>
+<h3>requests as proxy</h3>
+{{ json_string1 }}
+<h3>by native js</h3>
+<!-- 点击按钮就会弹出alert -->
+<input type="button" value="GetValue" onclick="get_content();">
+<script>
+    function get_content() {
+        let tag = document.createElement('script');
+        tag.src = 'http://gewei.com:8000/app1/index/';
+        document.head.appendChild(tag);
+    }
+</script>
+</body>
+```
+
+example: more complicated
+
+```py
+# server, app1/views.py
+def index(request, *args, **kwargs):
+    callback = request.GET.get('callback')
+    data = request.GET.get('arg1')*3
+    return HttpResponse(f'{callback}({data})')
+```
+
+```django
+<!-- current browser: app1/templates/app1/crosssite.html -->
+<body>
+<h3>requests as proxy</h3>
+{{ json_string1 }}
+<h3>by native js</h3>
+<input type="button" value="GetValue" onclick="get_content();">
+<script>
+    function get_content() {
+        let tag = document.createElement('script');
+        tag.src = 'http://gewei.com:8000/app1/index/?callback=test&arg1=666';
+        document.head.appendChild(tag);
+        // 执行完毕删除该代码
+        document.head.removeChild(tag);
+    }
+
+    function test(c) {
+        alert(c);
+    }
+</script>
+</body>
+```
+
+example: request other site
+
+```django
+<!-- current browser: app1/templates/app1/crosssite.html -->
+<body>
+<h3>requests as proxy</h3>
+{{ json_string1 }}
+<h3>by native js</h3>
+<input type="button" value="GetValue" onclick="get_content();">
+<script>
+    function get_content() {
+        let tag = document.createElement('script');
+        // jsonp只能发get请求
+        tag.src = 'http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list';
+        document.head.appendChild(tag);
+        // 执行完毕删除该代码
+        document.head.removeChild(tag);
+    }
+
+    function list(arg) {
+        console.log(arg)
+    }
+
+</script>
+</body>
+```
+
