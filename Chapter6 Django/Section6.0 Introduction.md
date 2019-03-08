@@ -8623,7 +8623,7 @@ example: request other site
         // jsonp只能发get请求
         tag.src = 'http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list';
         document.head.appendChild(tag);
-        // 执行完毕删除该代码
+        // 执行完毕删除该代码，F12中可以看到一闪而过
         document.head.removeChild(tag);
     }
 
@@ -8635,3 +8635,35 @@ example: request other site
 </body>
 ```
 
+example: jsonp by jQuery ajax
+> 因为jsonp只支持get, 所以ajax的post也会被jQuery转换为get
+
+```django
+<!-- current browser: app1/templates/app1/crosssite.html -->
+<body>
+<h3>requests as proxy</h3>
+{{ json_string1 }}
+<h3>by native js</h3>
+<input type="button" value="GetValue" onclick="get_content();">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    function get_content() {
+        $.ajax({
+            url:'http://www.jxntv.cn/data/jmd-jxtv2.html',
+            type: 'GET', // 即便写post也会被转换为get
+            dataType: 'jsonp',
+            jsonp: 'callback',
+            jsonpCallback: 'list',
+        })
+    }
+
+    function list(arg) {
+        console.log(arg)
+    }
+</script>
+</body>
+```
+
+example: 直接使用`cors`, 跨站资源共享
+
+[CORS Tutorial](https://www.cnblogs.com/wupeiqi/articles/5703697.html)
