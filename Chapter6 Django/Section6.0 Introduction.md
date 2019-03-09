@@ -25,6 +25,7 @@
   - [KindEditor](#kindeditor)
   - [combo query](#combo-query)
   - [JSONP](#jsonp)
+  - [XSS Filter](#xss-filter)
 
 ## Framework
 
@@ -8667,3 +8668,6 @@ example: jsonp by jQuery ajax
 example: 直接使用`cors`, 跨站资源共享
 
 [CORS Tutorial](https://www.cnblogs.com/wupeiqi/articles/5703697.html)
+
+## XSS Filter
+
