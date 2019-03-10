@@ -8728,3 +8728,131 @@ obj1 = Foo()
 obj2 = Foo()
 print(id(obj1), id(obj2))  # same
 ```
+
+example: XSS Filter
+
+```bash
+app1/
+    templates/
+        app1/
+            kind.html
+    urls.py
+    views.py
+utils
+    xss.py
+```
+
+```py
+# app1/urls.py
+urlpatterns = [
+    path('kind/', views.kind),
+]
+```
+
+```py
+# app1.views.py
+from django.shortcuts import render, HttpResponse
+from django import forms
+from django.forms import widgets
+from utils import xss
+
+class ArticleForm(forms.Form):
+    name = forms.CharField(
+        widget=widgets.Input(attrs={'placeholder': 'Name'})
+    )
+    content = forms.CharField(widget=widgets.Textarea())
+
+def kind(request, *args, **kwargs):
+    if request.method == 'GET':
+        fm = ArticleForm()
+        return render(request, 'app1/kind.html', {'fm': fm})
+    elif request.method == 'POST':
+        fm = ArticleForm(request.POST)
+        if fm.is_valid():
+            content = fm.cleaned_data['content']
+            # remove dangerous tag
+            content = xss.XSSFilter().process(content)
+            print(content)
+            return HttpResponse('ok')
+        else:
+            return render(request, 'app1/kind.html', {'fm': fm})
+```
+
+```django
+<!-- app1/templates/app1/kind.html -->
+<body>
+<form action="/app1/kind/" method="post" novalidate>
+    {% csrf_token %}
+    {{ fm.name }}{{ fm.errors.name.0 }}
+    {{ fm.content }}{{ fm.errors.content.0 }}
+    <input type="submit" value="OK">
+</form>
+<script src="/static/kindeditor/kindeditor-all-min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    KindEditor.ready(function (k) {
+        let editor = k.create('textarea[name="content"]');
+    });
+</script>
+</body>
+```
+
+```py
+# utils/xss.py
+from bs4 import BeautifulSoup
+
+class XSSFilter(object):
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        # singleton
+        if not cls.__instance:
+            obj = object.__new__(cls)
+            cls.__instance = obj
+        return cls.__instance
+
+    def __init__(self):
+        # XSS white list
+        self.valid_tags = {
+            "font": ['color', 'size', 'face', 'style'],
+            'b': [],
+            'div': [],
+            "span": [],
+            "table": [
+                'border', 'cellspacing', 'cellpadding'
+            ],
+            'th': [
+                'colspan', 'rowspan'
+            ],
+            'td': [
+                'colspan', 'rowspan'
+            ],
+            "a": ['href', 'target', 'name'],
+            "img": ['src', 'alt', 'title'],
+            'p': [
+                'align'
+            ],
+            "pre": ['class'],
+            "hr": ['class'],
+            'strong': []
+        }
+
+    def process(self, content):
+        soup = BeautifulSoup(content, features='html5lib')
+        for tag in soup.find_all():
+            # 标签白名单
+            if tag.name not in self.valid_tags:
+                if tag.name in ['html', 'body']:
+                    tag.hidden=True
+                else:
+                    tag.clear()  # 清除tag内容
+                    tag.hidden = True  # 清除tag
+                continue
+
+                # 标签属性白名单
+            attr_whitelist = self.valid_tags[tag.name]
+            for key in list(tag.attrs.keys()):
+                if key not in attr_whitelist:
+                    del tag[key]
+        return str(soup)
+```
