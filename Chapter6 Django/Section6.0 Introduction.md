@@ -8671,3 +8671,8 @@ example: 直接使用`cors`, 跨站资源共享
 
 ## XSS Filter
 
+XSS攻击：比如A用户添加评论时post的数据中含有`<script>alert(123)</script>`(没有转义过的)，那么其他用户访问该网页就会弹窗；
+> 提交转义过的数据`&lt;script&gt;alter(123)&lt;/script&gt;`就是安全的；
+
+
+
