@@ -8695,3 +8695,36 @@ obj3 = Foo.get_instance()
 obj4 = Foo.get_instance()
 print(id(obj3), id(obj4))  # same, simple singleton
 ```
+
+example: singleton by `__new__`
+
+```py
+class Foo(object):
+    def __init__(self):
+        print('init')
+
+    def __new__(cls, *args, **kwargs):
+        # __new__原始发生的过程如下
+        print('new')
+        obj = object.__new__(cls, *args, **kwargs)
+        return obj
+
+obj1 = Foo()
+print(obj1)
+```
+
+```py
+class Foo(object):
+    instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if Foo.instance:
+            return Foo.instance
+        else:
+            Foo.instance = object.__new__(cls, *args, **kwargs)
+        return Foo.instance
+
+obj1 = Foo()
+obj2 = Foo()
+print(id(obj1), id(obj2))  # same
+```
