@@ -133,7 +133,20 @@ systemctl restart mysql
 ps -ef|grep mysql
 ```
 
-[MySQL5.7](https://dev.mysql.com/downloads/mysql/5.7.html#downloads) for Timonthy Lesson
+Steps:
+1. 下载[MySQL5.7 zip](https://dev.mysql.com/downloads/mysql/5.7.html#downloads)
+2. 解压上面zip重命名为Engine, 然后同一目录新建Data文件夹
+3. C:\Windows下创建my.ini
+4. 进入Engine文件夹`mysqld --initialize`
+5. 进入Data文件夹下，复制`*.err`文件中的root账号密码
+
+```ini
+; C:\Windows\my.ini
+[mysqld]
+innodb_flush_method=normal
+basedir='D:\MySQL\Engine'
+datadir='D:\MySQL\Data'
+```
 
 ```bash
 # in window
