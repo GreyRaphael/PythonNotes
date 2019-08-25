@@ -11,26 +11,26 @@
       - [record operation](#record-operation)
     - [backup and recovery](#backup-and-recovery)
   - [query](#query)
-    - [聚合](#%E8%81%9A%E5%90%88)
-    - [分组](#%E5%88%86%E7%BB%84)
-    - [排序](#%E6%8E%92%E5%BA%8F)
-    - [分页](#%E5%88%86%E9%A1%B5)
+    - [聚合](#%e8%81%9a%e5%90%88)
+    - [分组](#%e5%88%86%e7%bb%84)
+    - [排序](#%e6%8e%92%e5%ba%8f)
+    - [分页](#%e5%88%86%e9%a1%b5)
     - [query summary](#query-summary)
   - [relationship](#relationship)
-    - [外键(foreign key)](#%E5%A4%96%E9%94%AEforeign-key)
-    - [外键的级联操作(作为了解，实际上没什么卵用)](#%E5%A4%96%E9%94%AE%E7%9A%84%E7%BA%A7%E8%81%94%E6%93%8D%E4%BD%9C%E4%BD%9C%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%AE%9E%E9%99%85%E4%B8%8A%E6%B2%A1%E4%BB%80%E4%B9%88%E5%8D%B5%E7%94%A8)
-    - [外键summary](#%E5%A4%96%E9%94%AEsummary)
+    - [外键(foreign key)](#%e5%a4%96%e9%94%aeforeign-key)
+    - [外键的级联操作(作为了解，实际上没什么卵用)](#%e5%a4%96%e9%94%ae%e7%9a%84%e7%ba%a7%e8%81%94%e6%93%8d%e4%bd%9c%e4%bd%9c%e4%b8%ba%e4%ba%86%e8%a7%a3%e5%ae%9e%e9%99%85%e4%b8%8a%e6%b2%a1%e4%bb%80%e4%b9%88%e5%8d%b5%e7%94%a8)
+    - [外键summary](#%e5%a4%96%e9%94%aesummary)
   - [join](#join)
-  - [自关联查询](#%E8%87%AA%E5%85%B3%E8%81%94%E6%9F%A5%E8%AF%A2)
+  - [自关联查询](#%e8%87%aa%e5%85%b3%e8%81%94%e6%9f%a5%e8%af%a2)
   - [view](#view)
   - [Transaction](#transaction)
   - [Index](#index)
   - [final example](#final-example)
-  - [常用内置函数](#%E5%B8%B8%E7%94%A8%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0)
-    - [字符串函数](#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0)
+  - [常用内置函数](#%e5%b8%b8%e7%94%a8%e5%86%85%e7%bd%ae%e5%87%bd%e6%95%b0)
+    - [字符串函数](#%e5%ad%97%e7%ac%a6%e4%b8%b2%e5%87%bd%e6%95%b0)
   - [MySQL with Python](#mysql-with-python)
-    - [封装](#%E5%B0%81%E8%A3%85)
-    - [python交互实例-用户登录](#python%E4%BA%A4%E4%BA%92%E5%AE%9E%E4%BE%8B-%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
+    - [封装](#%e5%b0%81%e8%a3%85)
+    - [python交互实例-用户登录](#python%e4%ba%a4%e4%ba%92%e5%ae%9e%e4%be%8b-%e7%94%a8%e6%88%b7%e7%99%bb%e5%bd%95)
   - [sqlalchemy](#sqlalchemy)
 
 数据库:
@@ -132,6 +132,8 @@ systemctl restart mysql
 # 查看是否运行
 ps -ef|grep mysql
 ```
+
+[MySQL5.7](https://dev.mysql.com/downloads/mysql/5.7.html#downloads) for Timonthy Lesson
 
 ```bash
 # in window
