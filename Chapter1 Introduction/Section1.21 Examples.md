@@ -3,36 +3,36 @@
 <!-- TOC -->
 
 - [Python Examples](#python-examples)
-    - [Add number to image](#add-number-to-image)
-    - [get random serial](#get-random-serial)
-    - [count world](#count-world)
-    - [batch change images's resolution](#batch-change-imagess-resolution)
-    - [count code](#count-code)
-    - [generate verify code](#generate-verify-code)
-    - [network](#network)
-        - [http request](#http-request)
-        - [socket](#socket)
-    - [python extending](#python-extending)
-        - [python extending with c](#python-extending-with-c)
-        - [python extending with .so file](#python-extending-with-so-file)
-        - [python extending with c++](#python-extending-with-c)
-        - [python extending with cython](#python-extending-with-cython)
-    - [rename mulitiple files](#rename-mulitiple-files)
-    - [wifi example](#wifi-example)
-        - [windows wifi crack](#windows-wifi-crack)
-        - [linux wifi crack](#linux-wifi-crack)
-        - [another examples](#another-examples)
-    - [print example](#print-example)
-    - [progress bar](#progress-bar)
-    - [start program](#start-program)
-    - [python with office](#python-with-office)
-    - [python with pdf](#python-with-pdf)
-    - [sqlite3](#sqlite3)
-    - [data](#data)
-    - [SMTP](#smtp)
-        - [simple email](#simple-email)
-        - [email with attachment](#email-with-attachment)
-    - [email with image](#email-with-image)
+  - [Add number to image](#add-number-to-image)
+  - [get random serial](#get-random-serial)
+  - [count world](#count-world)
+  - [batch change images's resolution](#batch-change-imagess-resolution)
+  - [count code](#count-code)
+  - [generate verify code](#generate-verify-code)
+  - [network](#network)
+    - [http request](#http-request)
+    - [socket](#socket)
+  - [python extending](#python-extending)
+    - [python extending with c](#python-extending-with-c)
+    - [python extending with .so file](#python-extending-with-so-file)
+    - [python extending with c++](#python-extending-with-c)
+    - [python extending with cython](#python-extending-with-cython)
+  - [rename mulitiple files](#rename-mulitiple-files)
+  - [wifi example](#wifi-example)
+    - [windows wifi crack](#windows-wifi-crack)
+    - [linux wifi crack](#linux-wifi-crack)
+    - [another examples](#another-examples)
+  - [print example](#print-example)
+  - [progress bar](#progress-bar)
+  - [start program](#start-program)
+  - [python with office](#python-with-office)
+  - [python with pdf](#python-with-pdf)
+  - [sqlite3](#sqlite3)
+  - [data](#data)
+  - [SMTP](#smtp)
+    - [simple email](#simple-email)
+    - [email with attachment](#email-with-attachment)
+  - [email with image](#email-with-image)
 
 <!-- /TOC -->
 
@@ -1942,6 +1942,37 @@ try:
     mail_server.login(user_name, user_pwd)
 
     mail_server.sendmail(sender, receivers, msg.as_bytes())
+except Exception as e:
+    print('send mail failed:', e)
+else:
+    print('send mail success!')
+```
+
+example: loop emaill
+
+```py
+import smtplib
+from email.mime.text import MIMEText
+
+sender = 'gewei@pku.edu.cn'
+
+try:
+    mail_server = smtplib.SMTP()
+    mail_server.connect('mail.pku.edu.cn', 25)
+
+    user_name = sender
+    user_pwd = 'xxxxxx'
+    mail_server.login(user_name, user_pwd)
+
+    with open('scores.txt', encoding='utf8') as file:
+        for line in file:
+            number, name, score = line.split()
+            receiver = [f'{number}@pku.edu.cn', ]
+            msg = MIMEText(f"Hello {name}({number}), your score={score}")
+            msg['From'] = f'Ge Wei<{sender}>'
+            msg['To'] = ';'.join(receiver)
+            msg['Subject'] = '电动力学-期中最终成绩'
+            mail_server.sendmail(sender, receiver, msg.as_bytes())
 except Exception as e:
     print('send mail failed:', e)
 else:
