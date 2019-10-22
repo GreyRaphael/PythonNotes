@@ -10,11 +10,11 @@
   - [list](#list)
   - [set](#set)
   - [zset](#zset)
-  - [发布、订阅](#%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85)
-  - [主从配置](#%E4%B8%BB%E4%BB%8E%E9%85%8D%E7%BD%AE)
+  - [发布、订阅](#%e5%8f%91%e5%b8%83%e8%ae%a2%e9%98%85)
+  - [主从配置](#%e4%b8%bb%e4%bb%8e%e9%85%8d%e7%bd%ae)
   - [redis with python](#redis-with-python)
-    - [封装](#%E5%B0%81%E8%A3%85)
-  - [用户登录](#%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95)
+    - [封装](#%e5%b0%81%e8%a3%85)
+  - [用户登录](#%e7%94%a8%e6%88%b7%e7%99%bb%e5%bd%95)
 
 ## Introduction
 
@@ -27,6 +27,7 @@ sudo apt install redis-server
 service redis start
 ps ajx|grep redis
 # /usr/bin/redis-server 127.0.0.1:6379
+# 阿里云需要/etc/redis/redis.config设置 bind 127.0.0.1
 
 # 直接运行redis-server会直接运行，阻塞当前终端
 redis-server
