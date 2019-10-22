@@ -28,6 +28,7 @@ service redis start
 ps ajx|grep redis
 # /usr/bin/redis-server 127.0.0.1:6379
 # 阿里云需要/etc/redis/redis.config设置 bind 127.0.0.1
+# 阿里云需要/etc/redis/redis.config设置 bind 0.0.0.0 for remote access
 
 # 直接运行redis-server会直接运行，阻塞当前终端
 redis-server
