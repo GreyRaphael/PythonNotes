@@ -3,36 +3,36 @@
 <!-- TOC -->
 
 - [Simple Spider](#simple-spider)
-    - [Introdution](#introdution)
-    - [HTTP request/response](#http-requestresponse)
-    - [proxy & architecture](#proxy--architecture)
-    - [`urllib`](#urllib)
-    - [`requests`](#requests)
-        - [requests HTTP Auth](#requests-http-auth)
-        - [request json](#request-json)
-        - [requests session](#requests-session)
-    - [`BeautifulSoup`](#beautifulsoup)
-        - [BeautifulSoup selector](#beautifulsoup-selector)
-    - [selenium](#selenium)
-        - [selenium + chrome](#selenium--chrome)
-        - [selenium + phantomjs](#selenium--phantomjs)
-        - [selenium with firefox](#selenium-with-firefox)
-        - [selenium keys & click](#selenium-keys--click)
-        - [selenium with dynamic page](#selenium-with-dynamic-page)
-        - [selenium mobile emulation](#selenium-mobile-emulation)
-    - [login with cookie](#login-with-cookie)
-        - [method1: only with session](#method1-only-with-session)
-        - [method2&3: cookie with request](#method23-cookie-with-request)
-    - [word cloud](#word-cloud)
-    - [Periodic Sign Task](#periodic-sign-task)
-    - [XPath](#xpath)
-    - [OCR vs verify code](#ocr-vs-verify-code)
-    - [requests vs selenium](#requests-vs-selenium)
-    - [pyquery](#pyquery)
-    - [Spider Acceleration](#spider-acceleration)
-        - [协程(Coroutine)](#协程coroutine)
-        - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
-    - [Distributed Spider](#distributed-spider)
+  - [Introdution](#introdution)
+  - [HTTP request/response](#http-requestresponse)
+  - [proxy & architecture](#proxy--architecture)
+  - [`urllib`](#urllib)
+  - [`requests`](#requests)
+    - [requests HTTP Auth](#requests-http-auth)
+    - [request json](#request-json)
+    - [requests session](#requests-session)
+  - [`BeautifulSoup`](#beautifulsoup)
+    - [BeautifulSoup selector](#beautifulsoup-selector)
+  - [selenium](#selenium)
+    - [selenium + chrome](#selenium--chrome)
+    - [selenium + phantomjs](#selenium--phantomjs)
+    - [selenium with firefox](#selenium-with-firefox)
+    - [selenium keys & click](#selenium-keys--click)
+    - [selenium with dynamic page](#selenium-with-dynamic-page)
+    - [selenium mobile emulation](#selenium-mobile-emulation)
+  - [login with cookie](#login-with-cookie)
+    - [method1: only with session](#method1-only-with-session)
+    - [method2&3: cookie with request](#method23-cookie-with-request)
+  - [word cloud](#word-cloud)
+  - [Periodic Sign Task](#periodic-sign-task)
+  - [XPath](#xpath)
+  - [OCR vs verify code](#ocr-vs-verify-code)
+  - [requests vs selenium](#requests-vs-selenium)
+  - [pyquery](#pyquery)
+  - [Spider Acceleration](#spider-acceleration)
+    - [协程(Coroutine)](#%e5%8d%8f%e7%a8%8bcoroutine)
+    - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
+  - [Distributed Spider](#distributed-spider)
 
 <!-- /TOC -->
 
@@ -939,6 +939,59 @@ while True:
     
     # offset + 20
     offset+=20
+```
+
+[Other Image](https://www.lsmpx.com/): 多线程下载图片
+
+```py
+import requests
+import re
+import concurrent.futures
+
+s=requests.Session()
+s.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0",})
+
+# get id list
+pat1=re.compile(r'<h2><a href="thread-(\d+)-1-1.html"')
+
+def get_ids(pg):
+    r=s.get(f'https://www.lsmpx.com/plugin.php?id=group&page={pg}').text
+    return pat1.findall(r)
+
+def get_id_list(total_pages):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+        forecast_futures = [executor.submit(get_ids, pg) for pg in range(1, total_pages+1)]
+        id_list=[]
+        for f in forecast_futures:
+            id_list.extend(f.result())
+        return id_list
+
+# download image
+pat2=re.compile(r'<li><img alt=".+?" src="(.+?)"')
+
+def get_img_urls(ID):
+    img_urls=[]
+    for i in range(5):
+        url=f'https://www.lsmpx.com/thread-{ID}-{i+1}-1.html'
+        r=s.get(url).text
+        img_urls.extend(pat2.findall(r))
+    return url, img_urls
+
+def download_img(ID):  
+    url, img_urls=get_img_urls(ID)
+    for i, url in enumerate(img_urls):
+        with open(f'G:/Pictures/test/{ID}-{i}.jpg', 'wb') as file:
+            r=s.get(url, headers={'Referer': url}).content
+            file.write(r) 
+
+def download_images(id_list):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+        forecast_futures = [executor.submit(download_img, ID) for ID in id_list]
+
+# get id list
+id_list=get_id_list(264)
+# download images
+download_images(id_list)
 ```
 
 [九派新闻](https://ask.hellobi.com/blog/linjichu/sitemap/)
