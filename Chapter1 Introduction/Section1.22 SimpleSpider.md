@@ -5,24 +5,24 @@
 - [Simple Spider](#simple-spider)
   - [Introdution](#introdution)
   - [HTTP request/response](#http-requestresponse)
-  - [proxy & architecture](#proxy--architecture)
-  - [`urllib`](#urllib)
-  - [`requests`](#requests)
+  - [proxy &amp; architecture](#proxy-amp-architecture)
+  - [urllib](#urllib)
+  - [requests](#requests)
     - [requests HTTP Auth](#requests-http-auth)
     - [request json](#request-json)
     - [requests session](#requests-session)
-  - [`BeautifulSoup`](#beautifulsoup)
+  - [BeautifulSoup](#beautifulsoup)
     - [BeautifulSoup selector](#beautifulsoup-selector)
   - [selenium](#selenium)
     - [selenium + chrome](#selenium--chrome)
     - [selenium + phantomjs](#selenium--phantomjs)
     - [selenium with firefox](#selenium-with-firefox)
-    - [selenium keys & click](#selenium-keys--click)
+    - [selenium keys &amp; click](#selenium-keys-amp-click)
     - [selenium with dynamic page](#selenium-with-dynamic-page)
     - [selenium mobile emulation](#selenium-mobile-emulation)
   - [login with cookie](#login-with-cookie)
     - [method1: only with session](#method1-only-with-session)
-    - [method2&3: cookie with request](#method23-cookie-with-request)
+    - [method2&amp;3: cookie with request](#method2amp3-cookie-with-request)
   - [word cloud](#word-cloud)
   - [Periodic Sign Task](#periodic-sign-task)
   - [XPath](#xpath)
@@ -990,6 +990,28 @@ if __name__ == "__main__":
     id_list=get_id_list(264)
     print(len(id_list))
     download_images(id_list)
+```
+
+example: 多线程下载视频
+
+```py
+import requests
+import concurrent.futures
+
+s=requests.Session()
+s.headers.update({"Referer": "https://avgle.com/video/Z4FrtreTcrr/mywife-696-%E4%BB%B2%E9%87%8C%E7%B5%B5%E9%87%8C%E5%AD%90-%E5%88%9D%E6%9C%83%E7%AF%87",})
+
+def download(index):
+    url=f'https://ip78770016.cdn.qooqlevideo.com/key=zD8vdkaOHIjJCD25erI9Dg,s=,end=1575904855,limit=2/data=1575904855/state=Wfip/referer=force,.avgle.com/reftag=56109644/media=hlsA/ssd4/177/6/62849406.mp4/seg-{index}-v1-a1.ts'
+    r=s.get(url, stream=True)
+    with open(f'test/{index:03d}.ts', 'wb') as file:
+        for chunk in r.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                file.write(chunk)
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=64) as executor:
+    for i in range(400):
+        executor.submit(download, i+1)
 ```
 
 [九派新闻](https://ask.hellobi.com/blog/linjichu/sitemap/)
