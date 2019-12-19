@@ -1919,6 +1919,8 @@ print(tree.xpath('//li/a/text()')) # text is particular
 
 print(tree.xpath('//li/a/@href="link3.html"')) # True
 
+tree.xpath('//li[@class="itme-10"]/a/@href') # link11.html
+
 # get the first one
 print(tree.xpath('//li[1]/a/@href'))
 # ['link1.html', 'link11.html']
