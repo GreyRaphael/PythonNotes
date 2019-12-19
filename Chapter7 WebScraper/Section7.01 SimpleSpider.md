@@ -1,11 +1,9 @@
 # Simple Spider
 
-<!-- TOC -->
-
 - [Simple Spider](#simple-spider)
   - [Introdution](#introdution)
   - [HTTP request/response](#http-requestresponse)
-  - [proxy &amp; architecture](#proxy-amp-architecture)
+  - [Proxy](#proxy)
   - [urllib](#urllib)
   - [requests](#requests)
     - [requests HTTP Auth](#requests-http-auth)
@@ -75,7 +73,7 @@ HTTP response messages:
 HTTP request/response:
 > ![https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages](res/http_msg03.png)
 
-## proxy & architecture
+## Proxy
 
 淘宝买一个**vps秒换ip**, 将写好的程序挪到那个vps上运行就行。
 
@@ -149,6 +147,29 @@ if __name__ == '__main__':
                 if (i+1) % 13 ==0:
                     file.write('\n')
             file.write('\n')
+```
+
+example: [proxy](https://blog.csdn.net/qq_37616069/article/details/80376776)
+> 付费的proxy一般带有用户名密码
+
+```py
+proxies = {
+    "http": "http://username:pwd@183.129.207.73:13016",
+    "https": "https://username:pwd@183.129.207.73:13016",
+}
+```
+
+```python
+import requests
+ 
+# 根据协议类型，选择不同的代理
+proxies = {
+    "http": "https://183.129.207.73:13016",
+    "https": "https://183.129.207.73:13016",
+}
+ 
+response = requests.get("https://m.huxiu.com/", proxies = proxies)
+print(response.text)
 ```
 
 example2: www.kuaidaili.com抓取代理ip
@@ -1145,21 +1166,6 @@ print(s.cookies.get_dict()) # {'loggedin': '1', 'username': 'Grey'}
 # visit another site
 s.get('http://pythonscraping.com/pages/cookies/welcome.php').text
 # login success!
-```
-
-[proxy](https://blog.csdn.net/qq_37616069/article/details/80376776)
-
-```python
-import requests
- 
-# 根据协议类型，选择不同的代理
-proxies = {
-    "http": "https://183.129.207.73:13016",
-    "https": "https://183.129.207.73:13016",
-}
- 
-response = requests.get("https://m.huxiu.com/", proxies = proxies)
-print(response.text)
 ```
 
 处理https请求
