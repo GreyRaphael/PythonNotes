@@ -65,6 +65,8 @@
 [HTTP request/response](https://blog.csdn.net/lzghxjt/article/details/51458540)
 
 HTTP request messages:
+> get,post本质上没有区别，仅仅是一个表现为地址栏，一个藏了起来，都是提交的同样dict格式的数据  
+> get提交的时候数据在请求行中，post提交的时候数据在请求体中; 所以post并不会比get更加安全，抓包都能弄出来  
 > ![](res/http_msg01.png)
 
 HTTP response messages:

@@ -3,13 +3,13 @@
 - [HTML](#html)
   - [introduction](#introduction)
   - [some tags](#some-tags)
-  - [pic & link](#pic--link)
+  - [pic &amp; link](#pic-amp-link)
   - [list](#list)
   - [table](#table)
-  - [about传统布局](#about%E4%BC%A0%E7%BB%9F%E5%B8%83%E5%B1%80)
-  - [form(表单)](#form%E8%A1%A8%E5%8D%95)
+  - [about传统布局](#about%e4%bc%a0%e7%bb%9f%e5%b8%83%e5%b1%80)
+  - [form(表单)](#form%e8%a1%a8%e5%8d%95)
   - [submitable tags](#submitable-tags)
-  - [inline frame(iframe, 内嵌框架)](#inline-frameiframe-%E5%86%85%E5%B5%8C%E6%A1%86%E6%9E%B6)
+  - [inline frame(iframe, 内嵌框架)](#inline-frameiframe-%e5%86%85%e5%b5%8c%e6%a1%86%e6%9e%b6)
 
 早期的美工分化成两个：
 
@@ -1003,7 +1003,7 @@ if __name__ == "__main__":
 ```
 
 > get,post本质上没有区别，仅仅是一个表现为地址栏，一个藏了起来，都是提交的同样dict格式的数据  
-> get提交的时候数据在请求头中，post提交的时候数据在请求体中; 所以post并不会比get更加安全，抓包都能弄出来
+> get提交的时候数据在请求行中，post提交的时候数据在请求体中; 所以post并不会比get更加安全，抓包都能弄出来
 
 example: 利用sogou来submit
 
