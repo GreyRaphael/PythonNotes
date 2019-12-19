@@ -1637,6 +1637,31 @@ ff.get('https://www.baidu.com')
 
 ## login with cookie
 
+浏览器访问baidu的标准Request Headers
+
+```
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9,zh-CN;q=0.8,zh-TW;q=0.7,zh;q=0.6,ja;q=0.5
+Cache-Control: max-age=0
+Connection: keep-alive
+Cookie: xxxx
+Host: www.baidu.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
+```
+
+Attention:
+- Accept: 可以不写
+- Accept-Encoding: 不能写，否则还需要解压数据
+- Accept-Language: 可以不写
+- Cache-Control: 可以不写
+- Connection: keep-alive，模拟登录的时候需要
+- Cookie: 模拟登录的时候需要
+- Host:可以不写
+- Upgrade-Insecure-Requests: 可以不写
+- User-Agent必须写
+
 [requests模拟登录的原理](https://blog.csdn.net/zwq912318834/article/details/79571110)
 
 [requests模拟登录的三种方法](https://blog.csdn.net/hui1788/article/details/79944102):
