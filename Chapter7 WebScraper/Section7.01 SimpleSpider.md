@@ -1953,6 +1953,12 @@ tree.xpath('//tr/td/text()')
 
 ## OCR vs verify code
 
+最简单的做法
+1. 将图片下载到本地
+2. 程序暂停等待用户输入
+3. 手动或者自动打开图片
+4. 用户输入验证码，继续程序
+
 [tesseract](https://github.com/tesseract-ocr/tesseract)使用: `tesseract.exe c:\3.jpg c:\result`, 将识别的结果放到了`c:\result.txt`
 > [tesseract for chinese](https://www.cnblogs.com/wzben/p/5930538.html), 或者用[baiduAI](https://ai.baidu.com/)  
 > 人工智能: 人工训练出来的智能
