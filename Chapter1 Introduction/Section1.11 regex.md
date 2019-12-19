@@ -3,38 +3,38 @@
 <!-- TOC -->
 
 - [Python Regular Expression](#python-regular-expression)
-    - [regex table](#regex-table)
-    - [Attention](#attention)
-        - [about `(?:)`](#about-)
-        - [`(?#)`, `(?imx:...)`,`(?=...)`, `(?!...)`, `(?<=...)`, `(?<!...)`](#-imx---)
-        - [`(?(group) yes_pattern|no_pattern`](#group-yes_patternno_pattern)
-        - [`\b`, `\B`](#\b-\b)
-        - [about escaping `\\`](#about-escaping-\\)
-        - [about `^`](#about-^)
-        - [about `|`](#about-)
-        - [`expand()`](#expand)
-        - [`re.pattern`](#repattern)
-    - [QQ or phone-number](#qq-or-phone-number)
-    - [match, search, findall](#match-search-findall)
-        - [match 搜索(bad)](#match-搜索bad)
-        - [match 挖掘，分割](#match-挖掘分割)
-        - [search 搜索](#search-搜索)
-        - [search 挖掘](#search-挖掘)
-        - [match, search summary](#match-search-summary)
-        - [findall](#findall)
-        - [finditer](#finditer)
-    - [`re.split`](#resplit)
-    - [re.subn(), re.sub()](#resubn-resub)
-    - [Detail](#detail)
-        - [[]](#)
-        - [多次](#多次)
-            - [`*`,>=0次](#0次)
-            - [`+`,>=1次](#1次)
-            - [`?`,0 or 1次](#0-or-1次)
-            - [greedy](#greedy)
-        - [逻辑与分组](#逻辑与分组)
-        - [Tag](#tag)
-    - [GUI 提取qq,email,phone](#gui-提取qqemailphone)
+  - [regex table](#regex-table)
+  - [Attention](#attention)
+    - [about (?:)](#about)
+    - [(?#), (?imx:...),(?=...), (?!...), (?&lt;=...), (?&lt;!...)](#imx--lt-lt)
+    - [(?(group) yes_pattern|no_pattern](#group-yespatternnopattern)
+    - [\b, \B](#b-b)
+    - [about escaping \\](#about-escaping)
+    - [about ^](#about)
+    - [about |](#about)
+    - [expand()](#expand)
+    - [re.pattern](#repattern)
+  - [QQ or phone-number](#qq-or-phone-number)
+  - [match, search, findall](#match-search-findall)
+    - [match 搜索(bad)](#match-%e6%90%9c%e7%b4%a2bad)
+    - [match 挖掘，分割](#match-%e6%8c%96%e6%8e%98%e5%88%86%e5%89%b2)
+    - [search 搜索](#search-%e6%90%9c%e7%b4%a2)
+    - [search 挖掘](#search-%e6%8c%96%e6%8e%98)
+    - [match, search summary](#match-search-summary)
+    - [findall](#findall)
+    - [finditer](#finditer)
+  - [re.split](#resplit)
+  - [re.subn(), re.sub()](#resubn-resub)
+  - [Detail](#detail)
+    - [[]](#)
+    - [多次](#%e5%a4%9a%e6%ac%a1)
+      - [*,&gt;=0次](#gt0%e6%ac%a1)
+      - [+,&gt;=1次](#gt1%e6%ac%a1)
+      - [?,0 or 1次](#0-or-1%e6%ac%a1)
+      - [greedy](#greedy)
+    - [逻辑与分组](#%e9%80%bb%e8%be%91%e4%b8%8e%e5%88%86%e7%bb%84)
+    - [Tag](#tag)
+  - [GUI 提取qq,email,phone](#gui-%e6%8f%90%e5%8f%96qqemailphone)
 
 <!-- /TOC -->
 
@@ -518,6 +518,18 @@ print(searchObj.group(0))#247865388
 ```
 
 ### findall
+
+```py
+import re
+
+pat1=re.compile(r'\d?')
+pat2=re.compile(r'\d*')
+pat3=re.compile(r'\d+')
+
+pat1.findall('hi 123 456') # ['','','','1','2','3','','4','5','6']
+pat2.findall('hi 123 456') # ['','','','123','','456']
+pat3.findall('hi 123 456') # ['123', '456']
+```
 
 ```python
 #find all QQ
