@@ -720,6 +720,15 @@ print(lineList)#['a', 'b', 'c', 'd']
 
 ## re.subn(), re.sub()
 
+sub类似vscode的regex replace功能
+
+```py
+import re
+
+pat1=re.compile(r'(\w+) (\w+)')
+pat1.sub(r'\2 \1', 'hello 123,hello 456') # '123 hello,456 hello'
+```
+
 ```python
 import re
 
