@@ -2985,3 +2985,103 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+example: 生产者消费者模式爬虫
+
+```py
+import re
+import requests
+from queue import Queue
+from threading import Thread
+
+
+class CrawThread(Thread):
+    def __init__(self, ID, pageQ, htmlQ):
+        super().__init__()
+        self.ID = ID
+        self.pageQ = pageQ
+        self.htmlQ = htmlQ
+
+    def run(self):
+        while not self.pageQ.empty():
+            try:
+                pg = self.pageQ.get(block=False)
+                url = f'https://www.lsmpx.com/plugin.php?id=group&page={pg}'
+                r = requests.get(url, headers={
+                                 'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0"})
+                self.htmlQ.put(r.text)
+                print(f'{self.ID} finish page-{pg}')
+            except:
+                pass
+
+
+class ParseThread(Thread):
+    def __init__(self, ID, htmlQ, resultQ):
+        super().__init__()
+        self.ID = ID
+        self.htmlQ = htmlQ
+        self.resultQ = resultQ
+
+    def run(self):
+        # 最初的时候htmlQ是空的，所以HTML_QUEUE_REAL_EMPTY需要在外部控制
+        while not HTML_QUEUE_REAL_EMPTY:
+            try:
+                html = self.htmlQ.get(block=False)
+                img_list = pat.findall(html)
+                self.resultQ.put(img_list)
+                print(f'{self.ID} finish {len(img_list)}: {img_list[:2]}...')
+            except:
+                pass
+
+
+pat = re.compile(r'<img src="(.+?)"', re.S)  # re.S忽略\n
+HTML_QUEUE_REAL_EMPTY = False
+
+
+def main():
+    pageQueue = Queue(10)
+    htmlQueue = Queue()
+    resultQueue = Queue()
+
+    for i in range(10):
+        pageQueue.put(i+1)
+
+    craw_list = []
+    for i in range(3):
+        t = CrawThread(f'craw-{i}', pageQueue, htmlQueue)
+        t.start()
+        craw_list.append(t)
+
+    parse_list = []
+    for i in range(3):
+        t = ParseThread(f'parse-{i}', htmlQueue, resultQueue)
+        t.start()
+        parse_list.append(t)
+
+    for t in craw_list:
+        t.join()
+    else:
+        print('finish craw html, nothing will add to htmlQueue')
+
+    while not htmlQueue.empty():
+        pass
+    else:
+        # htmlQueue really is empty, stop parse_thread loop
+        global HTML_QUEUE_REAL_EMPTY
+        HTML_QUEUE_REAL_EMPTY = True
+
+    for t in parse_list:
+        t.join()
+    else:
+        print('finish parse html')
+
+    with open('result.txt', 'w') as file:
+        while not resultQueue.empty():
+            for img in resultQueue.get():
+                file.write(img)
+                file.write('\n')
+
+
+if __name__ == "__main__":
+    main()
+```
