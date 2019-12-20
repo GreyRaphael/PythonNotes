@@ -1321,18 +1321,13 @@ driver.close()
 ```python
 from selenium import webdriver
 
-options=webdriver.FirefoxOptions()
-options.add_argument('--headless')
+opt=webdriver.FirefoxOptions()
+opt.headless=False
 
-# firefox alreaddy in environment variable
-driver=webdriver.Firefox(firefox_options=options)
-
-url='https://www.baidu.com'
-driver.get(url)
-page_source = driver.page_source
-
-driver.save_screenshot('hello.png')
-driver.close()
+driver = webdriver.Firefox(firefox_binary="D:/Browser/Firefox/firefox.exe", executable_path='geckodriver.exe',firefox_profile=r'D:\Browser\Firefox\Profile\Mozilla\Firefox\Profiles\04q5ed1u.default-release', options=opt)
+driver.get('https://m.huxiu.com')
+driver.save_screenshot('huxiu.png')
+driver.quit()
 ```
 
 ### selenium keys & click
