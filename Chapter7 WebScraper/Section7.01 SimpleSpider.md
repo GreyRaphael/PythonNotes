@@ -1951,6 +1951,8 @@ tree=etree.HTML(html)
 tree.xpath('//tr/td/text()')
 ```
 
+xpath模糊查询(id属性模糊包含某些字符串): `//div[contains(@id, "qiushi_tag")]//h2`
+
 ## OCR vs verify code
 
 最简单的做法
