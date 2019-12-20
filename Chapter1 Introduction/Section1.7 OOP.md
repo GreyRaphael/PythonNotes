@@ -3,25 +3,25 @@
 <!-- TOC -->
 
 - [Python OOP](#python-oop)
-  - [OOP的意义](#oop%E7%9A%84%E6%84%8F%E4%B9%89)
-    - [`==` vs `is`](#vs-is)
-  - [ctor & destructor](#ctor--destructor)
+  - [OOP的意义](#oop%e7%9a%84%e6%84%8f%e4%b9%89)
+    - [== vs is](#vs-is)
+  - [ctor &amp; destructor](#ctor-amp-destructor)
     - [class property vs instance property](#class-property-vs-instance-property)
-    - [`super()`](#super)
-    - [`__init__` vs `__new__`](#init-vs-new)
-    - [`__del__`](#del)
+    - [super()](#super)
+    - [__init__ vs __new__](#init-vs-new)
+    - [__del__](#del)
   - [python GUI](#python-gui)
-  - [动态增加属性、方法](#%E5%8A%A8%E6%80%81%E5%A2%9E%E5%8A%A0%E5%B1%9E%E6%80%A7%E6%96%B9%E6%B3%95)
+  - [动态增加属性、方法](#%e5%8a%a8%e6%80%81%e5%a2%9e%e5%8a%a0%e5%b1%9e%e6%80%a7%e6%96%b9%e6%b3%95)
   - [overload](#overload)
-  - [副本机制](#%E5%89%AF%E6%9C%AC%E6%9C%BA%E5%88%B6)
-  - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6)
+  - [副本机制](#%e5%89%af%e6%9c%ac%e6%9c%ba%e5%88%b6)
+  - [访问控制](#%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
   - [send SMS](#send-sms)
   - [send Email](#send-email)
-  - [`import` local .py file](#import-local-py-file)
+  - [import local .py file](#import-local-py-file)
     - [import method 1](#import-method-1)
     - [import method 2](#import-method-2)
-  - [组合多种功能(send email,send sms)](#%E7%BB%84%E5%90%88%E5%A4%9A%E7%A7%8D%E5%8A%9F%E8%83%BDsend-emailsend-sms)
-  - [访问控制](#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6-1)
+  - [组合多种功能(send email,send sms)](#%e7%bb%84%e5%90%88%e5%a4%9a%e7%a7%8d%e5%8a%9f%e8%83%bdsend-emailsend-sms)
+  - [访问控制](#%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6-1)
 
 <!-- /TOC -->
 
@@ -239,6 +239,75 @@ print(p1._Count, p2._Count)# 2 2
 ```
 
 ### `super()`
+
+example: `super().__init__()` vs `ParentClass.__init__(self)`
+> `super().__init__()` is equal to `super(CurrentClass, self).__init__()`
+
+```py
+class A():
+    def __init__(self):
+        self.a='a'
+        print(self.a)
+
+class B(A):
+    def __init__(self):
+        A.__init__(self)
+        
+        self.b='b'
+        print(self.b)
+
+class C(A):
+    def __init__(self):
+        A.__init__(self)
+
+        self.c='c'
+        print(self.c)
+
+class D(B, C):
+    def __init__(self):
+        B.__init__(self)
+        C.__init__(self)
+        print('this is D')
+
+d=D() # 不使用super(), A被初始化两次
+# a
+# b
+# a
+# c
+# this is D
+```
+
+```py
+class A():
+    def __init__(self):
+        self.a='a'
+        print(self.a)
+
+class B(A):
+    def __init__(self):
+        super().__init__()
+        
+        self.b='b'
+        print(self.b)
+
+
+class C(A):
+    def __init__(self):
+        super().__init__()
+
+        self.c='c'
+        print(self.c)
+
+class D(B, C):
+    def __init__(self):
+        super().__init__()
+        print('this is D')
+
+d=D() # 使用super(), 根据MRO，A只被初始化1次
+# a
+# c
+# b
+```
 
 ```python
 class Person:
