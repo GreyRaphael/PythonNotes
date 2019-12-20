@@ -1,21 +1,21 @@
 # python threads
 
 - [python threads](#python-threads)
-    - [Introduction](#introduction)
-    - [Thread Synchronization](#thread-synchronization)
-        - [threading.Lock()](#threadinglock)
-        - [threading.RLock()](#threadingrlock)
-    - [semaphore(信号量)](#semaphore%E4%BF%A1%E5%8F%B7%E9%87%8F)
-    - [凑几个然后执行](#%E5%87%91%E5%87%A0%E4%B8%AA%E7%84%B6%E5%90%8E%E6%89%A7%E8%A1%8C)
-    - [线程通信 Event](#%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1-event)
-    - [Condition](#condition)
-        - [线程调度](#%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6)
-    - [Queue](#queue)
-    - [Productor & Customer](#productor--customer)
-    - [Thread Pool](#thread-pool)
-    - [定时线程](#%E5%AE%9A%E6%97%B6%E7%BA%BF%E7%A8%8B)
-    - [`with`](#with)
-    - [前台进程&后台进程](#%E5%89%8D%E5%8F%B0%E8%BF%9B%E7%A8%8B%E5%90%8E%E5%8F%B0%E8%BF%9B%E7%A8%8B)
+  - [Introduction](#introduction)
+  - [Thread Synchronization](#thread-synchronization)
+    - [threading.Lock()](#threadinglock)
+    - [threading.RLock()](#threadingrlock)
+  - [semaphore(信号量)](#semaphore%e4%bf%a1%e5%8f%b7%e9%87%8f)
+  - [凑几个然后执行](#%e5%87%91%e5%87%a0%e4%b8%aa%e7%84%b6%e5%90%8e%e6%89%a7%e8%a1%8c)
+  - [线程通信 Event](#%e7%ba%bf%e7%a8%8b%e9%80%9a%e4%bf%a1-event)
+  - [Condition](#condition)
+    - [线程调度](#%e7%ba%bf%e7%a8%8b%e8%b0%83%e5%ba%a6)
+  - [Queue](#queue)
+  - [Productor &amp; Customer](#productor-amp-customer)
+  - [Thread Pool](#thread-pool)
+  - [定时线程](#%e5%ae%9a%e6%97%b6%e7%ba%bf%e7%a8%8b)
+  - [with](#with)
+  - [前台进程&amp;后台进程](#%e5%89%8d%e5%8f%b0%e8%bf%9b%e7%a8%8bamp%e5%90%8e%e5%8f%b0%e8%bf%9b%e7%a8%8b)
 
 ## Introduction
 
@@ -1553,6 +1553,8 @@ James get Grey's Bread2
 ```
 
 example4: `q.task_done()` and `q.join()`
+> 生产者等待消费者
+> 每次get后需要调用task_done，直到本次任务都task_done, join才取消阻塞
 
 ```python
 import queue
@@ -1603,6 +1605,47 @@ James get Grey's Bread3
 James get Grey's Bread4
 ```
 
+```py
+import queue
+import threading
+import time
+
+q = queue.Queue()
+
+def Producer(name):
+    count = 1
+    while True:
+        print(f'{name} product Bread{count}')
+        q.put(f"{name}'s Bread{count}a")
+        q.put(f"{name}'s Bread{count}b")
+        q.join() # 本次任务两个都被task_done, join取消阻塞
+        count += 1
+
+def Consumer(name):
+    while True:
+        time.sleep(1)
+        print(f'{name} get {q.get()}')
+        q.task_done()
+
+threading.Thread(target=Producer, args=('Grey', )).start()
+threading.Thread(target=Consumer, args=('James', )).start()
+```
+
+```
+Grey product Bread1
+James get Grey's Bread1a
+James get Grey's Bread1b
+Grey product Bread2
+James get Grey's Bread2a
+James get Grey's Bread2b
+Grey product Bread3
+James get Grey's Bread3a
+James get Grey's Bread3b
+Grey product Bread4
+James get Grey's Bread4a
+James get Grey's Bread4b
+```
+
 example5: `q.task_done()` and `q.join()` in multi-threadings
 
 ```python
@@ -1637,6 +1680,61 @@ Con4 get Pro1's Bread4
 Batch2: Pro1 product Bread0
 Batch2: Pro1 product Bread1
 Batch2: Pro1 product Bread2
+```
+
+```py
+import queue
+import threading
+import time
+
+q = queue.Queue()
+
+def Producer(name):
+    count = 1
+    while True:
+        print(f'{name} product Bread{count}')
+        q.put(f"{name}'s Bread{count}a")
+        q.put(f"{name}'s Bread{count}b")
+        q.join() # 本次任务两个都被task_done, join取消阻塞
+        count += 1
+
+def Consumer(name):
+    while True:
+        time.sleep(1)
+        print(f'{name} get {q.get()}')
+        q.task_done()
+
+for i in range(2):
+    threading.Thread(target=Producer, args=(f'Pro{i}',)).start()
+for j in range(5):
+    threading.Thread(target=Consumer, args=(f'Con{j}',)).start()
+```
+
+```
+Pro0 product Bread1
+Pro1 product Bread1
+Con2 get Pro0's Bread1a
+Con0 get Pro0's Bread1b
+Con1 get Pro1's Bread1a
+Con4 get Pro1's Bread1b
+Pro0 product Bread2
+Pro1 product Bread2
+Con3 get Pro0's Bread2a
+Con2 get Pro0's Bread2b
+Con0 get Pro1's Bread2a
+Con4 get Pro1's Bread2b
+Pro1 product Bread3
+Pro0 product Bread3
+Con1 get Pro1's Bread3a
+Con3 get Pro1's Bread3b
+Con0 get Pro0's Bread3a
+Con2 get Pro0's Bread3b
+Pro1 product Bread4
+Pro0 product Bread4
+Con4 get Pro1's Bread4a
+Con3 get Pro1's Bread4b
+Con1 get Pro0's Bread4a
+Con2 get Pro0's Bread4b
 ```
 
 ## Thread Pool
