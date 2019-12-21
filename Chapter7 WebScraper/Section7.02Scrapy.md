@@ -124,3 +124,59 @@ class Myspider1Spider(scrapy.Spider):
 then in Anaconda Prompt:
 - `scrapy crawl myspider1 -o huxiu.json`
 - `scrapy crawl myspider1 -o huxiu.csv`
+
+example: crawl with pipeline
+
+```py
+# setttings.py
+ITEM_PIPELINES = {
+   'test1.pipelines.Test1Pipeline': 300,
+}
+```
+
+```py
+# pipelines.py
+import json
+
+class Test1Pipeline(object):
+    def __init__(self):
+        # utf8和后面的ensure_ascii很重要
+        self.file = open('test.json', 'w', encoding='utf8')
+
+    def process_item(self, item, spider):
+        json.dump(dict(item), self.file, ensure_ascii=False)
+        self.file.write('\n')
+        return item
+
+    def close_spider(self, spider):
+        self.file.close()
+```
+
+```py
+# myspider1.py
+import scrapy
+from test1 import items
+
+class Myspider1Spider(scrapy.Spider):
+    name = 'myspider1'
+    allowed_domains = ['m.huxiu.com']
+    start_urls = ['https://m.huxiu.com/']
+
+    def parse(self, response):
+        # scrapy自带xpath
+        div_list = response.xpath('//div[@class="rec-article-info"]')
+        for div in div_list:
+            MyItem = items.Test1Item()
+
+            link_list = div.xpath('./a/@href').extract()
+            content_list = div.xpath('normalize-space(.//a)').extract()
+
+            MyItem['link'] = link_list[0]
+            MyItem['content'] = content_list[0]
+
+            yield MyItem
+```
+
+then in Anaconda Prompt:
+- `scrapy crawl myspider1`
+
