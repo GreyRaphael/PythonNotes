@@ -126,6 +126,7 @@ then in Anaconda Prompt:
 - `scrapy crawl myspider1 -o huxiu.csv`
 
 example: crawl with pipeline
+> 可以不写pipeline，使用上个例子`return`+`scrapy crawl myspider -o xxx`的方法
 
 ```py
 # setttings.py
@@ -180,3 +181,60 @@ class Myspider1Spider(scrapy.Spider):
 then in Anaconda Prompt:
 - `scrapy crawl myspider1`
 
+example: scrapy with pagination
+
+```py
+# settings.py
+# ITEM_PIPELINES = {
+#    'test1.pipelines.Test1Pipeline': 300,
+# }
+
+DOWNLOAD_DELAY = 1
+```
+
+```py
+# items.py
+import scrapy
+
+class Test1Item(scrapy.Item):
+    ip = scrapy.Field()
+    port = scrapy.Field()
+    anonymous = scrapy.Field()
+    protocol_type = scrapy.Field()
+```
+
+```py
+# myspider1.py
+import scrapy
+from test1 import items
+
+class Myspider1Spider(scrapy.Spider):
+    name = 'myspider1'
+    allowed_domains = ['www.kuaidaili.com']
+    pg = 1
+    start_urls = [f'https://www.kuaidaili.com/free/inha/{pg}']
+
+    def parse(self, response):
+        # yield data
+        proxy_list = response.xpath('//tbody/tr')
+        for p in proxy_list:
+            MyItem = items.Test1Item()
+
+            ip = p.xpath('./td[@data-title="IP"]/text()').extract()
+            port = p.xpath('./td[@data-title="PORT"]/text()').extract()
+            anonymous = p.xpath('./td[@data-title="匿名度"]/text()').extract()
+            protocol_type = p.xpath('./td[@data-title="类型"]/text()').extract()
+
+            MyItem['ip'] = ip[0]
+            MyItem['port'] = port[0]
+            MyItem['anonymous'] = anonymous[0]
+            MyItem['protocol_type'] = protocol_type[0]
+
+            yield MyItem
+        # yield request
+        if self.pg < 5:
+            self.pg += 1
+        yield scrapy.Request(f'https://www.kuaidaili.com/free/inha/{self.pg}', callback=self.parse)
+```
+
+then in Anaconda Prompt: `scrapy crawl myspider1 -o proxy.json`
