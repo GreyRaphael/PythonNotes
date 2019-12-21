@@ -50,10 +50,10 @@ DEFAULT_REQUEST_HEADERS = {
   'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0",
 }
 
-ITEM_PIPELINES = {
-    # 数字表示优先级，数字越小优先级越高
-   'test1.pipelines.Test1Pipeline': 300,
-}
+# ITEM_PIPELINES = {
+#     # 数字表示优先级，数字越小优先级越高
+#    'test1.pipelines.Test1Pipeline': 300,
+# }
 ```
 
 
@@ -71,7 +71,8 @@ class Myspider1Spider(scrapy.Spider):
     start_urls = ['https://m.huxiu.com/']
 
     def parse(self, response):
-        pass
+        with open('index.html', 'wb') as file:
+            file.write(response.body)
 ```
 
 ```py
@@ -83,3 +84,6 @@ class Test1Item(scrapy.Item):
     link=scrapy.Field()
     content=scrapy.Field()
 ```
+
+in Anaconda Prompt:
+- `scrapy crawl myspider1`
