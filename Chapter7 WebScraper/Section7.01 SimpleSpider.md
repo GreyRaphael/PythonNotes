@@ -1948,6 +1948,28 @@ tree.xpath('//tr/td/text()')
 
 xpath模糊查询(id属性模糊包含某些字符串): `//div[contains(@id, "qiushi_tag")]//h2`
 
+example: requests with xpath
+
+```py
+from lxml import html
+import requests
+import time
+
+for i in range(5):
+    url=f'https://www.kuaidaili.com/free/inha/{i+1}/'
+    r=requests.get(url, headers={'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0"})
+    time.sleep(1)
+    tree=html.fromstring(r.text)
+    proxy_list = tree.xpath('//tbody/tr')
+    for p in proxy_list:
+        ip = p.xpath('./td[@data-title="IP"]/text()')
+        port = p.xpath('./td[@data-title="PORT"]/text()')
+        anonymous = p.xpath('./td[@data-title="匿名度"]/text()')
+        protocol_type = p.xpath('./td[@data-title="类型"]/text()')
+
+        print(ip, port, anonymous, protocol_type)
+```
+
 ## OCR vs verify code
 
 最简单的做法
