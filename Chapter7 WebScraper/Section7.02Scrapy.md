@@ -238,3 +238,104 @@ class Myspider1Spider(scrapy.Spider):
 ```
 
 then in Anaconda Prompt: `scrapy crawl myspider1 -o proxy.json`
+
+example: scrapy downlod image
+
+```
+C:.
+│  scrapy.cfg
+├─res
+└─test1
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │  __init__.py
+    │
+    └─spiders
+            myspider1.py
+            __init__.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'test1'
+
+SPIDER_MODULES = ['test1.spiders']
+NEWSPIDER_MODULE = 'test1.spiders'
+
+DEFAULT_REQUEST_HEADERS = {
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0",
+}
+
+ITEM_PIPELINES = {
+   'test1.pipelines.Test1Pipeline': 1,
+}
+
+# 这个必须写
+IMAGES_STORE = r'res'
+```
+
+```py
+# items.py
+import scrapy
+
+class Test1Item(scrapy.Item):
+    ID = scrapy.Field()
+    ImgLink = scrapy.Field()
+```
+
+```py
+# myspider1.py
+import scrapy
+from test1 import items
+import json
+
+class Myspider1Spider(scrapy.Spider):
+    name = 'myspider1'
+    allowed_domains = ['www.douyu.com']
+    pg = 1
+    start_urls = [f'https://www.douyu.com/gapi/rknc/directory/yzRec/{pg}']
+
+    def parse(self, response):
+        data_list=json.loads(response.text)['data']['rl']
+        for p in data_list:
+            MyItem = items.Test1Item()
+
+            MyItem['ID'] = p['rid']
+            MyItem['ImgLink'] = p['rs1']
+
+            yield MyItem
+
+        if self.pg < 2:
+            self.pg += 1
+        yield scrapy.Request(f'https://www.douyu.com/gapi/rknc/directory/yzRec/{self.pg}', callback=self.parse)
+```
+
+```py
+# pipelines.py
+import scrapy
+from scrapy.pipelines.images import ImagesPipeline
+from scrapy.exceptions import DropItem
+import os
+from scrapy.utils.project import get_project_settings
+
+
+class Test1Pipeline(ImagesPipeline):
+
+    def get_media_requests(self, item, info):
+        img_url = item['ImgLink']
+        # 这个Requests可以加header
+        yield scrapy.Request(img_url)
+
+    def item_completed(self, results, item, info):
+        # image_paths[0]是IMAGES_STORE/full/hashvalue.jpg
+        image_paths = [x['path'] for ok, x in results if ok]
+        if not image_paths:
+            raise DropItem("Item contains no images")
+
+        image_dir = get_project_settings().get('IMAGES_STORE')
+        os.rename(f'{image_dir}/{image_paths[0]}', f'{image_dir}/{item["ID"]}.jpg')
+        return item
+```
