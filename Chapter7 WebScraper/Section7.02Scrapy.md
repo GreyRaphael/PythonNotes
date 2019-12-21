@@ -54,6 +54,9 @@ DEFAULT_REQUEST_HEADERS = {
 #     # 数字表示优先级，数字越小优先级越高
 #    'test1.pipelines.Test1Pipeline': 300,
 # }
+
+# 导出数据格式，默认格式utf8但是这种格式'\u4e00'
+FEED_EXPORT_ENCODING='utf8'
 ```
 
 
@@ -87,3 +90,37 @@ class Test1Item(scrapy.Item):
 
 in Anaconda Prompt:
 - `scrapy crawl myspider1`
+
+example: get data without pipeline
+
+```py
+# myspider1.py
+import scrapy
+from test1 import items
+
+class Myspider1Spider(scrapy.Spider):
+    name = 'myspider1'
+    allowed_domains = ['m.huxiu.com']
+    start_urls = ['https://m.huxiu.com/']
+
+    def parse(self, response):
+        ItemList = []
+
+        # scrapy自带xpath
+        div_list = response.xpath('//div[@class="rec-article-info"]')
+        for div in div_list:
+            MyItem = items.Test1Item()
+
+            link_list = div.xpath('./a/@href').extract()
+            content_list = div.xpath('normalize-space(.//a)').extract()
+
+            MyItem['link'] = link_list[0]
+            MyItem['content'] = content_list[0]
+
+            ItemList.append(MyItem)
+        return ItemList
+```
+
+then in Anaconda Prompt:
+- `scrapy crawl myspider1 -o huxiu.json`
+- `scrapy crawl myspider1 -o huxiu.csv`
