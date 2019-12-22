@@ -2,6 +2,8 @@
 
 - [Scrapy Framework](#scrapy-framework)
   - [Introduction](#introduction)
+  - [scrapy download image](#scrapy-download-image)
+  - [scrapy download files](#scrapy-download-files)
 
 ## Introduction
 
@@ -64,9 +66,7 @@ FEED_EXPORT_ENCODING='utf8'
 
 ```py
 # myspider1.py
-# -*- coding: utf-8 -*-
 import scrapy
-
 
 class Myspider1Spider(scrapy.Spider):
     name = 'myspider1'
@@ -238,6 +238,8 @@ class Myspider1Spider(scrapy.Spider):
 ```
 
 then in Anaconda Prompt: `scrapy crawl myspider1 -o proxy.json`
+
+## scrapy download image
 
 example: scrapy downlod image
 > then `scrapy crawl myspider1`  
@@ -443,6 +445,8 @@ class DailiPipeline(images.ImagesPipeline):
         # rename file
         return request.meta['filename']
 ```
+
+## scrapy download files
 
 example: download files
 > ImagePipelilne可能导致图片size变小，所以FilePipeling更加合适
