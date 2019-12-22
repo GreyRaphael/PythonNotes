@@ -240,6 +240,7 @@ class Myspider1Spider(scrapy.Spider):
 then in Anaconda Prompt: `scrapy crawl myspider1 -o proxy.json`
 
 example: scrapy downlod image
+> then `scrapy crawl myspider1`
 
 ```
 C:.
@@ -337,5 +338,109 @@ class Test1Pipeline(ImagesPipeline):
 
         image_dir = get_project_settings().get('IMAGES_STORE')
         os.rename(f'{image_dir}/{image_paths[0]}', f'{image_dir}/{item["ID"]}.jpg')
+        return item
+```
+
+example: download image
+
+```
+C:.
+│  scrapy.cfg
+├─daili
+│  │  items.py
+│  │  middlewares.py
+│  │  pipelines.py
+│  │  settings.py
+│  │  __init__.py
+│  │
+│  └─spiders
+│          myspider.py
+│          __init__.py
+└─res
+```
+
+```py
+# settings.py
+BOT_NAME = 'daili'
+
+SPIDER_MODULES = ['daili.spiders']
+NEWSPIDER_MODULE = 'daili.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+ITEM_PIPELINES = {
+   'daili.pipelines.DailiPipeline': 300,
+}
+IMAGES_STORE='res'
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class DailiItem(scrapy.Item):
+    name=scrapy.Field()
+    src=scrapy.Field()
+```
+
+```py
+# spider.py
+import scrapy
+from daili import items
+import re
+
+class MyspiderSpider(scrapy.Spider):
+    name = 'myspider'
+    allowed_domains = ['www.lsmpx.com']
+    pg=1
+    start_urls = [f'https://www.lsmpx.com/plugin.php?id=group&page={pg}']
+
+    def parse(self, response):
+        data_list=response.xpath('//div[@class="photo"]')
+        for data in data_list:
+            MyItem=items.DailiItem()
+
+            url=data.xpath('./a/@href').extract()[0]
+            MyItem['name']=url[:12]
+            MyItem['src']=re.sub('\r\n', '', data.xpath('.//img/@src').extract()[0])
+
+            yield MyItem
+        
+        if self.pg < 3:
+            self.pg+=1
+        
+        yield scrapy.Request(f'https://www.lsmpx.com/plugin.php?id=group&page={self.pg}/', callback=self.parse)
+```
+
+```py
+# pipelines.py
+import os
+import scrapy
+from scrapy.pipelines import images
+from scrapy.utils import project
+from scrapy import exceptions
+
+class DailiPipeline(images.ImagesPipeline):
+    def get_media_requests(self, item, info):
+        src=item['src']
+        yield scrapy.Request(src, headers={'Referer':'https://www.lsmpx.com'})
+    
+    def item_completed(self, results, item, info):
+        # rename completed image
+        imgs_store=project.get_project_settings().get('IMAGES_STORE')
+        
+        # image_paths是默认下载图片的保存路径IMAGES_STORE/full/hashvalue.jpg
+        image_paths = [x['path'] for ok, x in results if ok]
+        if not image_paths:
+            raise exceptions.DropItem("Item contains no images")
+
+        os.rename(f'{imgs_store}/{image_paths[0]}', f'{imgs_store}/{item["name"]}.jpg')
         return item
 ```
