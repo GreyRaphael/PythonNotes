@@ -531,3 +531,8 @@ class DailiPipeline(files.FilesPipeline):
         # rename file
         return request.meta['filename']
 ```
+
+scrapy with redis与scrapy的不同
+- 存item数据
+- 存request
+- 存request的指纹(hash value)
