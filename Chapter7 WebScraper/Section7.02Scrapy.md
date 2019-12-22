@@ -443,3 +443,87 @@ class DailiPipeline(images.ImagesPipeline):
         # rename file
         return request.meta['filename']
 ```
+
+example: download files
+> ImagePipelilne可能导致图片size变小，所以FilePipeling更加合适
+
+```py
+# settings.py
+BOT_NAME = 'daili'
+
+SPIDER_MODULES = ['daili.spiders']
+NEWSPIDER_MODULE = 'daili.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+ITEM_PIPELINES = {
+   'daili.pipelines.DailiPipeline': 300,
+}
+# 这个必须有
+FILES_STORE='res'
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class DailiItem(scrapy.Item):
+    name=scrapy.Field()
+    srcs=scrapy.Field()
+```
+
+```py
+# myspider.py
+import scrapy
+from daili import items
+import re
+
+pat1=re.compile(r'<h2><a href="thread-(\d+)-1-1.html"')
+pat2=re.compile(r'<li><img alt=".+?" src="(.+?)"')
+
+class MyspiderSpider(scrapy.Spider):
+    name = 'myspider'
+    allowed_domains = ['www.lsmpx.com']
+    pg=1
+    start_urls = [f'https://www.lsmpx.com/plugin.php?id=group&page={pg}']
+
+    def parse(self, response):
+        id_list=pat1.findall(response.text)
+        for ID in id_list:
+            for i in range(5):
+                yield scrapy.Request(f'https://www.lsmpx.com/thread-{ID}-{i+1}-1.html', callback=self.myparse)
+        
+        if self.pg < 1:
+            self.pg+=1
+        yield scrapy.Request(f'https://www.lsmpx.com/plugin.php?id=group&page={self.pg}/', callback=self.parse)
+
+    def myparse(self, response):
+        MyItem=items.DailiItem()
+        MyItem['name']=response.url[29:-7]
+        MyItem['srcs']=pat2.findall(response.text)
+        
+        yield MyItem
+```
+
+```py
+# pipelines.py
+import scrapy
+from scrapy.pipelines import files
+
+class DailiPipeline(files.FilesPipeline):
+    def get_media_requests(self, item, info):
+        for i, src in enumerate(item['srcs']):
+            filename = f'{item["name"]}-{i}.jpg'
+            yield scrapy.Request(src, headers={'Referer': 'https://www.lsmpx.com'}, meta={'filename': filename})
+
+    def file_path(self, request, response=None, info=None):
+        # rename file
+        return request.meta['filename']
+```
