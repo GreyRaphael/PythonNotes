@@ -627,3 +627,45 @@ class MyspiderSpider(CrawlSpider):
 
             yield MyItem
 ```
+
+example: 层级结构CrawlSpiders
+> `scrapy crawl myspider -o data.json`
+
+```py
+# items.py
+import scrapy
+
+class HelloItem(scrapy.Item):
+    name = scrapy.Field()
+    srcs = scrapy.Field()
+```
+
+```py
+# myspider.py
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+from hello import items
+import re
+
+pat=re.compile(r'<li><img alt=".+?" src="(.+?)"')
+
+class MyspiderSpider(CrawlSpider):
+    name = 'myspider'
+    allowed_domains = ['www.lsmpx.com']
+    start_urls = ['https://www.lsmpx.com/plugin.php?id=group&page=1']
+
+    rules = (
+        # 第一个rule False, 第二个rule True; 表示只爬https://www.lsmpx.com/plugin.php?id=group&page=1
+        Rule(LinkExtractor(allow=r'id=group&page=\d+'), follow=False),
+        Rule(LinkExtractor(allow=r'thread-\d+-\d-1.html'), callback='parse_item', follow=True),
+        
+    )
+
+    def parse_item(self, response):
+        MyItem=items.HelloItem()
+        MyItem['name']=response.url[29:-7]
+        MyItem['srcs']=pat.findall(response.text)
+
+        yield MyItem
+```
