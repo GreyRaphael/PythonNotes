@@ -683,3 +683,11 @@ LOG_LEVEL='WARNING' # 显示>=WARNING
 LOG_LEVEL='INFO' # 显示>=INFO
 LOG_LEVEL='DEBUG' # 只显示DEBUG
 ```
+
+example: process link
+> 反爬虫: html的link是错误的，但通过js使得动态的url是正确的，所以需要先对url进行处理
+
+```py
+# myspider.py
+
+```
