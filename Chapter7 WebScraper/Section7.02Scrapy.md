@@ -669,3 +669,17 @@ class MyspiderSpider(CrawlSpider):
 
         yield MyItem
 ```
+
+about LOG
+
+```py
+# settings.py
+LOG_FILE='myproject.log'
+
+# CRITICAL > ERROR > WARNING > INFO > DEBUG
+LOG_LEVEL='CRITICAL' # >=CRITICAL
+LOG_LEVEL='ERROR' # >=ERROR
+LOG_LEVEL='WARNING' # 显示>=WARNING
+LOG_LEVEL='INFO' # 显示>=INFO
+LOG_LEVEL='DEBUG' # 只显示DEBUG
+```
