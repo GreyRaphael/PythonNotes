@@ -4,6 +4,7 @@
   - [Introduction](#introduction)
   - [scrapy download image](#scrapy-download-image)
   - [scrapy download files](#scrapy-download-files)
+  - [CrawlSpiders](#crawlspiders)
 
 ## Introduction
 
@@ -536,3 +537,80 @@ scrapy with redis与scrapy的不同
 - 存item数据
 - 存request
 - 存request的指纹(hash value)
+
+## CrawlSpiders
+
+in Anaconda Prompt
+- `scrapy startproject hello`
+- `scrapy genspider -t crawl myspider www.lsmpx.com`
+- `scrapy crawl myspider -o data.json`
+
+```
+C:.
+│  scrapy.cfg
+└─hello
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │  __init__.py
+    │
+    └─spiders
+            myspider.py
+            __init__.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'hello'
+
+SPIDER_MODULES = ['hello.spiders']
+NEWSPIDER_MODULE = 'hello.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class HelloItem(scrapy.Item):
+    cover_id = scrapy.Field()
+    src = scrapy.Field()
+```
+
+```py
+# myspider.py
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+from hello import items
+
+class MyspiderSpider(CrawlSpider):
+    name = 'myspider'
+    allowed_domains = ['www.lsmpx.com']
+    pg=1
+    start_urls = [f'https://www.lsmpx.com/plugin.php?id=group&page={pg}']
+
+    rules = (
+        # 匹配url并follow进入
+        Rule(LinkExtractor(allow=r'id=group&page=\d+'), callback='parse_item', follow=True),
+    )
+
+    def parse_item(self, response):
+        data_list=response.xpath('//div[@class="photo"]')
+        for data in data_list:
+            MyItem=items.HelloItem()
+            
+            MyItem['cover_id']=data.xpath('./a/@href').extract()[0]
+            MyItem['src']=data.xpath('.//img/@src').extract()[0]
+
+            yield MyItem
+```
