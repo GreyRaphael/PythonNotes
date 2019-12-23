@@ -541,6 +541,18 @@ scrapy with redis与scrapy的不同
 ## CrawlSpiders
 
 in Anaconda Prompt
+- `scrapy shell url`
+then in IPython3
+
+```py
+from scrapy.linkextractors import LinkExtractor
+
+le1=LinkExtractor(allow=(r'id=group&page=\d+'))
+# 提取link
+le1.extract_links(response)
+```
+
+in Anaconda Prompt
 - `scrapy startproject hello`
 - `scrapy genspider -t crawl myspider www.lsmpx.com`
 - `scrapy crawl myspider -o data.json`
@@ -600,6 +612,7 @@ class MyspiderSpider(CrawlSpider):
     start_urls = [f'https://www.lsmpx.com/plugin.php?id=group&page={pg}']
 
     rules = (
+        # 提取link, 并配置规则
         # 匹配url并follow进入
         Rule(LinkExtractor(allow=r'id=group&page=\d+'), callback='parse_item', follow=True),
     )
