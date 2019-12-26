@@ -731,3 +731,6 @@ about 反反爬虫策略
 - Baidu cache, Google cache
 - [crawlera]https://scrapinghub.com/crawlera
 
+example: scrapy with database
+
+
