@@ -722,3 +722,12 @@ class MyspiderSpider(CrawlSpider):
 
         return links
 ```
+
+about 反反爬虫策略
+- User-Agent
+- `COOKIES_ENABLED = False`
+- `DOWNLOAD_DELAY = 1`
+- Proxy
+- Baidu cache, Google cache
+- [crawlera]https://scrapinghub.com/crawlera
+
