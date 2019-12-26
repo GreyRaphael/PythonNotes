@@ -689,5 +689,36 @@ example: process link
 
 ```py
 # myspider.py
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+from hello import items
+import re
 
+class MyspiderSpider(CrawlSpider):
+    name = 'myspider'
+    allowed_domains = ['wz.sun0769.com']
+    start_urls = ['http://wz.sun0769.com/index.php/question/questionType?type=4&page=0']
+
+    rules = (
+        Rule(LinkExtractor(allow=r'type=4'), follow=True, process_links='deal_links'),
+        Rule(LinkExtractor(allow=r'html/question/\d+/\d+'), callback='parse_item', follow=False),
+    )
+
+    def parse_item(self, response):
+        MyItem=items.HelloItem()
+        MyItem['url']=response.url
+        MyItem['name']=response.xpath('//td/span[2]//text()').extract()[0]
+
+        yield MyItem
+    
+    def deal_links(self, links):
+        print('*'*50)
+        # 对link进行修正
+        for link in links:
+            print(link)
+            link.url=link.url.replace('?', '&').replace('Type&', 'Type?')
+        print('*'*50)
+
+        return links
 ```
