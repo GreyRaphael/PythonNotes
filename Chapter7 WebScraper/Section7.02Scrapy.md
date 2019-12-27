@@ -729,8 +729,113 @@ about 反反爬虫策略
 - `DOWNLOAD_DELAY = 1`
 - Proxy
 - Baidu cache, Google cache
-- [crawlera]https://scrapinghub.com/crawlera
 
 example: scrapy with database
 
+```sql
+-- create table in sqlite3
+CREATE TABLE "info" (
+  "cover_id" TEXT NOT NULL,
+  "url" TEXT NOT NULL
+);
+```
 
+```
+C:.
+│  data.db
+│  myproject.log
+│  scrapy.cfg
+│
+└─hello
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │  __init__.py
+    │
+    └─spiders
+            myspider.py
+            __init__.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'hello'
+
+SPIDER_MODULES = ['hello.spiders']
+NEWSPIDER_MODULE = 'hello.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+ITEM_PIPELINES = {
+   'hello.pipelines.HelloPipeline': 300,
+}
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class TestItem(scrapy.Item):
+    cover_id = scrapy.Field()
+    url = scrapy.Field()
+```
+
+```py
+# myspider.py
+import scrapy
+import re
+from hello import items
+
+pat=re.compile(r'<h2><a href="thread-(\d+)-1-1.html"')
+
+class Myspider2Spider(scrapy.Spider):
+    name = 'myspider2'
+    allowed_domains = ['www.lsmpx.com']
+    pg=1
+    start_urls = [f'https://www.lsmpx.com/plugin.php?id=group&page={pg}']
+
+    def parse(self, response):
+        id_list=pat.findall(response.text)
+        for ID in id_list:
+            MyItem=items.TestItem()
+            MyItem['cover_id']=ID
+            MyItem['url']=f'thread-{ID}-1-1.html'
+            yield MyItem
+        
+        if self.pg<5:
+            self.pg+=1
+        
+        yield scrapy.Request(f'https://www.lsmpx.com/plugin.php?id=group&page={self.pg}', callback=self.parse)
+```
+
+```py
+# pipelines.py
+import sqlite3
+from scrapy import spiders
+
+class HelloPipeline(object):
+    def open_spider(self, spider):
+        self.db_conn = sqlite3.connect('data.db')
+        self.db_cur = self.db_conn.cursor()
+
+    def close_spider(self, spider):
+        self.db_conn.close()
+
+    def process_item(self, item, spider):
+        self.insert_db(item)
+        self.db_conn.commit()
+        return item
+
+    def insert_db(self, item):
+        sql='INSERT INTO info VALUES(?,?)'
+        values=(item['cover_id'], item['url'])
+        self.db_cur.execute(sql, values)
+```
