@@ -5,6 +5,7 @@
   - [scrapy download image](#scrapy-download-image)
   - [scrapy download files](#scrapy-download-files)
   - [CrawlSpiders](#crawlspiders)
+  - [download middleware](#download-middleware)
 
 ## Introduction
 
@@ -755,7 +756,7 @@ C:.
     │  __init__.py
     │
     └─spiders
-            myspider.py
+            myspider2.py
             __init__.py
 ```
 
@@ -839,4 +840,29 @@ class HelloPipeline(object):
         sql='INSERT INTO info VALUES(?,?)'
         values=(item['cover_id'], item['url'])
         self.db_cur.execute(sql, values)
+```
+
+## download middleware
+
+在Engine与Download之间
+
+```py
+# settings.py
+BOT_NAME = 'hello'
+
+SPIDER_MODULES = ['hello.spiders']
+NEWSPIDER_MODULE = 'hello.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+DOWNLOADER_MIDDLEWARES = {
+   'hello.middlewares.HelloDownloaderMiddleware': 543,
+}
+
+FEED_EXPORT_ENCODING='utf8'
 ```
