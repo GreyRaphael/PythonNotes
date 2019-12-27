@@ -848,12 +848,16 @@ class HelloPipeline(object):
 
 ```py
 # settings.py
-BOT_NAME = 'hello'
+BOT_NAME = 'mytest'
 
-SPIDER_MODULES = ['hello.spiders']
-NEWSPIDER_MODULE = 'hello.spiders'
+SPIDER_MODULES = ['mytest.spiders']
+NEWSPIDER_MODULE = 'mytest.spiders'
 
 ROBOTSTXT_OBEY = False
+
+DOWNLOAD_DELAY = 0.25
+
+COOKIES_ENABLED = False
 
 DEFAULT_REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -861,8 +865,87 @@ DEFAULT_REQUEST_HEADERS = {
 }
 
 DOWNLOADER_MIDDLEWARES = {
-   'hello.middlewares.HelloDownloaderMiddleware': 543,
+   'mytest.middlewares.RandomProxy': 543,
+   'mytest.middlewares.RandomAgent': 544,
 }
+```
 
-FEED_EXPORT_ENCODING='utf8'
+```py
+# items.py
+import scrapy
+
+class MytestItem(scrapy.Item):
+    url = scrapy.Field()
+    title = scrapy.Field()
+```
+
+```py
+# myspider.py
+import scrapy
+import random
+from mytest import items
+
+
+class MyspiderSpider(scrapy.Spider):
+    name = 'myspider'
+    allowed_domains = ['wz.sun0769.com']
+    pg = 0
+    start_urls = [f'http://wz.sun0769.com/index.php/question/questionType?type=4&page={pg}']
+
+    def parse(self, response):
+        data_list=response.xpath('//td/a[@class="news14"]')
+        for data in data_list:
+            MyItem = items.MytestItem()
+            MyItem['url'] = data.xpath('./@href').extract()[0]
+            MyItem['title'] = data.xpath('./@title').extract()[0]
+            yield MyItem
+
+        if self.pg < 90:
+            self.pg += 30
+
+        yield scrapy.Request(f'http://wz.sun0769.com/index.php/question/questionType?type=4&page={self.pg}', callback=self.parse)
+```
+
+```py
+# middlewares.py
+import random
+
+UA_LIST = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0',
+]
+
+PROXY_LIST = [
+    'HTTP://113.195.168.87:9999', 
+    'HTTP://1.162.123.164:80', 
+    'HTTP://75.151.213.85:8080', 
+    'HTTP://187.95.125.71:3128', 
+    'HTTP://91.121.162.173:80', 
+    'HTTP://185.148.218.246:8081', 
+    'HTTP://49.89.84.83:9999', 
+    'HTTP://123.163.96.122:9999', 
+    'HTTP://187.53.60.82:8080', 
+    'HTTP://187.95.125.71:3128', 
+    'HTTP://91.121.162.173:80', 
+    'HTTP://114.226.162.7:9999', 
+    'HTTP://187.95.125.71:3128', 
+    'HTTP://91.121.162.173:80', 
+    'HTTP://185.148.218.246:8081', 
+]
+
+
+class RandomAgent(object):
+    def process_request(self, request, spider):
+        ua = random.choice(UA_LIST)
+        request.headers.setdefault('User-Agent', ua)
+
+
+class RandomProxy(object):
+    def process_request(self, request, spider):
+        proxy= random.choice(PROXY_LIST)
+        request.meta['proxy']=proxy
 ```
