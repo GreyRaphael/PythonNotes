@@ -731,6 +731,7 @@ about 反反爬虫策略
 - Baidu cache, Google cache
 
 example: scrapy with database
+> [connect some database](https://zhuanlan.zhihu.com/p/33816647)
 
 ```sql
 -- create table in sqlite3
