@@ -6,10 +6,12 @@
   - [scrapy download files](#scrapy-download-files)
   - [CrawlSpiders](#crawlspiders)
   - [download middleware](#download-middleware)
+  - [Scrapy redis](#scrapy-redis)
 
 ## Introduction
 
-![](res/scrapy01.png)
+![](res/scrapy_architecture_01.png)
+> [doc](https://docs.scrapy.org/en/latest/topics/architecture.html)  
 > 1. Spiders将很多请求交给Scheduler
 > 1. Scheduler将请求交给Downloader从网站下载数据; (proxy作为Scheduler和Downloader之间的中间件)
 > 1. Downloader下载的数据交给Spiders如果是Requests，那么重复1-3的过程；如果是数据，将数据交给ItermPipeline
@@ -949,3 +951,7 @@ class RandomProxy(object):
         proxy= random.choice(PROXY_LIST)
         request.meta['proxy']=proxy
 ```
+
+## Scrapy redis
+
+![](res/scrapy_redis_architecture_01.jpg)
