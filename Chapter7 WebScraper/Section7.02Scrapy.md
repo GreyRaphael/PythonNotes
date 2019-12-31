@@ -1004,7 +1004,7 @@ ITEM_PIPELINES = {
 
 # 这两个不写就是localhost
 REDIS_HOST='192.168.1.10'
-REDIS_PORT='6379'
+REDIS_PORT=6379
 ```
 
 ```py
