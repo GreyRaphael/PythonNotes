@@ -1108,3 +1108,20 @@ class MyCrawler(RedisCrawlSpider):
             'url': response.url,
         }
 ```
+
+tip: put file from local to remote
+
+```bash
+# in localmachine
+tar -cvf your_folder.tar your_foler
+# tar and zip: tar -zcvf your_folder.tar.gz your_foler
+
+sftp username@192.168.1.111 # then enter your password
+sftp> ls # list remote directory
+sftp> lls # local list directory
+sftp> put your_folder.tar
+
+# in remote machine
+tar -xvf your_foler.tar
+# unzip: tar -zxvf your_foler.tar.gz
+```
