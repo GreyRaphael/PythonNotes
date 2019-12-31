@@ -1125,3 +1125,16 @@ sftp> put your_folder.tar
 tar -xvf your_foler.tar
 # unzip: tar -zxvf your_foler.tar.gz
 ```
+
+example: 302反爬虫
+
+```py
+import requests
+
+headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0'}
+
+r1=requests.get('url', headers=headers, allow_redirects=False)
+
+real_url=r1.headers['Location']
+r2.requests.get(real_url, headers=headers)
+```
