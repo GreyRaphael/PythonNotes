@@ -349,6 +349,8 @@ class Test1Pipeline(ImagesPipeline):
         return item
 ```
 
+tip: scrapy模拟登录对于同一个链接先get, 然后post; 那么`Request(dont_filter=True)`或者post直接使用`FormRequest()`
+
 example: 多层目录结构下载图片
 
 ```
