@@ -1,31 +1,27 @@
 # Python with MongoDB
 
-<!-- TOC -->
-
 - [Python with MongoDB](#python-with-mongodb)
-    - [MongoDB intro](#mongodb-intro)
-    - [xubuntu安装mongoDB client&server](#xubuntu%E5%AE%89%E8%A3%85mongodb-clientserver)
-    - [mongoDB查询](#mongodb%E6%9F%A5%E8%AF%A2)
-    - [MongoDB高级](#mongodb%E9%AB%98%E7%BA%A7)
-        - [aggregate, 聚合](#aggregate-%E8%81%9A%E5%90%88)
-            - [`$group`](#group)
-            - [`$match`](#match)
-            - [`$project`](#project)
-            - [`$sort`](#sort)
-            - [`$limit`, `$skip`](#limit-skip)
-            - [`$unwind`](#unwind)
-    - [索引](#%E7%B4%A2%E5%BC%95)
-    - [安全](#%E5%AE%89%E5%85%A8)
-    - [复制(副本集)](#%E5%A4%8D%E5%88%B6%E5%89%AF%E6%9C%AC%E9%9B%86)
-    - [手动备份(mongodump) & 恢复(mongorestore)](#%E6%89%8B%E5%8A%A8%E5%A4%87%E4%BB%BDmongodump--%E6%81%A2%E5%A4%8Dmongorestore)
-    - [MongDB with python](#mongdb-with-python)
-        - [MongoClient](#mongoclient)
-
-<!-- /TOC -->
+  - [MongoDB intro](#mongodb-intro)
+  - [xubuntu安装mongoDB client&amp;server](#xubuntu%e5%ae%89%e8%a3%85mongodb-clientampserver)
+  - [mongoDB查询](#mongodb%e6%9f%a5%e8%af%a2)
+  - [MongoDB高级](#mongodb%e9%ab%98%e7%ba%a7)
+    - [aggregate, 聚合](#aggregate-%e8%81%9a%e5%90%88)
+      - [$group](#group)
+      - [$match](#match)
+      - [$project](#project)
+      - [$sort](#sort)
+      - [$limit, $skip](#limit-skip)
+      - [$unwind](#unwind)
+  - [索引](#%e7%b4%a2%e5%bc%95)
+  - [安全](#%e5%ae%89%e5%85%a8)
+  - [复制(副本集)](#%e5%a4%8d%e5%88%b6%e5%89%af%e6%9c%ac%e9%9b%86)
+  - [手动备份(mongodump) &amp; 恢复(mongorestore)](#%e6%89%8b%e5%8a%a8%e5%a4%87%e4%bb%bdmongodump-amp-%e6%81%a2%e5%a4%8dmongorestore)
+  - [MongDB with python](#mongdb-with-python)
+    - [MongoClient](#mongoclient)
 
 ## MongoDB intro
 
-NoSQL，全名为Not Only SQL，指的是**非关系型**(非E-R)的数据库，内存级的数据读写，也支持物理存储；不需要维护复杂的关系，只需要维护数据本身；
+NoSQL，全名为Not Only SQL，指的是**非关系型**(非E-R)的数据库，内存级的数据读写，也支持物理存储；不需要维护复杂的关系(不需要建表，不需要关心表结构, 直接插入json数据)，只需要维护数据本身；
 
 MongoDB 是一个基于**分布式、文件存储**的NoSQL数据库
 
@@ -1567,3 +1563,4 @@ for item in cursor:
 moris 33
 tom 36
 arthor 56
+```
