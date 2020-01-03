@@ -1,9 +1,39 @@
 # Spider Environment
 
 - [Spider Environment](#spider-environment)
+  - [Introduction](#introduction)
   - [Fiddler](#fiddler)
   - [Outline](#outline)
-  - [Trick](#trick)
+
+## Introduction
+
+爬虫: **请求**网站并**提取**数据的**自动化**程序
+
+爬虫基本流程:
+1. 发起请求: 通过HTTP库向目标站点发起请求，即发送一个Request，请求可以包含额外的headers等信息，等待服务器响应。
+1. 获取响应内容: 如果服务器能正常响应，会得到一个Response，Response的内容便是所要获取的页面内容，类型可能有HTML，Json字符串，二进制数据（如图片视频）等类型。
+1. 解析内容: 得到的内容可能是HTML，可以用正则表达式、网页解析库进行解析。可能是Json，可以直接转为Json对象解析，可能是二进制数据，可以做保存或者进一步的处理。
+1. 保存数据: 保存形式多样，可以存为文本，也可以保存至数据库，或者保存特定格式的文件。
+
+爬虫数据解析方式:
+- 直接解析
+- json解析: `json.loads()`
+- re
+- xpath
+- beautifulsoup
+- pyquery
+
+js渲染界面解决方式:
+- 分析ajax请求
+- selenium+browser
+- [Splash](https://github.com/scrapinghub/splash)
+- [PyV8 and Ghost.py](https://github.com/jeanphix/Ghost.py)
+
+数据保存方式:
+- 文本: plain text, json, xml
+- 关系数据库: mysql, oracle, sql server
+- 非关系数据库: mongodb, redis
+- 二级制文件: 图片、音视频
 
 ## Fiddler
 
@@ -62,11 +92,3 @@ for android platform
 1. Scrapy分布式原理及Scrapy-Redis源码解析
 1. Scrapy分布式架构搭建抓取知乎
 1. Scrapy分布式的部署详解
-
-## Trick
-
-动态网页: html+js加载
-- 分析ajax请求
-- selenium+browser
-- [Splash](https://github.com/scrapinghub/splash)
-- [PyV8 and Ghost.py](https://github.com/jeanphix/Ghost.py)
