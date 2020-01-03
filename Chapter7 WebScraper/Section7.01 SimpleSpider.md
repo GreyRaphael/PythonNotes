@@ -2039,10 +2039,10 @@ r=s.get('https://www.baidu.com', cookies=cookies, headers=headers)
 `conda install pyquery`, [Tutorials](https://www.cnblogs.com/zhaof/p/6935473.html)
 
 4 methods:
-- re
-- xpath
-- BeautifulSoup
-- pyquery: easy
+- re: 最快
+- xpath: 中等
+- BeautifulSoup：最慢，易用
+- pyquery: easy, 类似jQuery的语法
 
 
 ```python
