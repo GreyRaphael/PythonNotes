@@ -1,26 +1,22 @@
 # Django 3rd Extends
 
-<!-- TOC -->
-
 - [Django 3rd Extends](#django-3rd-extends)
-    - [RichText Editor](#richtext-editor)
-        - [自定义Form使用上面的Richtext Editor](#自定义form使用上面的richtext-editor)
-    - [cache](#cache)
-        - [cache setting](#cache-setting)
-        - [cache to redis](#cache-to-redis)
-            - [缓存view](#缓存view)
-            - [缓存template或者template的block](#缓存template或者template的block)
-            - [缓存数据](#缓存数据)
-    - [full search(全文检索)](#full-search全文检索)
-    - [celery](#celery)
-    - [deployment(部署)](#deployment部署)
-        - [备份安装的package:](#备份安装的package)
-        - [WSGI](#wsgi)
-        - [uWSGI](#uwsgi)
-        - [nginx](#nginx)
-            - [use nginx](#use-nginx)
-
-<!-- /TOC -->
+  - [RichText Editor](#richtext-editor)
+    - [自定义Form使用上面的Richtext Editor](#%e8%87%aa%e5%ae%9a%e4%b9%89form%e4%bd%bf%e7%94%a8%e4%b8%8a%e9%9d%a2%e7%9a%84richtext-editor)
+  - [cache](#cache)
+    - [cache setting](#cache-setting)
+    - [cache to redis](#cache-to-redis)
+      - [缓存view](#%e7%bc%93%e5%ad%98view)
+      - [缓存template或者template的block](#%e7%bc%93%e5%ad%98template%e6%88%96%e8%80%85template%e7%9a%84block)
+      - [缓存数据](#%e7%bc%93%e5%ad%98%e6%95%b0%e6%8d%ae)
+  - [full search(全文检索)](#full-search%e5%85%a8%e6%96%87%e6%a3%80%e7%b4%a2)
+  - [celery](#celery)
+  - [deployment(部署)](#deployment%e9%83%a8%e7%bd%b2)
+    - [备份安装的package:](#%e5%a4%87%e4%bb%bd%e5%ae%89%e8%a3%85%e7%9a%84package)
+    - [WSGI](#wsgi)
+    - [uWSGI](#uwsgi)
+    - [nginx](#nginx)
+      - [use nginx](#use-nginx)
 
 ## RichText Editor
 
@@ -756,6 +752,13 @@ nginx的作用
 实现构架：浏览器发请求给nginx，再由nginx请求uwsgi，运行django框架下的python代码
 
 nginx+uwsgi也可以用于其它框架的python web代码，不限于django
+
+taobao版nginx[tengine](http://tengine.taobao.org/book/)
+
+安装c源程序流程:
+1. ./configure
+2. make
+3. sudo make install
 
 ```bash
 # Install nginx
