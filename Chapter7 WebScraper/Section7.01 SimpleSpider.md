@@ -704,18 +704,88 @@ if __name__ == '__main__':
 
 python3中urllib, urllib2合并为[urllib](https://docs.python.org/3/howto/urllib2.html#urllib-howto); 现在一般用的requests, 而不用urllib; [requests vs urllib](https://www.cnblogs.com/znyyy/p/7868511.html)
 
-```python
+urllib modules:
+- `urllib.request`
+- `urllib.error`
+- `urllib.parse`: url解析模块
+- `urllib.robotparse`: robots.txt解析模块
+
+```py
+# python2
+import urllib2
+response = urllib2.urlopen('http://www.baidu.com')
+
+# python3
+import urllib.request
+response = urllib.request.urlopen('http://www.baidu.com')
+```
+
+```py
+import urllib.parse
 import urllib.request
 
-with urllib.request.urlopen("https://www.python.org/") as response:
-   html = response.read().decode('utf8')
-   print(response.getcode()) # 200
+data = bytes(urllib.parse.urlencode({'word': 'hello'}), encoding='utf8')
+response = urllib.request.urlopen('http://httpbin.org/post', data=data, timeout=0.1)
+print(response.read())
+```
+
+```py
+import socket
+import urllib.request
+import urllib.error
+
+try:
+    response = urllib.request.urlopen('http://httpbin.org/get', timeout=0.1)
+except urllib.error.URLError as e:
+    if isinstance(e.reason, socket.timeout):
+        print('TIME OUT')
+```
+
+```py
+import urllib.request
+
+response = urllib.request.urlopen('https://www.python.org')
+print(response.status)
+print(response.getcode()) # 200
+print(response.getheaders())
+print(response.getheader('Server'))
 ```
 
 `response.getcode()` return:
 - 2开头，网页正常
 - 4开头，网页不存在
 - 5开头，服务器bug
+
+```py
+from urllib import request, parse
+
+url = 'http://httpbin.org/post'
+headers = {
+    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)',
+    'Host': 'httpbin.org'
+}
+dict = {
+    'name': 'Grey'
+}
+data = bytes(parse.urlencode(dict), encoding='utf8')
+req = request.Request(url=url, data=data, headers=headers, method='POST')
+response = request.urlopen(req)
+print(response.read().decode('utf-8'))
+```
+
+```py
+from urllib import request, parse
+
+url = 'http://httpbin.org/post'
+dict = {
+    'name': 'Germey'
+}
+data = bytes(parse.urlencode(dict), encoding='utf8')
+req = request.Request(url=url, data=data, method='POST')
+req.add_header('User-Agent', 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)')
+response = request.urlopen(req)
+print(response.read().decode('utf-8'))
+```
 
 ```python
 # download response-body
