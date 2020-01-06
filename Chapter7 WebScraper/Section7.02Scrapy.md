@@ -1099,7 +1099,47 @@ class MytestDownloaderMiddleware(object):
         return response
 ```
 
+example: `process_exception`
+> 第一次访问exception之后调用代理访问
 
+查看settings: `scrapy settings --get=DOWNLOADER_MIDDLEWARES_BASE`
+
+```py
+# settings.py
+DOWNLOADER_MIDDLEWARES = {
+   'mytest.middlewares.MytestDownloaderMiddleware': 543,
+    # 禁用Retry只是为了方便演示
+   'scrapy.downloadermiddlewares.retry.RetryMiddleware':None
+}
+```
+
+```py
+# spider3.py
+import scrapy
+
+class GoogleSpider(scrapy.Spider):
+    name = 'google'
+    allowed_domains = ['www.google.com']
+
+    def start_requests(self):
+        self.logger.debug('Try First Time')
+        # dont_filter不参与去重
+        yield scrapy.Request('https://www.google.com/', callback=self.parse, meta={'download_timeout':5}, dont_filter=True)
+
+    def parse(self, response):
+        print(response.text)
+```
+
+```py
+# middlewares.py
+class MytestDownloaderMiddleware(object):
+    logger=logging.getLogger(__name__)
+    def process_exception(self, request, exception, spider):
+        self.logger.debug('Get Exception')
+        self.logger.debug('Try Second Time')
+        request.meta['proxy']='https://127.0.0.1:9743'
+        return request
+```
 
 ## Scrapy redis
 
