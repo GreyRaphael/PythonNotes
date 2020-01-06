@@ -696,6 +696,23 @@ LOG_LEVEL='INFO' # 显示>=INFO
 LOG_LEVEL='DEBUG' # 显示>=DEBUG
 ```
 
+example: loger
+
+```py
+import scrapy
+
+
+class HttpbinSpider(scrapy.Spider):
+    name = 'httpbin'
+    allowed_domains = ['httpbin.org']
+    start_urls = ['http://httpbin.org/get']
+
+    def parse_post(self, response):
+        self.logger.debug('This is DEBUG')
+        print('*'*50)
+        print(response.status)
+```
+
 example: process link
 > 反爬虫: html的link是错误的，但通过js使得动态的url是正确的，所以需要先对url进行处理
 
