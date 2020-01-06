@@ -883,6 +883,53 @@ class MongoPipeline(object):
         self.client.close()
 ```
 
+```py
+# spider1.py
+import scrapy
+from mytest import items
+
+class Spider1Spider(scrapy.Spider):
+    name = 'spider1'
+    allowed_domains = ['www.81mbmb.com']
+    pg = 1
+    start_urls = [f'https://www.81mbmb.com/lunli/']
+
+    # 自定义settings
+    custom_settings = {
+        'DEFAULT_REQUEST_HEADERS': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
+            'Accept-Language': 'en',
+        },
+    }
+
+    # 先通过from_crawler这个classmethod生成带变量的class, 这个class __init__的时候自动获取了参数并交给self
+    def __init__(self, var, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.var = var
+        print(self.var)
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            var=crawler.settings.get('FEED_EXPORT_ENCODING', 'utf8')
+        )
+
+    def parse(self, response):
+        names = response.xpath('//h5/a/@title').extract()
+        urls = response.xpath('//h5/a/@href').extract()
+
+        for name, url in zip(names, urls):
+            MyItem = items.MytestItem()
+            MyItem['name'] = name
+            MyItem['url'] = f'https://www.81mbmb.com{url}'
+            yield MyItem
+
+        if self.pg < 231:
+            self.pg += 1
+
+        yield scrapy.Request(f'https://www.81mbmb.com/lunli/index-{self.pg}.html', callback=self.parse)
+```
+
 ## download middleware
 
 在Engine与Download之间
