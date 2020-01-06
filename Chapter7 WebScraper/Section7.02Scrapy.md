@@ -930,6 +930,25 @@ class Spider1Spider(scrapy.Spider):
         yield scrapy.Request(f'https://www.81mbmb.com/lunli/index-{self.pg}.html', callback=self.parse)
 ```
 
+example: 如果start_urls必须post, 那么`start_requests`必须重写
+
+```py
+# spider1.py
+import scrapy
+
+class HttpbinSpider(scrapy.Spider):
+    name = 'httpbin'
+    allowed_domains = ['httpbin.org']
+
+    def start_requests(self):
+        yield scrapy.Request('http://httpbin.org/post', callback=self.parse_post, method='POST')
+
+    def parse_post(self, response):
+        print('*'*50)
+        print(response.status)
+        print('*'*50)
+```
+
 ## download middleware
 
 在Engine与Download之间
