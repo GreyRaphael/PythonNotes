@@ -1187,13 +1187,15 @@ ITEM_PIPELINES = {
     # 加时间戳的优先级300比进入redis数据库的优先级400要高
     # 这两个不要动
     'example.pipelines.ExamplePipeline': 300,
-    # 处理item使用scrapy_redis的pipeline
+    # 处理item可以使用scrapy_redis的pipeline
+    # 如果item数据都放在redis上，会增加redis压力；而且每个slave还得把item通过网络传递给redis, 会降低效率；所以一般slave机器分别保存自己的item到本地的mongodb上，所以一般注释掉下面这行
     'scrapy_redis.pipelines.RedisPipeline': 400,
 }
 
 # 这两个不写就是localhost
 REDIS_HOST='192.168.1.10'
 REDIS_PORT=6379
+# REDIS_URL更好用，可以配置redis密码
 ```
 
 ```py
@@ -1297,6 +1299,8 @@ class MyCrawler(RedisCrawlSpider):
             'url': response.url,
         }
 ```
+
+tips: 如果slave机器不多，可以每台机器用git同步代码；如果slave机器太多，就需要用到[scrapyd](https://scrapyd.readthedocs.io/en/latest/) or [python-scrapyd-api](https://python-scrapyd-api.readthedocs.io/en/latest/)来部署(deployment)
 
 tip: put file from local to remote
 
