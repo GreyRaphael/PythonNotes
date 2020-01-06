@@ -1074,6 +1074,33 @@ class RandomProxy(object):
         request.meta['proxy']=proxy
 ```
 
+example: `process_response`, 修改status code
+
+```py
+# spider2.py
+import scrapy
+
+class HttpbinSpider(scrapy.Spider):
+    name = 'httpbin'
+    allowed_domains = ['httpbin.org']
+    start_urls = ['http://httpbin.org/get']
+
+    def parse(self, response):
+        self.logger.debug('This is DEBUG')
+        print('*'*50)
+        print(response.status)
+```
+
+```py
+# middlewares.py
+class MytestDownloaderMiddleware(object):
+    def process_response(self, request, response, spider):
+        response.status=201
+        return response
+```
+
+
+
 ## Scrapy redis
 
 ![](res/scrapy_redis_architecture_01.jpg)
