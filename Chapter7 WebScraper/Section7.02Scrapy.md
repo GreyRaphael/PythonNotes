@@ -17,6 +17,7 @@
 > 1. Downloader下载的数据交给Spiders如果是Requests，那么重复1-3的过程；如果是数据，将数据交给ItermPipeline
 
 in Anaconda prompt: 
+> [scrapy command line](https://docs.scrapy.org/en/latest/topics/commands.html)
 - `conda install scrapy`
 - `scrapy startproject test1`
 - `cd test1`
@@ -127,7 +128,10 @@ class Myspider1Spider(scrapy.Spider):
 
 then in Anaconda Prompt:
 - `scrapy crawl myspider1 -o huxiu.json`
+- `scrapy crawl myspider1 -o huxiu.jl`, json不包含开头结尾的`[]`
 - `scrapy crawl myspider1 -o huxiu.csv`
+- `scrapy crawl myspider1 -o huxiu.xml`
+- `scrapy crawl myspider1 -o ftp://user:pass@ftp.example.com/path/to/huxiu.csv`
 
 example: crawl with pipeline
 > 可以不写pipeline，使用上个例子`return`+`scrapy crawl myspider -o xxx`的方法
@@ -546,6 +550,9 @@ scrapy with redis与scrapy的不同
 ## CrawlSpiders
 
 in Anaconda Prompt
+- `scrapy view https://www.taobao.com`下载pagesource并用浏览器打开下载的html
+
+in Anaconda Prompt
 - `scrapy shell url`
 then in IPython3
 
@@ -844,6 +851,36 @@ class HelloPipeline(object):
         sql='INSERT INTO info VALUES(?,?)'
         values=(item['cover_id'], item['url'])
         self.db_cur.execute(sql, values)
+```
+
+example: get settings
+
+```py
+# pipelines.py
+
+class MongoPipeline(object):
+    def __init__(self, mongo_uri, mongo_db):
+        self.mongo_uri=mongo_uri
+        self.mongo_db=mongo_db
+    
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            mongo_uri=crawler.settings.get('MONGO_URI')
+            mongo_db=crawler.settings.get('MONGO_DB')
+        )
+    
+    def open_spider(self, spider):
+        self.client=pymongo.MongoClient(self.mongo_uri)
+        self.db=self.client(self.mongo_db)
+    
+    def process_item(self, item, spider):
+        name=item.__class__.__name__
+        self.db[name].insert(dict(item))
+        return item
+    
+    def close_spider(self, spider):
+        self.client.close()
 ```
 
 ## download middleware
