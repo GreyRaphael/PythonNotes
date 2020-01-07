@@ -24,7 +24,10 @@
 # xbuntu install redis
 sudo apt install redis-server
 
-service redis start
+# service redis start
+sudo systemctl start redis-server
+sudo systemctl restart redis-server
+sudo systemctl enable redis-server
 ps ajx|grep redis
 # /usr/bin/redis-server 127.0.0.1:6379
 # 阿里云需要/etc/redis/redis.config设置 bind 127.0.0.1
