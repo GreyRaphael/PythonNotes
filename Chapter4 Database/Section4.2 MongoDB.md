@@ -38,7 +38,14 @@ sudo apt install mongodb
 mongo -version
 
 # 开启服务端
-service mongodb start
+# service mongodb start
+sudo systemctl start mongodb
+
+sudo vim /etc/mongodb.conf
+# 将bind改为0.0.0.0
+
+sudo systemctl restart mongodb
+sudo systemctl enable mongodb
 # 查看是否启动
 ps ajx|grep mongo
 
