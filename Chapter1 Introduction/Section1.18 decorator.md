@@ -1384,6 +1384,72 @@ class llass(metaclass=MM):
 # MM __new__
 ```
 
+example: `classmethod` for factory mode
+
+```py
+from datetime import date
+
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    @classmethod
+    def fromBirthYear(cls, name, birthYear):
+        return cls(name, date.today().year - birthYear)
+
+    def display(self):
+        print(f"{self.name}'s age is: {self.age}")
+
+person = Person('Adam', 19)
+person.display() # Adam's age is: 19
+
+person1 = Person.fromBirthYear('John',  1985)
+person1.display() # John's age is: 31
+```
+
+example: `metaclass` add field dynamically
+
+```py
+class ProxyMetaClass(type):
+    def __new__(cls, name, bases, attrs):
+        crawl_functions=[]
+        for k in attrs:
+            if k.startswith('crawl_'):
+                crawl_functions.append(k)
+        attrs['__CrawlFunctions__']=crawl_functions
+        
+        return type.__new__(cls, name, bases, attrs)
+
+class Crawler(metaclass=ProxyMetaClass):
+    def get_proxy(self, callback):
+        proxy=eval(f'self.{callback}()')
+        print(f'success get: {proxy}')
+        return proxy
+    
+    def crawl_xiciwang(self):
+        return '123.169.34.11:9999'
+    
+    def crawl_kuaidaili(self):
+        return '49.75.106.228:6666'
+    
+    def crawl_xiaoming(self):
+        return '114.101.18.169:5678'
+
+crawler=Crawler()
+for callback in crawler.__CrawlFunctions__:
+    print(callback)
+    proxies=crawler.get_proxy(callback)
+
+# # output
+# crawl_xiciwang
+# success get: 123.169.34.11:9999
+# crawl_kuaidaili
+# success get: 49.75.106.228:6666
+# crawl_xiaoming
+# success get: 114.101.18.169:5678
+```
+
 ## Reflection
 
 通过字符串映射或修改程序运行时的状态、属性、方法:
