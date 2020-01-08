@@ -1,21 +1,17 @@
 # Python Decorator
 
-<!-- TOC -->
-
 - [Python Decorator](#python-decorator)
-    - [Closures(闭包)](#closures闭包)
-    - [decorator](#decorator)
-    - [decorator with parameters](#decorator-with-parameters)
-        - [`property`](#property)
-        - [decorator with `help`](#decorator-with-help)
-    - [静态语言vs动态语言](#静态语言vs动态语言)
-    - [`__slots__`](#__slots__)
-    - [metaclass(元类)](#metaclass元类)
-        - [`__metaclass__`](#__metaclass__)
-        - [metaclass application](#metaclass-application)
-    - [Reflection](#reflection)
-
-<!-- /TOC -->
+  - [Closures(闭包)](#closures%e9%97%ad%e5%8c%85)
+  - [decorator](#decorator)
+  - [decorator with parameters](#decorator-with-parameters)
+    - [property](#property)
+    - [decorator with help](#decorator-with-help)
+  - [静态语言vs动态语言](#%e9%9d%99%e6%80%81%e8%af%ad%e8%a8%80vs%e5%8a%a8%e6%80%81%e8%af%ad%e8%a8%80)
+  - [__slots__](#slots)
+  - [metaclass(元类)](#metaclass%e5%85%83%e7%b1%bb)
+    - [__metaclass__](#metaclass)
+    - [metaclass application](#metaclass-application)
+  - [Reflection](#reflection)
 
 ## Closures(闭包)
 
@@ -1331,6 +1327,61 @@ my_meta.__new__ is called
 my_meta.__call__ is called
 A.__new__ is called
 A.__init__ is called
+```
+
+example: 证明class creation那张图
+> [Class Creation](https://stackoverflow.com/questions/53246017/the-call-order-of-python3-metaclass/53247056)
+
+```py
+class M(type):
+    def __call__(mmcls, *args, **kwargs):
+        print("M's call", args, kwargs)
+        return super().__call__(*args, **kwargs)
+
+class MM(type, metaclass=M):
+    def __prepare__(cls, *args, **kw):
+        print("MM Prepare")
+        return {}
+    def __new__(mcls, *args, **kw):
+        print("MM __new__")
+        return super().__new__(mcls, *args, **kw)
+
+class klass(metaclass=MM):
+    pass
+
+# # output
+# MM Prepare
+# M's call ('klass', (), {'__module__': '__main__', '__qualname__': 'klass'}) {}
+# MM __new__
+```
+
+```py
+class M(type):
+    def __call__(mmcls, *args, **kwargs):
+        print("M's call", args, kwargs)
+        return super().__call__(*args, **kwargs)
+
+class MM(type, metaclass=M):
+    def __prepare__(cls, *args, **kw):
+        print("MM Prepare", args, kw)
+        return {'name':'grey'}
+    def __new__(mcls, *args, **kw):
+        print("MM __new__")
+        return super().__new__(mcls, *args, **kw)
+
+class klass(object, metaclass=MM):
+    Age=666
+
+class llass(metaclass=MM):
+    Age=999
+
+# # output
+# MM Prepare ((<class 'object'>,),) {}
+# M's call ('klass', (<class 'object'>,), {'name': 'grey', '__module__': '__main__', '__qualname__': 'klass', 'Age': 666}) {}
+# MM __new__
+# MM Prepare ((),) {}
+# M's call ('llass', (), {'name': 'grey', '__module__': '__main__', '__qualname__': 'llass', 'Age': 999}) {}
+# MM __new__
 ```
 
 ## Reflection
