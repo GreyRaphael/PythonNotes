@@ -1,23 +1,19 @@
 # Python Inheritance
 
-<!-- TOC -->
-
 - [Python Inheritance](#python-inheritance)
-    - [python inherit](#python-inherit)
-    - [init ParentClass with 3 methods](#init-parentclass-with-3-methods)
-    - [multi-inheritance](#multi-inheritance)
-    - [private variable](#private-variable)
-    - [解决多次初始化](#解决多次初始化)
-    - [多态](#多态)
-    - [instance vs class](#instance-vs-class)
-        - [class variable, instance variable](#class-variable-instance-variable)
-        - [instance method, `@classmethod`, `@staticmethod`](#instance-method-classmethod-staticmethod)
-    - [inheritance with GUI](#inheritance-with-gui)
-        - [DataSearch](#datasearch)
-    - [Some example](#some-example)
-        - [car store](#car-store)
-
-<!-- /TOC -->
+  - [python inherit](#python-inherit)
+  - [init ParentClass with 3 methods](#init-parentclass-with-3-methods)
+  - [multi-inheritance](#multi-inheritance)
+  - [private variable](#private-variable)
+  - [解决多次初始化](#%e8%a7%a3%e5%86%b3%e5%a4%9a%e6%ac%a1%e5%88%9d%e5%a7%8b%e5%8c%96)
+  - [多态](#%e5%a4%9a%e6%80%81)
+  - [instance vs class](#instance-vs-class)
+    - [class variable, instance variable](#class-variable-instance-variable)
+    - [instance method, @classmethod, @staticmethod](#instance-method-classmethod-staticmethod)
+  - [inheritance with GUI](#inheritance-with-gui)
+    - [DataSearch](#datasearch)
+  - [Some example](#some-example)
+    - [car store](#car-store)
 
 处理10亿级的数据，可能面试会问的问题：
 
