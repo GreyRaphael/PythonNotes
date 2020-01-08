@@ -173,6 +173,22 @@ students
 { "_id" : ObjectId("5acb5647291a6cd3c230ae39"), "name" : "james", "gender" : false }
 ```
 
+example: pymongo example
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('localhost:27017')
+db=client['weixin']
+
+# .....
+
+if db['articles'].update({'title': data['title']}, {'$set': data}, True):
+    # 根据data['title']来检查重复
+    # 设置为True, 如果没有同样的data就插入，有同样的data就更新
+    print('update success')
+```
+
 ## mongoDB查询
 
 mongoDB的`size`规定了collection的最大尺寸，超出的话，会从第一个开始覆盖；
