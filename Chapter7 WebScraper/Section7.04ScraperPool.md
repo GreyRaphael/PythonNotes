@@ -12,3 +12,4 @@
 
 [ProxyPool](https://github.com/Python3WebSpider/ProxyPool)
 
+[CookiePool](https://github.com/Germey/CookiesPool)
