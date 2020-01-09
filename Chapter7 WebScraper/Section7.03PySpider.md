@@ -1,11 +1,10 @@
 # PySpider Framework
 
-- [PySpider Framework](#pyspider-framework)
-  - [Introduction](#introduction)
-
-## Introduction
-
 `pip install pyspider`
+> python <3.7, 不需要修改源码  
+> python>=3.7, 需要修改pyspider的源码(因为async是python3.7的keyword)，将async替换为其他名称  
+- 配置phantomjs到环境变量，可以渲染js
+- 不配置phantomjs，直接请求
 
 [PySpider](https://github.com/binux/pyspider) Features:
 - 多进程处理
@@ -18,10 +17,11 @@
 - 代码简洁
 
 example: lsm by pyspider
-1. `pyspider all`
-2. create a project
-3. 通过gui以及自己添加内容
-4. 在GUI界面STATUS修改为DEBUG, 然后run
+1. `pyspider all` or `pyspider`
+2. 浏览器访问`localhost:5000`
+3. 浏览器GUI, create a project
+4. 通过gui以及手动添加内容, save
+5. 在GUI界面STATUS修改为DEBUG或者RUNNING, 然后run
 
 ```py
 #!/usr/bin/env python
@@ -34,6 +34,8 @@ import pymongo
 
 class Handler(BaseHandler):
     crawl_config = {
+        # global setting
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
     }
     
     # add by user
@@ -75,3 +77,6 @@ class Handler(BaseHandler):
         if self.db['lsm'].update({'url': result['url']}, {'$set': result}, True):
             print('save to mongodb')
 ```
+
+tip: GUI中的rate表示每秒发送多少request, burst是令牌桶的数量, 后面几个progressbar是统计信息
+> ![](res/pyspider01.png)
