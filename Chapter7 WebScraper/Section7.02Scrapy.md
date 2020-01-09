@@ -552,6 +552,10 @@ scrapy with redis与scrapy的不同
 in Anaconda Prompt
 - `scrapy view https://www.taobao.com`下载pagesource并用浏览器打开下载的html
 
+in Anaconda Prompt debug:
+- `scrapy parse https://www.baidu.com -c parse_func`: 直接调试函数
+- `scrapy parse https://www.baidu.com -c parse_func --pipelines`: 带pipeline的调试
+
 in Anaconda Prompt
 - `scrapy shell url`
 then in IPython3
@@ -680,6 +684,22 @@ class MyspiderSpider(CrawlSpider):
         MyItem['srcs']=pat.findall(response.text)
 
         yield MyItem
+```
+
+example: field trick
+> 其实也快不到哪里去
+
+```py
+def parse_item(self, response):
+    name=response.url[29:-7]
+    srcs=pat.findall(response.text)
+    MyItem=items.HelloItem()
+    for field in MyItem.fields:
+        try:
+            MyItem[field]=eval(field)
+        except:
+            self.logger.debug('Field is Not Defined', field)
+    yield MyItem
 ```
 
 about LOG
