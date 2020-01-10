@@ -168,6 +168,29 @@ class LsmSpider(scrapy.Spider):
         yield scrapy.Request(f'https://www.lsmpx.com/plugin.php?id=group&page={self.pg}', callback=self.parse)
 ```
 
+example: `spiders.Spider` 模仿`spiders.CrawlSpider`
+
+```py
+# spiders/lsm.py
+import scrapy
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lsmpx.com']
+    start_urls = ['https://www.lsmpx.com/']
+
+    def parse(self, response):
+        for i in response.xpath('//h2/a'):
+            data={}
+            data['url']=i.xpath('./@href').extract_first()
+            data['title']=i.xpath('./text()').extract_first()
+            yield data
+
+        for j in response.xpath('//div[@class="pg"]//a//@href').extract():
+            url=f'https://www.lsmpx.com/{j}'
+            yield scrapy.Request(url, callback=self.parse)
+```
+
 example: crawl with pipeline
 > 可以不写pipeline，使用上个例子`return`+`scrapy crawl myspider -o xxx`的方法
 
