@@ -1351,3 +1351,7 @@ r1=requests.get('url', headers=headers, allow_redirects=False)
 real_url=r1.headers['Location']
 r2.requests.get(real_url, headers=headers)
 ```
+
+example: 通过用weibo.cn查询股票代码的信息获取舆情，进而决策
+> 缺点：噪音太大
+
