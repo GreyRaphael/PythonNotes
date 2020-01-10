@@ -7,6 +7,7 @@
   - [CrawlSpiders](#crawlspiders)
   - [download middleware](#download-middleware)
   - [Scrapy redis](#scrapy-redis)
+  - [Other Examples](#other-examples)
 
 ## Introduction
 
@@ -1480,3 +1481,47 @@ r2.requests.get(real_url, headers=headers)
 example: 通过用weibo.cn查询股票代码的信息获取舆情，进而决策
 > 缺点：噪音太大
 
+## Other Examples
+
+各种[spider](https://docs.scrapy.org/en/latest/topics/spiders.html):
+- Spider
+- CrawlSpider
+- XMLFeedSpider
+- CSVFeedSpider
+
+example: xmlspider
+> 因为response.xpath()就会将response.text变成tree, 适用于html, 同样适用于xml
+
+```py
+# spiders.py/xmlspider.py
+import scrapy
+
+# 或者继承scrapy.spiders.XMLFeedSpider
+class XmlspiderSpider(scrapy.Spider):
+    name = 'xmlspider'
+    allowed_domains = ['blog.sina.com.cn']
+    start_urls = ['http://blog.sina.com.cn/rss/liuyuhaoxy.xml']
+
+    def parse(self, response):
+        for i in response.xpath('//item'):
+            title=i.xpath('./title/text()').extract_first()
+            link=i.xpath('./link/text()').extract_first()
+            print(title, link)
+```
+
+examle: csvspider
+
+```py
+import scrapy
+
+class XmlspiderSpider(scrapy.spiders.CSVFeedSpider):
+    name = 'csvspider'
+    allowed_domains = ['quotes.money.163.com']
+    start_urls = ['http://quotes.money.163.com/service/chddata.html?code=1300133&end=20180202&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP']
+    headers=['日期','股票代码','名称','收盘价','最高价','最低价','开盘价','前收盘','涨跌额','涨跌幅','换手率','成交量','成交金额','总市值','流通市值']
+    delimiter=','
+
+
+    def parse_row(self, response, row):
+        print(row['股票代码'].encode('cp1252').decode('gbk'), row['名称'].encode('cp1252').decode('gbk'))
+```
