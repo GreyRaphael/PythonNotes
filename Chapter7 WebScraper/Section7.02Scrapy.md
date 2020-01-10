@@ -133,6 +133,41 @@ then in Anaconda Prompt:
 - `scrapy crawl myspider1 -o huxiu.xml`
 - `scrapy crawl myspider1 -o ftp://user:pass@ftp.example.com/path/to/huxiu.csv`
 
+example: HelloItem的本质是dictionary
+> `scrapy crawl lsm -o data.json`  
+> `yield`是为了支持协程
+
+```py
+# items.py
+import scrapy
+
+class HelloItem(scrapy.Item):
+    title=scrapy.Field()
+    url=scrapy.Field()
+```
+
+```py
+# spiders/lsm.py
+import scrapy
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lsmpx.com']
+    pg=1
+    start_urls = ['https://www.lsmpx.com/']
+
+    def parse(self, response):
+        for i in response.xpath('//h2/a'):
+            data={}
+            data['url']=i.xpath('./@href').extract_first()
+            data['title']=i.xpath('./text()').extract_first()
+            yield data
+
+        if self.pg<5:
+            self.pg+=1
+        yield scrapy.Request(f'https://www.lsmpx.com/plugin.php?id=group&page={self.pg}', callback=self.parse)
+```
+
 example: crawl with pipeline
 > 可以不写pipeline，使用上个例子`return`+`scrapy crawl myspider -o xxx`的方法
 
