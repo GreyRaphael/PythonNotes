@@ -412,75 +412,6 @@ class Test1Pipeline(ImagesPipeline):
         return item
 ```
 
-tip: scrapy模拟登录对于同一个链接先get, 然后post; 那么`Request(dont_filter=True)`或者post直接使用`FormRequest()`
-
-example: 利用`FormRequest`模拟登录
-> scrapy能够模拟js加密: fiddler监控的post的数据与下面`formdata=`数据不同, 所以scrapy进行了本地加密处理；对于复杂的网站加密，scrapy仍然无法解决  
-> 更加通用的方式是selenium获取cookie得到cookie pool, 通过api提供给程序，程序中间件在headers中加cookie访问
-
-```py
-# spiders/renren.py
-import scrapy
-
-class RenrenSpider(scrapy.Spider):
-    name = 'renren'
-    allowed_domains = ['www.renren.com']
-    # 只有这个接口可以成功
-    start_urls = ['http://www.renren.com/PLogin.do']
-    # # 如下登录接口无法成功
-    # start_urls = ['http://www.renren.com/SysHome.do']
-
-    def parse(self, response):
-        yield scrapy.FormRequest.from_response(response, formdata={'email':'xxxxxx@163.com', 'password':'xxxxxx'}, callback=self.parse_page)
-
-    def parse_page(self, response):
-        yield scrapy.Request('http://www.renren.com/973121717/profile', callback=self.parse_profile)
-    
-    def parse_profile(self, response):
-        if response.text.find('boot'):
-            print('login success')
-```
-
-```py
-# spiders.py/renren.py
-import scrapy
-
-class RenrenSpider(scrapy.Spider):
-    name = 'renren'
-    allowed_domains = ['www.renren.com']
-    start_urls = ['http://www.renren.com/973121717/profile']
-
-    def parse(self, response):
-        cookie = {
-            "anonymid": "k57rnfzf-9vf59c",
-            " depovince": "GW",
-            " _r01_": "1",
-            " JSESSIONID": "abcNq7kRGbepk8EA3fo_w",
-            " ick_login": "eb8213a2-ac40-4411-805d-a55b61080ce0",
-            " taihe_bi_sdk_uid": "6e883fbe12ac02761a24aeda65a31293",
-            " taihe_bi_sdk_session": "680271b4f995e38a262f87af3fc6312a",
-            " id": "973121717",
-            " ver": "7.0",
-            " ick": "755e68b8-d22b-4c75-a749-8a7877a245bd",
-            " jebecookies": "b3672c21-9827-4e54-83ea-bf031e59b1a7|||||",
-            " _de": "5F410E5B6D93032B5E28A9DF15E724D26DEBB8C2103DE356",
-            " p": "7d4a8a81fa610c33e11b23b7cebc416b7",
-            " first_login_flag": "1",
-            " ln_uact": "pku_gewei@163.com",
-            " ln_hurl": "http://hdn.xnimg.cn/photos/hdn521/20191219/2100/h_main_3rDB_c69400003484195a.jpg",
-            " t": "d024bf313ee762be3711f5cf6387d7f67",
-            " societyguester": "d024bf313ee762be3711f5cf6387d7f67",
-            " xnsid": "7192a1d8",
-            " loginfrom": "null",
-            "wp_fold": "0"
-        }
-        yield scrapy.Request('http://www.renren.com/973121717/profile', cookies=cookie, callback=self.parse_profile)
-
-    def parse_profile(self, response):
-        if response.text.find('boot'):
-            print('login success')
-```
-
 example: 多层目录结构下载图片
 
 ```
@@ -1524,4 +1455,73 @@ class XmlspiderSpider(scrapy.spiders.CSVFeedSpider):
 
     def parse_row(self, response, row):
         print(row['股票代码'].encode('cp1252').decode('gbk'), row['名称'].encode('cp1252').decode('gbk'))
+```
+
+tip: scrapy模拟登录对于同一个链接先get, 然后post; 那么`Request(dont_filter=True)`或者post直接使用`FormRequest()`
+
+example: 利用`FormRequest`模拟登录
+> scrapy能够模拟js加密: fiddler监控的post的数据与下面`formdata=`数据不同, 所以scrapy进行了本地加密处理；对于复杂的网站加密，scrapy仍然无法解决  
+> 更加通用的方式是selenium获取cookie得到cookie pool, 通过api提供给程序，程序中间件在headers中加cookie访问
+
+```py
+# spiders/renren.py
+import scrapy
+
+class RenrenSpider(scrapy.Spider):
+    name = 'renren'
+    allowed_domains = ['www.renren.com']
+    # 只有这个接口可以成功
+    start_urls = ['http://www.renren.com/PLogin.do']
+    # # 如下登录接口无法成功
+    # start_urls = ['http://www.renren.com/SysHome.do']
+
+    def parse(self, response):
+        yield scrapy.FormRequest.from_response(response, formdata={'email':'xxxxxx@163.com', 'password':'xxxxxx'}, callback=self.parse_page)
+
+    def parse_page(self, response):
+        yield scrapy.Request('http://www.renren.com/973121717/profile', callback=self.parse_profile)
+    
+    def parse_profile(self, response):
+        if response.text.find('boot'):
+            print('login success')
+```
+
+```py
+# spiders.py/renren.py
+import scrapy
+
+class RenrenSpider(scrapy.Spider):
+    name = 'renren'
+    allowed_domains = ['www.renren.com']
+    start_urls = ['http://www.renren.com/973121717/profile']
+
+    def parse(self, response):
+        cookie = {
+            "anonymid": "k57rnfzf-9vf59c",
+            " depovince": "GW",
+            " _r01_": "1",
+            " JSESSIONID": "abcNq7kRGbepk8EA3fo_w",
+            " ick_login": "eb8213a2-ac40-4411-805d-a55b61080ce0",
+            " taihe_bi_sdk_uid": "6e883fbe12ac02761a24aeda65a31293",
+            " taihe_bi_sdk_session": "680271b4f995e38a262f87af3fc6312a",
+            " id": "973121717",
+            " ver": "7.0",
+            " ick": "755e68b8-d22b-4c75-a749-8a7877a245bd",
+            " jebecookies": "b3672c21-9827-4e54-83ea-bf031e59b1a7|||||",
+            " _de": "5F410E5B6D93032B5E28A9DF15E724D26DEBB8C2103DE356",
+            " p": "7d4a8a81fa610c33e11b23b7cebc416b7",
+            " first_login_flag": "1",
+            " ln_uact": "pku_gewei@163.com",
+            " ln_hurl": "http://hdn.xnimg.cn/photos/hdn521/20191219/2100/h_main_3rDB_c69400003484195a.jpg",
+            " t": "d024bf313ee762be3711f5cf6387d7f67",
+            " societyguester": "d024bf313ee762be3711f5cf6387d7f67",
+            " xnsid": "7192a1d8",
+            " loginfrom": "null",
+            "wp_fold": "0"
+        }
+        yield scrapy.Request('http://www.renren.com/973121717/profile', cookies=cookie, callback=self.parse_profile)
+
+    def parse_profile(self, response):
+        if response.text.find('boot'):
+            print('login success')
 ```
