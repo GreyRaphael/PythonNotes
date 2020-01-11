@@ -1525,3 +1525,93 @@ class RenrenSpider(scrapy.Spider):
         if response.text.find('boot'):
             print('login success')
 ```
+
+example: scrapy with selenium in spider
+
+```py
+from selenium import webdriver
+import scrapy
+
+
+class CtoSpider(scrapy.Spider):
+    name = 'cto'
+    allowed_domains = ['51cto.com']
+    start_urls = ['https://home.51cto.com/mobile/client-login/']
+
+    def parse(self, response):
+        my_cookie = self.my_cookie(response.url)
+        yield scrapy.Request('https://home.51cto.com/space?uid=9472075', callback=self.parse_page, cookies=my_cookie)
+
+    def my_cookie(self, login_url):
+        browser = webdriver.Firefox(firefox_binary=r"D:\Browser\Firefox\firefox.exe",
+                                    executable_path=r"D:\Browser\BrowserDriver\geckodriver.exe")
+        browser.get(login_url)
+        user = browser.find_element_by_id('loginform-username')
+        user.send_keys('xxxxxx@163.com')
+        pwd = browser.find_element_by_id('loginform-password')
+        pwd.send_keys('xxxxxx')
+        btn_submit = browser.find_element_by_id('bind_old_login')
+        btn_submit.click()
+
+        cookie_dict = browser.get_cookies()
+        browser.close()
+        return cookie_dict
+
+    def parse_page(self, response):
+        if response.text.find('RacherSasuke') != -1:
+            print('login success', '*'*20)
+        else:
+            print('login fail', '*'*20)
+```
+
+example: scarpy with selenium in middleware
+
+```py
+# spiders/cto.py
+import scrapy
+
+class CtoSpider(scrapy.Spider):
+    name = 'cto'
+    allowed_domains = ['51cto.com']
+    start_urls = ['https://home.51cto.com/mobile/client-login/']
+
+    cookies = None
+
+    def parse(self, response):
+        if response.text == 'success':
+            yield scrapy.Request('https://home.51cto.com/space?uid=9472075',
+                                 callback=self.parse_page,
+                                 cookies=self.cookies)
+        else:
+            print('getting cookie fails')
+
+    def parse_page(self, response):
+        if response.text.find('RacherSasuke') != -1:
+            print('login success', '*'*20)
+        else:
+            print('login fail', '*'*20)
+```
+
+```py
+# middlewares.py
+from selenium import webdriver
+from scrapy import http
+
+class Test1DownloaderMiddleware(object):
+    def process_request(self, request, spider):
+        if spider.name == 'cto':
+            if request.url.find('client-login') != -1:
+                browser = webdriver.Firefox(firefox_binary=r"D:\Browser\Firefox\firefox.exe",
+                                            executable_path=r"D:\Browser\BrowserDriver\geckodriver.exe")
+                browser.get(request.url)
+                user = browser.find_element_by_id('loginform-username')
+                user.send_keys('xxxxxx@163.com')
+                pwd = browser.find_element_by_id('loginform-password')
+                pwd.send_keys('xxxxxx')
+                btn_submit = browser.find_element_by_id('bind_old_login')
+                btn_submit.click()
+
+                spider.cookies = browser.get_cookies()
+                browser.close()
+                return http.HtmlResponse(url=request.url, body=b'success')
+```
