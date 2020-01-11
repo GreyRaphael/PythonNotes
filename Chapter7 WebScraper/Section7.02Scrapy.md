@@ -1615,3 +1615,70 @@ class Test1DownloaderMiddleware(object):
                 browser.close()
                 return http.HtmlResponse(url=request.url, body=b'success')
 ```
+
+example: save and load cookies
+> 可以买多个账户密码，然后登陆，添加进入database, 形成cookie pool
+
+```py
+from selenium import webdriver
+import pickle
+
+browser = webdriver.Firefox(firefox_binary=r"D:\Browser\Firefox\firefox.exe",
+                            executable_path=r"D:\Browser\BrowserDriver\geckodriver.exe")
+browser.get('https://home.51cto.com/mobile/client-login/')
+
+user = browser.find_element_by_id('loginform-username')
+user.send_keys('xxxxxx@163.com')
+pwd = browser.find_element_by_id('loginform-password')
+pwd.send_keys('xxxxxx')
+btn_submit = browser.find_element_by_id('bind_old_login')
+btn_submit.click()
+
+cookies=browser.get_cookies()
+
+with open('cookies.dat', 'wb') as file:
+    pickle.dump(cookies, file)
+
+# browser.close()
+```
+
+```py
+from selenium import webdriver
+import pickle
+
+with open('cookies.dat', 'rb') as file:
+    cookies=pickle.load(file)
+
+browser = webdriver.Firefox(firefox_binary=r"D:\Browser\Firefox\firefox.exe",
+                            executable_path=r"D:\Browser\BrowserDriver\geckodriver.exe")
+browser.get('https://home.51cto.com')
+
+for cookie in cookies:
+    # print(cookie['name'],cookie['value'])
+    browser.add_cookie(cookie)
+
+browser.get('https://home.51cto.com/space?uid=9472075')
+if browser.page_source.find('RacherSasuke')!=-1:
+    print('cookie is good')
+else:
+    print('cookie is bad')
+
+browser.close()
+```
+
+exmaple: selenium cookies for requests
+
+```py
+import requests
+import pickle
+
+s=requests.session()
+for cookie in pickle.load(open('cookies.dat', 'rb')):
+    s.cookies.set(cookie['name'], cookie['value'])
+
+r=s.get('https://home.51cto.com/space?uid=9472075')
+if r.text.find('RacherSasuke')!=-1:
+    print('cookie is good')
+else:
+    print('cookie is bad')
+```
