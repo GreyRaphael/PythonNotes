@@ -521,6 +521,9 @@ redis-cli -h 192.168.128.132 -a 13121428742
 ## redis with python
 
 `pip install redis`
+- `redis.StrictRedis`
+- `redis.Redis`: 为了兼容旧版本，是StrictRedis的子类
+- `redis.ConnectionPool`
 
 ```python
 import redis
