@@ -525,33 +525,46 @@ redis-cli -h 192.168.128.132 -a 13121428742
 - `redis.Redis`: 为了兼容旧版本，是StrictRedis的子类
 - `redis.ConnectionPool`
 
-```python
+example: redis connection
+
+```py
 import redis
 
-# method1,立即读写
-try:
-    r = redis.StrictRedis(host='192.168.128.133', port=6379, password=13810455459)
-except Exception as e:
-    print(e)
+# simple connection
+client=redis.Redis(host='127.0.0.1', password='xxxxxx', db=1)
+client.set('name', 'hello中国')
+# client.get() return bytes
+print(client.get('name').decode('utf8'))
 
-r.set('newkey11', 'newValue11')
-print(r.get('newKey'))
-print(r.get('newkey11'))
-
-# method2, 使用pipeline多次写入之后再确认，避免反复访问服务器，读取的时候可以直接用上面的r.get()立马得到
-pipe = r.pipeline()
-pipe.set('newkey111', 'newvalue111')
-pipe.set('newkey222', 'newvalue222')
-res = pipe.get('newkey11')
-pipe.execute()
-print(res)
+# pool connecton
+pool=redis.ConnectionPool(host='127.0.0.1', password='xxxxxx', db=2)
+client=redis.Redis(connection_pool=pool)
+client.set('age', 56)
+print(client.get('age').decode('utf8'))
 ```
 
-```bash
-#output
-b'newTest'
-b'newValue11'
-StrictPipeline<ConnectionPool<Connection<host=192.168.128.133,port=6379,db=0>>>
+```py
+import redis
+
+client=redis.StrictRedis(host='127.0.0.1', password='xxxxxx', db=3)
+
+# method1: 立即读写
+client.set('name', 'grey')
+client.set('age', 56)
+print(client.get('name'), client.get('age')) # b'grey' b'56'
+
+# method2: 使用pipeline多次写入之后再确认，避免反复访问服务器，然后批量获取结果
+p=client.pipeline()
+
+# batch set
+p.set('score', 99.9)
+p.set('IQ', 350)
+p.execute()
+
+# batch get
+p.get('score')
+p.get('IQ')
+print(p.execute()) # [b'99.9', b'350']
 ```
 
 ### 封装
