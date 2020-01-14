@@ -611,6 +611,41 @@ redis with list:
 - `.rpoplpush('mylist', 'mylist')`: 从mylist右边出，然后插入左边
 - `.linsert('mylist', 'AFTER', '2', 222)`,`.linsert('mylist', 'BEFORE', '2', 222)`
 
+redis with set: set元素不可重复
+- `.sadd('myset', 1, 1, 2, 3, 455, 555)`
+- `.smembers('myset')`: result is `{b'1', b'2', b'3', b'455', b'555'}`
+- `.scard('myset')`: 5
+- `.sdiff('myset', 'yourset')`: 差集myset-yourset
+- `.sinter('myset', 'yourset')`: intersection
+- `.sunion('myset', 'yourset')`: union
+- `.sdiffstore('diff_set', 'myset', 'yourset')`: 差集保存到diff_set
+- `.sinter('inter_set', 'myset', 'yourset')`
+- `.sunion('union_set', 'myset', 'yourset')`
+- `.sismember('myset', 5)`: True
+- `.smove('myset', 'yorset', '1')`: move 1 from myset to yourset
+- `.spop('myset')`: random pop a value from set
+- `.srandmember('myset', 3)`: random return 3 value
+- `.srem('myset', '555')`: remove 555
+- `.sscan('myset', cursor=0, match='*55')`
+- `.sscan_iter()`example:  `for i in client.sscan_iter('myset', cursor=0, match='*55'): print(i)`
+
+```py
+import redis
+
+client=redis.Redis('localhost', password='xxxxxx')
+
+for i in range(1000):
+    client.sadd('myset', i)
+
+# count的作用不大
+cursor1, data=client.sscan('myset', cursor=0, match='*5', count=10)
+print(cursor1, data)
+cursor2, data=client.sscan('myset', cursor=cursor1, match='*5', count=10)
+print(cursor2, data)
+
+data=[i for i in client.sscan_iter('myset', match='*5', count=10)]
+print(data)
+```
 
 ### 封装
 
