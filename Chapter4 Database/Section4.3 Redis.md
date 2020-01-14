@@ -663,6 +663,16 @@ redis with zset: 有序set, 按照score排序
 - `.zscan('myzset', cursor=0, match=None)`
 - `.zscan_iter('myzset', cursor=0, match=None)`
 
+example: redis for key operation
+- `.delete('mylist')`
+- `.exists('key1')`
+- `.keys(pattern='*hello')`
+- `.expire('key1', 10)`
+- `.rename('key1', 'key2')`
+- `.randomkey()`: 从db中随机取一个key
+- `.type('key1')`
+- `.move('myzset', db=1)`: move to db=1
+
 ### 封装
 
 连接redis服务器部分是一致的，这里将string类型的读写进行封装
