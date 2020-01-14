@@ -598,6 +598,20 @@ redis hash functions
 - `.expire('stu02', 3)`
 - `.exists('stu02')`
 
+redis with list:
+- `.lpush('mylist',1, 2, 3, 4, 5)`, `.rpush()`
+- `.lpushx()`, `.rpushx()`
+- `.lrange('mylist', 0, -1)`
+- `.llen('mylist')`: list length
+- `.lset('mylist', 1, 222)`: result is `[1, 222, 3, 4, 5]`
+- `.lrem('mylist', '3', 10)`: 删除10个3, result is `[1, 2, 4, 5]`
+- `.lpop('mylist')`, `.rpop()`
+- `.lindex('mylist', 0)`:result is 1; 
+- `.ltrim('mylist', 1, 3)`: result is `[2, 3, 4]`, 只保留1-3，其余全部删除
+- `.rpoplpush('mylist', 'mylist')`: 从mylist右边出，然后插入左边
+- `.linsert('mylist', 'AFTER', '2', 222)`,`.linsert('mylist', 'BEFORE', '2', 222)`
+
+
 ### 封装
 
 连接redis服务器部分是一致的，这里将string类型的读写进行封装
