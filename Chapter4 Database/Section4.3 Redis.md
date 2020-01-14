@@ -647,6 +647,22 @@ data=[i for i in client.sscan_iter('myset', match='*5', count=10)]
 print(data)
 ```
 
+redis with zset: 有序set, 按照score排序
+- `.zadd('myzset', {'moris':12, 'james':44, 'tom':23})`
+- `.zrange('myzset')`: result is `[b'moris', b'tom', b'james']`
+- `.zrange('myzset', 0, -1, desc=True, withscores=True)`
+- `.zcard('myzset')`
+- `.zcount('myzset', 20, 50)`
+- `.zrank('myzset', 'tom')`, `.zrevrank('myzset', 'james')`
+- `.zrem('myzset', 'tom')`
+- `.zscore('myzset', 'james')`
+- `.zincrby('myzset', 10, 'moris')`
+- `.zremrangebyscore('myzset', 0, 30)`, `.zremrangebyrank('myzset', 0, 3)`
+- `.zinterstore('newz', ['myzset1', 'myzset2'])`
+- `.zunionstor('newz2', ['myzset1', 'myzset2'], aggregate=True)`
+- `.zscan('myzset', cursor=0, match=None)`
+- `.zscan_iter('myzset', cursor=0, match=None)`
+
 ### 封装
 
 连接redis服务器部分是一致的，这里将string类型的读写进行封装
