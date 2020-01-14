@@ -1220,12 +1220,13 @@ class MytestDownloaderMiddleware(object):
 
 ## Scrapy redis
 
-![](res/scrapy_redis_architecture_01.jpg)
+通过redis的subscribe-publish实现多个客户端之间的通信
+> ![](res/scrapy_redis_architecture_01.jpg)
 
 `pip install scrapy-redis`, scrapy-redis 四个组件
-- Scheduler
-- Duplication Filter
-- Item Pipeline
+- Scheduler: 通过subscribe-publish和redis队列来实现数据的采集，调度
+- Duplication Filter: 通过redis的set实现
+- Item Pipeline: 如果有优先级，是通过zset实现
 - Base Spiders.
 
 redis数据库存储
@@ -1241,6 +1242,7 @@ redis数据库存储
 scrapy-reids实现分布式的两个class: `RedisSpider`, `RedisCrawlSpider`
 
 example: scrapy redis [example](https://github.com/rmax/scrapy-redis/blob/master/example-project/example/spiders/dmoz.py)
+> ![](res/scrapy-redis01.png)  
 > settings.py中设置redis的ip, port即可使用，但并没有继承scrapy-redis的类，所以只是为了演示scrapy能够连接redis: `scrapy crawl dmoz`;  
 > 并且项目停止之后，指纹仍然保存在redis中，下次重新启动爬虫，爬虫从上次的位置开始继续爬取，也就是`SCHEDULER_PERSIST=True`
 
@@ -1313,6 +1315,7 @@ class DmozSpider(CrawlSpider):
 ```
 
 example: scrapy redis [RedisSpider example](https://github.com/rmax/scrapy-redis/blob/master/example-project/example/spiders/myspider_redis.py)
+> ![](res/scrapy-redis02.png)  
 > 这个RedisSpider例子可以演示分布式: `scrapy runspider myspider_redis.py`
 
 ```py
@@ -1347,6 +1350,7 @@ cmdline.execute('scrapy runspider myspider_redis.py'.split())
 ```
 
 example: `RedisCrawlSpider`
+> ![](res/scrapy-redis03.png)  
 > 这个RedisSpider例子可以演示分布式: `scrapy runspider mycrawler_redis.py`
 
 ```py
