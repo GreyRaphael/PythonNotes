@@ -13,7 +13,6 @@
   - [发布、订阅](#%e5%8f%91%e5%b8%83%e8%ae%a2%e9%98%85)
   - [主从配置](#%e4%b8%bb%e4%bb%8e%e9%85%8d%e7%bd%ae)
   - [redis with python](#redis-with-python)
-    - [封装](#%e5%b0%81%e8%a3%85)
   - [用户登录](#%e7%94%a8%e6%88%b7%e7%99%bb%e5%bd%95)
 
 ## Introduction
@@ -673,13 +672,38 @@ example: redis for key operation
 - `.type('key1')`
 - `.move('myzset', db=1)`: move to db=1
 
-### 封装
+[redis pipeline vs transcation](https://stackoverflow.com/questions/29327544/pipelining-vs-transaction-in-redis)
 
-连接redis服务器部分是一致的，这里将string类型的读写进行封装
+example: subscribe and publish
+
+```py
+# subscriber.py
+import redis
+
+client = redis.Redis('localhost', password='xxxxxx')
+subscriber = client.pubsub()
+subscriber.subscribe('channel1')
+while True:
+    msg = subscriber.parse_response()
+    print(msg)
+
+```
+
+```py
+# pulisher.py
+import redis
+
+client=redis.Redis('localhost', password='xxxxxx')
+
+while True:
+    msg=input('enter your msg:')
+    client.publish('channel1', msg)
+```
+
+example: 简单封装redis读写
 
 ```python
 import redis
-
 
 class RedisHelper(object):
     def __init__(self, host, port, pwd):
@@ -698,12 +722,7 @@ class RedisHelper(object):
 if __name__ == '__main__':
     redis_helper = RedisHelper('192.168.128.133', '6379', '13810455459')
     redis_helper.set('newkey999', 'newvalue999')
-    print(redis_helper.get('newkey999'))
-```
-
-```bash
-# output
-b'newvalue999'
+    print(redis_helper.get('newkey999')) # b'newvalue999'
 ```
 
 ## 用户登录
