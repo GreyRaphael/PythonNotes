@@ -532,6 +532,7 @@ import redis
 
 # simple connection
 client=redis.Redis(host='127.0.0.1', password='xxxxxx', db=1)
+# def set(self, name, value, ex=None, px=None, nx=False, xx=False):
 client.set('name', 'hello中国')
 # client.get() return bytes
 print(client.get('name').decode('utf8'))
@@ -566,6 +567,22 @@ p.get('score')
 p.get('IQ')
 print(p.execute()) # [b'99.9', b'350']
 ```
+
+example: some redis functions
+- `.strlen('name')`: result is 4
+- `.getrange('name', 0, 2)`: result is `gre`
+- `.setrange('name', 4, 'alpha')`: result is `greyalpha`
+- `.append('name', 'james')`: result is `greyjames`
+- `.setnx('name', 'grey')`, `.set('name', 'grey', nx=True)`
+- `.setex()`, `.psetex()`
+- `.mset({'name':'grey','age':55,})`, `.mset(name='grey', age=55)`
+- `.mget(['name', 'age'])`
+- `.getset('name', 'moris')`: 先获取再设置
+- `.incr('age', 10)`: result is 66
+- `.decr('age', 20)`: result is 36
+- `.incrbyfloat('age', 10.5)`: result is 66.5
+- `.decrbyfloat('age', 20.5)`: result is 35.5
+- `.getbit('name', 1)`, `.setbit('name', 23, 1)`, `bitcount('name', 0, 7)`: 常用于布隆过滤器
 
 ### 封装
 
