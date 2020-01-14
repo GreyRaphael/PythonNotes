@@ -584,6 +584,20 @@ example: some redis functions
 - `.decrbyfloat('age', 20.5)`: result is 35.5
 - `.getbit('name', 1)`, `.setbit('name', 23, 1)`, `bitcount('name', 0, 7)`: 常用于布隆过滤器
 
+redis hash functions
+- `.hset('stu01', 'name', 'james')`, `.hgetall('stu01')`, `.hget('stu01', 'name')`: set, get object
+- `.hmset('stu02', {'name':'moris', 'age':66})`, `.hgetall('stu02')`: result is `{b'name': b'moris', b'age': b'66'}`
+- `.hmget('stu02', ['name', 'age'])`
+- `.hlen('name')`, result is 2
+- `.hkeys()`: [b'name', b'age']; `.hvals()`
+- `.hdel('stu02', 'name')`
+- `.hexists('stu02', 'age')`
+- `.hincrby('stu02', 'age', amount=10)`: result is 66
+- `.hincrbyfloat('stu02', 'age', amount=10.0)`: result is 66.0
+- `.hscan('stu02')`, `.hscan_iter('stu02')`
+- `.expire('stu02', 3)`
+- `.exists('stu02')`
+
 ### 封装
 
 连接redis服务器部分是一致的，这里将string类型的读写进行封装
