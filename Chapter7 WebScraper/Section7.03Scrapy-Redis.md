@@ -2,12 +2,13 @@
 
 - [Scrapy-Redis](#scrapy-redis)
   - [Introduction](#introduction)
+  - [Spider with localhost Redis](#spider-with-localhost-redis)
 
 ## Introduction
 
 scrapy-redis与scrapy的不同
 - 存item数据: 对应redis数据库中`spider_name:items`
-- 存request: 对应redis数据库中`spider_name:requests`
+- 存待爬request: 对应redis数据库中`spider_name:requests`
 - 存request的指纹(hash value): 对应redis数据库中`spdier_name:dupefilter`
 
 通过redis的subscribe-publish实现多个客户端之间的通信
@@ -185,3 +186,193 @@ tar -xvf your_foler.tar
 # unzip: tar -zxvf your_foler.tar.gz
 ```
 
+## Spider with localhost Redis
+
+start localhost [redis of windows](https://github.com/microsoftarchive/redis/releases): `redis-server.exe redis.windows.conf`
+
+```bash
+# redis.windows.conf
+
+# bind 127.0.0.1
+requirepass xxxxxx
+```
+
+example: `scrapy.spiders.Spider` with localhost redis
+
+in Anaconda Prompt: `scrapy crawl lsm`
+
+```
+.
+|-- example
+|   |-- __init__.py
+|   |-- items.py
+|   |-- pipelines.py
+|   |-- settings.py
+|   `-- spiders
+|       |-- __init__.py
+|       |-- lsm.py
+|-- process_items.py
+`-- scrapy.cfg
+```
+
+```py
+# settings.py
+SPIDER_MODULES = ['example.spiders']
+NEWSPIDER_MODULE = 'example.spiders'
+
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0'
+
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+SCHEDULER_PERSIST = True
+#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderPriorityQueue"
+#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderQueue"
+#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderStack"
+
+ITEM_PIPELINES = {
+    'example.pipelines.ExamplePipeline': 300,
+    'scrapy_redis.pipelines.RedisPipeline': 400,
+}
+
+DOWNLOAD_DELAY = 1
+# connect to db=2
+REDIS_URL = 'redis://:xxxxxx@localhost:6379/2'
+```
+
+```py
+# add class to items.py
+class LsmItem(Item):
+    title=Field()
+    src=Field()
+    url=Field()
+    # 这两个提供给pipelines.py
+    spider = Field()
+    url = Field()
+```
+
+```py
+# lsm.py
+from scrapy import spiders, Request
+
+class DmozSpider(spiders.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    pg=1
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+
+    def parse(self, response):
+        for data in response.xpath('//div[@class="photo"]/a'):
+            yield {
+                'url':data.xpath('./@href').extract_first(),
+                'src':data.xpath('./img/@src').extract_first(),
+                'title':data.xpath('./img/@alt').extract_first(),
+            }
+        
+        if self.pg<5:
+            self.pg+=1
+        yield Request(f'https://www.lesmao.co/plugin.php?id=group&page={self.pg}', callback=self.parse)
+```
+
+example: `scrapy.spiders.CrawlSpider` with localhost redis
+> `scrapy crawl lsm2`
+
+```py
+# add class to items.py
+class Lsm2Item(Item):
+    titles=Field()
+    srcs=Field()
+    urls=Field()
+    # 这两个提供给pipelines.py
+    spider = Field()
+    url = Field()
+```
+
+```py
+# lsm2.py
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+
+class DmozSpider(CrawlSpider):
+    name = 'lsm2'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+
+    rules = [
+        Rule(LinkExtractor(
+            allow=(r'page=\d+')
+        ), callback='myparse', follow=True),
+    ]
+
+    def myparse(self, response):
+        yield {
+                'urls':response.xpath('//div[@class="photo"]/a/@href').extract(),
+                'srcs':response.xpath('//div[@class="photo"]/a/img/@src').extract(),
+                'titles':response.xpath('//div[@class="photo"]/a/img/@alt').extract(),
+            }
+```
+
+example: `scrapy_redis.spiders.RedisSpider` with localhost redis
+> in Anaconda prompt: `scrapy runspider lsm3.py`  
+> in redis-cli: `lpush lsm3:start_urls https://www.lesmao.co`
+
+```py
+# items.py
+# 采用lsm1.py中的class
+```
+
+```py
+# lsm3.py
+from scrapy_redis.spiders import RedisSpider
+from scrapy import Request
+
+class MySpider(RedisSpider):
+    name = 'lsm3'
+    redis_key = 'lsm3:start_urls'
+    allowed_domains = ['www.lesmao.co']
+    pg=1
+
+    def parse(self, response):
+        for item in response.xpath('//div[@class="photo"]/a'):
+            yield {
+                'url': item.xpath('./@href').extract_first(),
+                'src': item.xpath('./img/@src').extract_first(),
+                'title': item.xpath('./img/@alt').extract_first(),
+            }
+
+        if self.pg < 5:
+            self.pg += 1
+        yield Request(f'https://www.lesmao.co/plugin.php?id=group&page={self.pg}', callback=self.parse)
+```
+
+example: `scrapy_redis.spiders.RedisCrawlSpider` with localhost redis
+> in Anaconda prompt: `scrapy runspider lsm4.py`  
+> in redis-cli: `lpush lsm4:start_urls https://www.lesmao.co`
+
+```py
+# items.py
+# 采用lsm2.py中的class
+```
+
+```py
+# lsm4.py
+from scrapy.spiders import Rule
+from scrapy.linkextractors import LinkExtractor
+from scrapy_redis.spiders import RedisCrawlSpider
+
+
+class MyCrawler(RedisCrawlSpider):
+    name = 'lsm4'
+    redis_key = 'lsm4:start_urls'
+    allowed_domains = ['www.lesmao.co']
+
+    rules = (
+        Rule(LinkExtractor(allow=r'page=\d+'), callback='parse_page', follow=True),
+    )
+
+    def parse_page(self, response):
+        yield {
+            'urls': response.xpath('//div[@class="photo"]/a/@href').extract(),
+            'srcs': response.xpath('//div[@class="photo"]/a/img/@src').extract(),
+            'titles': response.xpath('//div[@class="photo"]/a/img/@alt').extract(),
+        }
+```
