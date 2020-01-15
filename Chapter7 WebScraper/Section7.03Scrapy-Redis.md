@@ -52,6 +52,9 @@ in Anaconda Prompt: `scrapy crawl lsm`
 |   `-- spiders
 |       |-- __init__.py
 |       |-- lsm.py
+|       |-- lsm2.py
+|       |-- lsm3.py
+|       |-- lsm4.py
 |-- process_items.py
 `-- scrapy.cfg
 ```
@@ -94,7 +97,7 @@ class LsmItem(Item):
     url=Field()
     # 这两个提供给pipelines.py, 加上时间戳和name
     spider = Field()
-    url = Field()
+    crawled = Fiel
 ```
 
 ```py
@@ -131,7 +134,7 @@ class Lsm2Item(Item):
     urls=Field()
     # 这两个提供给pipelines.py
     spider = Field()
-    url = Field()
+    crawled = Fiel
 ```
 
 ```py
@@ -234,10 +237,10 @@ class MyCrawler(RedisCrawlSpider):
 ```
 
 ```py
-# main.py和items.py同一层
+# main.py和spiders.py同一层
 from scrapy import cmdline
 
-cmdline.execute('scrapy runspider myspider_redis.py'.split())
+cmdline.execute('scrapy runspider lsm4.py'.split())
 ```
 
 ## Spider with remote Redis
@@ -264,4 +267,86 @@ sftp> put your_folder.tar
 # in remote machine
 tar -xvf your_foler.tar
 # unzip: tar -zxvf your_foler.tar.gz
+```
+
+example: remote scrapy-redis
+> mention: 有时候因为redis数据库xxx:requests中的链接太少,导致多个slave只有一个干活
+
+- run on every machine: `scrapy runspider lsm5.py`
+- connect to master machine: `lpush lsm5:start_urls https://www.lesmao.co`
+
+```
+.
+|-- example
+|   |-- __init__.py
+|   |-- items.py
+|   |-- pipelines.py
+|   |-- settings.py
+|   `-- spiders
+|       |-- __init__.py
+|       |-- lsm5.py
+|-- process_items.py
+`-- scrapy.cfg
+```
+
+```py
+# settings.py
+SPIDER_MODULES = ['example.spiders']
+NEWSPIDER_MODULE = 'example.spiders'
+
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0'
+
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+SCHEDULER_PERSIST = True
+# SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderPriorityQueue"
+SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderQueue"
+#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderStack"
+
+ITEM_PIPELINES = {
+    'example.pipelines.ExamplePipeline': 300,
+    'scrapy_redis.pipelines.RedisPipeline': 400,
+}
+
+REDIS_URL = 'redis://:mypwd@xxx.xxx.xxx.xxx:6379/5'
+DOWNLOAD_DELAY = 0.5
+
+# Max idle time to prevent the spider from being closed when distributed crawling.
+# This only works if queue class is SpiderQueue or SpiderStack,
+# and may also block the same time when your spider start at the first time (because the queue is empty).
+SCHEDULER_IDLE_BEFORE_CLOSE = 10
+```
+
+```py
+# add class to items.py
+class Lsm5Item(Item):
+    url=Field()
+    srcs=Field()
+    # 这两个提供给pipelines.py
+    spider = Field()
+    crawled = Field()
+```
+
+```py
+# lsm5.py
+from scrapy.spiders import Rule
+from scrapy.linkextractors import LinkExtractor
+from scrapy_redis.spiders import RedisCrawlSpider
+
+
+class MyCrawler(RedisCrawlSpider):
+    name = 'lsm5'
+    redis_key = 'lsm5:start_urls'
+    allowed_domains = ['www.lesmao.co']
+
+    rules = (
+        Rule(LinkExtractor(allow='thread'), callback='parse_detail', follow=True),
+        Rule(LinkExtractor(allow='page='), follow=True),
+    )
+
+    def parse_detail(self, response):
+        yield {
+            'url': response.url,
+            'srcs': response.xpath("//ul[@class='adw']//img/@src").extract(),
+        }
 ```
