@@ -2,20 +2,20 @@
 
 - [Python with MongoDB](#python-with-mongodb)
   - [MongoDB intro](#mongodb-intro)
-  - [xubuntu安装mongoDB client&amp;server](#xubuntu%e5%ae%89%e8%a3%85mongodb-clientampserver)
+  - [xubuntu安装mongoDB client&server](#xubuntu%e5%ae%89%e8%a3%85mongodb-clientserver)
   - [mongoDB查询](#mongodb%e6%9f%a5%e8%af%a2)
   - [MongoDB高级](#mongodb%e9%ab%98%e7%ba%a7)
     - [aggregate, 聚合](#aggregate-%e8%81%9a%e5%90%88)
-      - [$group](#group)
-      - [$match](#match)
-      - [$project](#project)
-      - [$sort](#sort)
-      - [$limit, $skip](#limit-skip)
-      - [$unwind](#unwind)
+      - [`$group`](#group)
+      - [`$match`](#match)
+      - [`$project`](#project)
+      - [`$sort`](#sort)
+      - [`$limit`, `$skip`](#limit-skip)
+      - [`$unwind`](#unwind)
   - [索引](#%e7%b4%a2%e5%bc%95)
   - [安全](#%e5%ae%89%e5%85%a8)
   - [复制(副本集)](#%e5%a4%8d%e5%88%b6%e5%89%af%e6%9c%ac%e9%9b%86)
-  - [手动备份(mongodump) &amp; 恢复(mongorestore)](#%e6%89%8b%e5%8a%a8%e5%a4%87%e4%bb%bdmongodump-amp-%e6%81%a2%e5%a4%8dmongorestore)
+  - [手动备份(mongodump) & 恢复(mongorestore)](#%e6%89%8b%e5%8a%a8%e5%a4%87%e4%bb%bdmongodump--%e6%81%a2%e5%a4%8dmongorestore)
   - [MongDB with python](#mongdb-with-python)
     - [MongoClient](#mongoclient)
 
@@ -30,6 +30,53 @@ MongoDB 是一个基于**分布式、文件存储**的NoSQL数据库
 用户第一次查找的时候，内存里面没有，就从物理的关系数据库将结果放到内存级NoSQL中；接下来的就直接在内存中查找，很快；
 
 比如tmall网站的商品分类信息，长时间不变，而访问量大，可以放到NoSQL中；
+
+Install MongoDB in windows:
+- download [mongodb zip](https://www.mongodb.com/download-center/community)
+- write `mongod.cfg` file
+- setting password
+- modify `mongod.cfg` with authorization
+- `mongod --config mongod.cfg`
+- client connect to mongodb server
+
+```yaml
+# mongod.cfg
+# before authentication
+systemLog:
+  destination: file
+  path: "MongoLog\\log.log"
+  logAppend: false
+storage:
+  dbPath: "data"
+net:
+  bindIp: 127.0.0.1
+  port: 27017
+```
+
+```bash
+# setting password
+mongo.exe
+
+use admin
+db.createUser({user:'grey', pwd:'xxxxxx', roles:[{role:'root',db:'admin'}]})
+exit
+```
+
+```yaml
+# mongod.cfg
+# after modification
+systemLog:
+  destination: file
+  path: "MongoLog\\log.log"
+  logAppend: false
+storage:
+  dbPath: "data"
+security:
+  authorization: enabled
+net:
+  bindIp: 127.0.0.1
+  port: 27017
+```
 
 ## xubuntu安装mongoDB client&server
 
