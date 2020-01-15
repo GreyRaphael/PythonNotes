@@ -74,7 +74,10 @@ class Handler(BaseHandler):
     
     # add by user
     def save_to_mongo(self, result):
-        if self.db['lsm'].update({'url': result['url']}, {'$set': result}, True):
+        # 第一个参数是query用于定位
+        # 第二个参数是用于update的数据
+        # upsert: insert a new document if a matching document does not exist.
+        if self.db['lsm'].update({'url': result['url']}, {'$set': result}, upsert=True):
             print('save to mongodb')
 ```
 
