@@ -1634,3 +1634,31 @@ moris 33
 tom 36
 arthor 56
 ```
+
+example: simple pymongo
+
+```py
+import pymongo
+
+# client=pymongo.MongoClient(host='localhost', username='grey', password='xxxxxx')
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+
+db=client['test']
+collection=db['lsm']
+
+for i in range(100):
+    data={'name':f'stu-{i}', 'age':i, 'score':100+i}
+    collection.update({'name':f'stu-{i}'}, {'$set':data}, upsert=True)
+
+for j in collection.find():
+    # type is dict
+    print(j, type(j))
+
+collection.insert({'name':'grey', 'data':[1, 2, 3, 4]})
+collection.delete_one({'name':'grey'})
+collection.find_one({'name':'stu-10'})
+collection.find_one_and_replace({'name':'stu-98'}, {'name':'moris', 'data':'hello'})
+
+data={'name':'stu-999', 'age':10}
+collection.find_one_and_update({'name':'stu-99'}, {'$set':data})
+```
