@@ -291,30 +291,7 @@ example: remote scrapy-redis
 
 ```py
 # settings.py
-SPIDER_MODULES = ['example.spiders']
-NEWSPIDER_MODULE = 'example.spiders'
-
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0'
-
-DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
-SCHEDULER = "scrapy_redis.scheduler.Scheduler"
-SCHEDULER_PERSIST = True
-# SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderPriorityQueue"
-SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderQueue"
-#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderStack"
-
-ITEM_PIPELINES = {
-    'example.pipelines.ExamplePipeline': 300,
-    'scrapy_redis.pipelines.RedisPipeline': 400,
-}
-
 REDIS_URL = 'redis://:mypwd@xxx.xxx.xxx.xxx:6379/5'
-DOWNLOAD_DELAY = 0.5
-
-# Max idle time to prevent the spider from being closed when distributed crawling.
-# This only works if queue class is SpiderQueue or SpiderStack,
-# and may also block the same time when your spider start at the first time (because the queue is empty).
-SCHEDULER_IDLE_BEFORE_CLOSE = 10
 ```
 
 ```py
