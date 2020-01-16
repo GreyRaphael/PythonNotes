@@ -1662,3 +1662,87 @@ collection.find_one_and_replace({'name':'stu-98'}, {'name':'moris', 'data':'hell
 data={'name':'stu-999', 'age':10}
 collection.find_one_and_update({'name':'stu-99'}, {'$set':data})
 ```
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.lsm
+# collection=client['test']['lsm']
+
+data=dict(name='grey', age=66, score=78)
+collection.insert(data)
+
+# update data
+data['name']='moris'
+collection.save(data)
+
+# add new data to db
+new_data={'name':'moris','IQ':100}
+collection.save(new_data)
+
+# update data
+user=collection.find_one({'name':'stu-0'})
+user['age']=66
+collection.save(user)
+collection.find_one({'name':'stu-0'}) # age: 66
+
+# every document's age +1
+collection.update({}, {'$inc':{'age':1}}, multi=True)
+# every document's score-50
+collection.update({}, {'$inc':{'score':-50}}, multi=True)
+# query and age+10, set new field: sex
+collection.update({'name':'moris'}, {'$inc':{'age':10},'$set':{'sex':1}},multi=True)
+
+# empty collection
+collection.delete_many({})
+
+# drop collection
+collection.drop()
+```
+
+pymongo new api:
+- `update`: `replace_one`, `update_one`, `update_many`
+- `save`:`replace_one`, `insert_one`
+- `insert`:`insert_one`, `insert_many`
+- `remove`: `delete_one`, `delete_many`
+- `count`:`count_documents`
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.lsm
+
+# count
+print(collection.count())
+collection.count({'age':{'$lt':23, '$gt':10}})
+collection.count_documents({'age':{'$lt':23, '$gt':10}})
+collection.find({'age':{'$lt':23, '$gt':10}}).count()
+
+# projection
+for j in collection.find({}, projection = ['name', 'score']):
+    print(j)
+
+# projection with sort
+for j in collection.find({}, ['name', 'score']).sort([('score', pymongo.DESCENDING), ('name', pymongo.ASCENDING)]):
+    print(j)
+
+# pagination everything page with 3 items
+for i in range(4):
+    for j in collection.find().skip(i*3).limit(3):
+        print(j)
+    print('-'*20)
+
+# query
+for j in collection.find({'age':{'$lt':23, '$gt':10}, 'score':{'$gte': 5}}):
+    print(j)
+
+# find record with these fields
+for i in collection.find({'IQ':{'$exists':True}}):
+    print(i)
+
+# query with regex
+for j in collection.find({'name':{'$regex':r'^girl-\d$'}}):
+    print(j)
+```
