@@ -1780,3 +1780,50 @@ collection.find_one({'data':{'$elemMatch':{'gold':1000, 'fund':{'$lt':3000}}}})
 collection.find_one({'name':'tom'})['data'][1]
 collection.find_one({'data.2':'beijing'})
 ```
+
+example: mongodb [query operators](https://docs.mongodb.com/manual/reference/operator/query/)
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.users
+
+# find contains all the item in list
+collection.find_one({'data':{'$all':[1,2,3]}})
+# find list size=4
+collection.find_one({'data':{'$size':4}})
+# find list size isn't 4
+collection.find_one({'data':{'$not':{'$size':4}}})
+
+collection.find_one({'name':{'$type':2}}) # type 2 is string
+collection.find_one({'data':{'$type':3}}) # type 3 is array
+
+# remove a field
+collection.update({'name':'tom'}, {'$unset':{'age':1}})
+collection.update({'name':'moris'}, {'$unset':{'age':''}})
+
+# add data to array
+collection.update({'name':'grey'}, {'$push':{'data':666}})
+# 加入的是list，而不是逐个加入
+collection.update({'name':'grey'}, {'$push':{'data':[22,33,44]}})
+# add data to array if not exist
+collection.update({'name':'grey'}, {'$addToSet':{'data':111}})
+
+# push list
+collection.update({'name':'grey'}, {'$push':{'data':{'$each':[777,888,999]}}})
+# push list if not exist
+collection.update({'name':'grey'}, {'$addToSet':{'data':{'$each':[777,888,999]}}})
+
+# pop last
+collection.update({'name':'grey'}, {'$pop':{'data':1}})
+# pop first
+collection.update({'name':'grey'}, {'$pop':{'data':-1}})
+
+# batch remove data
+collection.update({'name':'grey'}, {'$pull':{'data':{'$lt':4}}})
+collection.update({'name':'grey'}, {'$pullAll':{'data':[777,888,999]}})
+
+# where query: 本质是使用js代码来代替$lt, $gt
+collection.find_one({'$where':'this.age>20 && this.age<30'})
+```
