@@ -1750,3 +1750,33 @@ for i in collection.find({'IQ':{'$exists':True}}):
 for j in collection.find({'name':{'$regex':r'^girl-\d$'}}):
     print(j)
 ```
+
+example: cascade data
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.users
+
+collection.update({'name':'grey'}, {'$set':{'name':'grey', 'age': 23, 'data':[1, 2, 3, 4]}}, upsert=True)
+collection.find_one({'data':3})
+
+collection.update({'name':'moris'}, {'$set':{'name':'moris', 'age': 25, 'data':{'email':'grey@163.com', 'address':'beijing', 'money':1000}}}, upsert=True)
+collection.update({'data.email':'grey@163.com'}, {'$set':{'data.email':'grey@foxmail.com'}}, upsert=True)
+
+collection.find_one({'data.address':'beijing'})
+collection.find_one({'data.address':'beijing'})['data']
+collection.find_one({'data.address':'beijing'})['data']['email']
+collection.find_one({'data.email':{"$exists":True}})
+collection.find_one({'data.money':{'$gt':200}})
+
+
+collection.update({'name':'tom'}, {'$set':{'name':'tom', 'age': 30, 'data':[{'gold':1000, 'fund':2000}, 'shanghai', 'beijing']}}, upsert=True)
+
+collection.find_one({'data':'shanghai'})
+collection.find_one({'data.gold':1000, 'data.fund':{'$gt': 100}})
+collection.find_one({'data':{'$elemMatch':{'gold':1000, 'fund':{'$lt':3000}}}})
+collection.find_one({'name':'tom'})['data'][1]
+collection.find_one({'data.2':'beijing'})
+```
