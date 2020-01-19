@@ -1728,6 +1728,10 @@ for j in collection.find({}, projection = ['name', 'score']):
 for j in collection.find({}, ['name', 'score']).sort([('score', pymongo.DESCENDING), ('name', pymongo.ASCENDING)]):
     print(j)
 
+# projection with sort
+for j in collection.find({}, ['name', 'score']).sort([('score', -1), ('name', 1)]):
+    print(j)
+
 # pagination everything page with 3 items
 for i in range(4):
     for j in collection.find().skip(i*3).limit(3):
