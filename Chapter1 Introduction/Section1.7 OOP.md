@@ -4,12 +4,12 @@
 
 - [Python OOP](#python-oop)
   - [OOP的意义](#oop%e7%9a%84%e6%84%8f%e4%b9%89)
-    - [== vs is](#vs-is)
-  - [ctor &amp; destructor](#ctor-amp-destructor)
+    - [`==` vs `is`](#vs-is)
+  - [ctor & destructor](#ctor--destructor)
     - [class property vs instance property](#class-property-vs-instance-property)
-    - [super()](#super)
-    - [__init__ vs __new__](#init-vs-new)
-    - [__del__](#del)
+    - [`super()`](#super)
+    - [`__init__` vs `__new__`](#init-vs-new)
+    - [`__del__`](#del)
   - [python GUI](#python-gui)
   - [动态增加属性、方法](#%e5%8a%a8%e6%80%81%e5%a2%9e%e5%8a%a0%e5%b1%9e%e6%80%a7%e6%96%b9%e6%b3%95)
   - [overload](#overload)
@@ -17,7 +17,7 @@
   - [访问控制](#%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
   - [send SMS](#send-sms)
   - [send Email](#send-email)
-  - [import local .py file](#import-local-py-file)
+  - [`import` local .py file](#import-local-py-file)
     - [import method 1](#import-method-1)
     - [import method 2](#import-method-2)
   - [组合多种功能(send email,send sms)](#%e7%bb%84%e5%90%88%e5%a4%9a%e7%a7%8d%e5%8a%9f%e8%83%bdsend-emailsend-sms)
@@ -576,6 +576,29 @@ print(stu1.Name,stu1.Score)
 ```
 
 ## overload
+
+example: operator overload
+
+```py
+class Data():
+    def __init__(self, num):
+        self.num = num
+
+    def __add__(self, other):
+        return Data(self.num+other.num+100)
+
+    def __lt__(self, other):
+        return self.num < other.num
+
+    def __str__(self):
+        return str(self.num)
+
+
+a = Data(10)
+b = Data(20)
+print(a+b)  # True
+print(a < b)  # 130
+```
 
 ```python
 #without return
