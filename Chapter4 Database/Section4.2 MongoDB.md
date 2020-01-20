@@ -1861,6 +1861,35 @@ collection.find({'name':'moris'}).hint([('name', -1)]).explain()
 
 example: pymongo map-reduce
 
+```json
+// data
+{
+    "cust_id" : "a123",
+    "amount" : 500,
+    "status" : "a"
+}
+{
+    "cust_id" : "a123",
+    "amount" : 250,
+    "status" : "a"
+}
+{
+    "cust_id" : "b212",
+    "amount" : 200,
+    "status" : "a"
+}
+{
+    "cust_id" : "b212",
+    "amount" : 400,
+    "status" : "a"
+}
+{
+    "cust_id" : "a123",
+    "amount" : 300,
+    "status" : "d"
+}
+```
+
 ```py
 import pymongo
 
@@ -1871,4 +1900,16 @@ map_func='function() {emit(this.cust_id,this.amount);}'
 reduce_func='function(key, values){return Array.sum(values);}'
 
 collection.map_reduce(map_func, reduce_func, out='myresult', query={'status':'a'})
+```
+
+```json
+// result
+{
+    "_id" : "a123",
+    "value" : 750.0
+}
+{
+    "_id" : "b212",
+    "value" : 600.0
+}
 ```
