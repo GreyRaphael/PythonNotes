@@ -1899,7 +1899,9 @@ collection=client.test.users
 map_func='function() {emit(this.cust_id,this.amount);}'
 reduce_func='function(key, values){return Array.sum(values);}'
 
-collection.map_reduce(map_func, reduce_func, out='myresult', query={'status':'a'})
+new_collection=collection.map_reduce(map_func, reduce_func, 'myresult', query={'status':'a'})
+for i in new_collection.find():
+    print(i)
 ```
 
 ```json
