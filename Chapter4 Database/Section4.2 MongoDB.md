@@ -1858,3 +1858,17 @@ collection.create_index([('name', -1)], unique=True)
 
 collection.find({'name':'moris'}).hint([('name', -1)]).explain()
 ```
+
+example: pymongo map-reduce
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.users
+
+map_func='function() {emit(this.cust_id,this.amount);}'
+reduce_func='function(key, values){return Array.sum(values);}'
+
+collection.map_reduce(map_func, reduce_func, out='myresult', query={'status':'a'})
+```
