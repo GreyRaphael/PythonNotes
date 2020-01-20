@@ -1827,3 +1827,34 @@ collection.update({'name':'grey'}, {'$pullAll':{'data':[777,888,999]}})
 # where query: 本质是使用js代码来代替$lt, $gt
 collection.find_one({'$where':'this.age>20 && this.age<30'})
 ```
+
+example: pymongo index
+
+```py
+import pymongo
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
+collection=client.test.users
+
+# create index
+collection.create_index([('name', pymongo.ASCENDING),])
+[i for i in collection.list_indexes()]
+# or 
+collection.index_information()
+# when modification and update, do reindex
+collection.reindex()
+
+# query analysis
+collection.find({'name':'moris'}).explain()
+
+# drop index
+collection.drop_index('name_1')
+# drop index except _id
+collection.drop_indexes()
+[i for i in collection.list_indexes()]
+
+# unique index
+collection.create_index([('name', -1)], unique=True)
+
+collection.find({'name':'moris'}).hint([('name', -1)]).explain()
+```
