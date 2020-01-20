@@ -941,13 +941,13 @@ class MongoPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
-            mongo_uri=crawler.settings.get('MONGO_URI')
+            mongo_uri=crawler.settings.get('MONGO_URI'),
             mongo_db=crawler.settings.get('MONGO_DB')
         )
     
     def open_spider(self, spider):
         self.client=pymongo.MongoClient(self.mongo_uri)
-        self.db=self.client(self.mongo_db)
+        self.db=self.client[self.mongo_db]
     
     def process_item(self, item, spider):
         name=item.__class__.__name__
