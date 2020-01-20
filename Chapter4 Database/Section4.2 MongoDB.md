@@ -1915,3 +1915,25 @@ for i in new_collection.find():
     "value" : 600.0
 }
 ```
+
+example: pymongo with spider
+
+```py
+import pymongo
+import requests
+from lxml import etree
+
+client=pymongo.MongoClient('mongodb://grey:xxxxxx@xx.xx.xx.xx')
+collection=client.test.movie
+
+r=requests.get('https://www.meijutt.tv/new100.html')
+tree=etree.HTML(r.content.decode('gbk'))
+
+title_list=tree.xpath('//li/h5/a/@title')
+type_list=tree.xpath("//li/span[@class='mjjq']/text()")
+tv_list=tree.xpath("//li/span[@class='mjtv']/text()")
+status_list=tree.xpath("//li/span/font/text()")
+
+for data in zip(title_list, status_list, type_list, tv_list):
+    collection.update({'title':data[0]}, {'$set':{'title':data[0], 'status':data[1], 'type':data[2], 'tv':data[3]}}, upsert=True)
+```
