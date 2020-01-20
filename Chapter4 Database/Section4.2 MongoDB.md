@@ -1897,6 +1897,7 @@ client=pymongo.MongoClient('mongodb://grey:xxxxxx@localhost')
 collection=client.test.users
 
 map_func='function() {emit(this.cust_id,this.amount);}'
+# map_func='function() {emit(this.cust_id,1);}' # 表示统计cust_id个数
 reduce_func='function(key, values){return Array.sum(values);}'
 
 new_collection=collection.map_reduce(map_func, reduce_func, 'myresult', query={'status':'a'})
