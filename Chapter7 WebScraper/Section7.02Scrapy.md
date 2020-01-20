@@ -1485,3 +1485,116 @@ if r.text.find('RacherSasuke')!=-1:
 else:
     print('cookie is bad')
 ```
+
+example: scrape proxies with mongodb
+
+```bash
+C:.
+│  scrapy.cfg
+│
+└─hello
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │
+    └─spiders
+            xici.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'hello'
+
+SPIDER_MODULES = ['hello.spiders']
+NEWSPIDER_MODULE = 'hello.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+ITEM_PIPELINES = {
+   'hello.pipelines.HelloPipeline': 300,
+}
+MONGO_URI='mongodb://grey:xxxxxx@xx.xx.xx.xx'
+MONGO_DB='xici'
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# pipelines.py
+import pymongo
+
+class HelloPipeline(object):
+    def __init__(self, mongo_uri, mongo_db):
+        self.mongo_uri=mongo_uri
+        self.mongo_db=mongo_db
+    
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            mongo_uri=crawler.settings.get('MONGO_URI'),
+            mongo_db=crawler.settings.get('MONGO_DB')
+        )
+    
+    def open_spider(self, spider):
+        self.client=pymongo.MongoClient(self.mongo_uri)
+        self.db=self.client[self.mongo_db]
+    
+    def process_item(self, item, spider):
+        self.db['proxies'].update(item, {'$set':item}, upsert=True)
+        return item
+    
+    def close_spider(self, spider):
+        self.client.close()
+```
+
+```py
+# items.py
+import scrapy
+
+class HelloItem(scrapy.Item):
+    proxy=scrapy.Field()
+```
+
+```py
+# xici.py
+import scrapy
+import requests
+
+
+class XiciSpider(scrapy.Spider):
+    name = 'xici'
+    allowed_domains = ['www.xicidaili.com']
+    start_urls = ['https://www.xicidaili.com/nn/1']
+    pg = 1
+
+    def parse(self, response):
+        protocol_list = response.xpath('//tr/td[6]//text()').extract()
+        ip_list = response.xpath('//tr/td[2]//text()').extract()
+        port_list = response.xpath('//tr/td[3]//text()').extract()
+
+        for data in zip(protocol_list, ip_list, port_list):
+            proxy = {f'{data[0]}': f'{data[0]}://{data[1]}:{data[2]}'}
+            if self.check_proxy(proxy):
+                yield {'proxy': proxy}
+
+        if self.pg < 2:
+            self.pg += 1
+
+        yield scrapy.Request(f'https://www.xicidaili.com/nn/{self.pg}', callback=self.parse)
+
+    def check_proxy(self, proxy):
+        try:
+            requests.get('https://www.baidu.com',
+                        proxies=proxy,
+                        timeout=2,
+                        headers={
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0'})
+            return True
+        except:
+            return False
+```
