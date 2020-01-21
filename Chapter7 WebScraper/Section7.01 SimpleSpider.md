@@ -4,23 +4,23 @@
   - [Introdution](#introdution)
   - [HTTP request/response](#http-requestresponse)
   - [Proxy](#proxy)
-  - [urllib](#urllib)
-  - [requests](#requests)
+  - [`urllib`](#urllib)
+  - [`requests`](#requests)
     - [requests HTTP Auth](#requests-http-auth)
     - [request json](#request-json)
     - [requests session](#requests-session)
-  - [BeautifulSoup](#beautifulsoup)
+  - [`BeautifulSoup`](#beautifulsoup)
     - [BeautifulSoup selector](#beautifulsoup-selector)
   - [selenium](#selenium)
     - [selenium + chrome](#selenium--chrome)
     - [selenium + phantomjs](#selenium--phantomjs)
     - [selenium with firefox](#selenium-with-firefox)
-    - [selenium keys &amp; click](#selenium-keys-amp-click)
+    - [selenium keys & click](#selenium-keys--click)
     - [selenium with dynamic page](#selenium-with-dynamic-page)
     - [selenium mobile emulation](#selenium-mobile-emulation)
   - [login with cookie](#login-with-cookie)
     - [method1: only with session](#method1-only-with-session)
-    - [method2&amp;3: cookie with request](#method2amp3-cookie-with-request)
+    - [method2&3: cookie with request](#method23-cookie-with-request)
   - [word cloud](#word-cloud)
   - [Periodic Sign Task](#periodic-sign-task)
   - [XPath](#xpath)
@@ -170,6 +170,52 @@ proxies = {
  
 response = requests.get("https://m.huxiu.com/", proxies = proxies)
 print(response.text)
+```
+
+example: sock5 proxy
+
+```py
+import socket
+import socks
+import requests
+
+#洋葱浏览器9150默认端口的代理
+socks.set_default_proxy(socks.SOCKS5,"127.0.0.1",9150)
+socket.socket = socks.socksocket
+
+print(requests.get("http://checkip.amazonaws.com").text)
+```
+
+```py
+# visit deep web
+import  requests
+proxies={"http":"http://127.0.0.1:9150","https":"https://127.0.0.1:9150"}
+s=requests.Session()
+print(s.get("http://hcutffpecnc44vef.onion/",proxies=proxies).text)
+```
+
+example: iteract with tor browser by [stem](https://stem.torproject.org/api.html)
+> `pip install stem`
+
+```py
+import socks#设置全局端口代理
+import requests
+import time
+import socket
+import stem #换ip
+from stem import Signal #信号
+from stem.control import  Controller #控制器
+
+controller=Controller.from_port(port=9151) #端口转发
+controller.authenticate() #控制器，换ip
+
+socks.set_default_proxy(socks.SOCKS5,"127.0.0.1",9150)
+socket.socket=socks.socksocket
+
+for   i   in range(10):
+    print(i,requests.get("http://checkip.amazonaws.com").text)
+    controller.signal(Signal.NEWNYM)
+    time.sleep(15)
 ```
 
 example2: www.kuaidaili.com抓取代理ip
