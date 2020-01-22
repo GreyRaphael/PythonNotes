@@ -1598,3 +1598,25 @@ class XiciSpider(scrapy.Spider):
         except:
             return False
 ```
+
+example: sitemap example
+> `scrapy crawl apple -o data.json`
+
+```py
+# apple.py
+import scrapy
+
+class AppleSpider(scrapy.spiders.SitemapSpider):
+    name = 'apple'
+    allowed_domains = ['www.apple.com']
+    # spider会请求sitemap中的所有urls
+    sitemap_urls =  ['https://www.apple.com/sitemap.xml']
+
+
+    def parse(self, response):
+        yield {
+            # 获取新Url的url和title
+            'url':response.url,
+            'title':response.xpath('//head/title/text()').extract_first()
+        }
+```
