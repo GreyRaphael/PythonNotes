@@ -187,7 +187,7 @@ print(requests.get("http://checkip.amazonaws.com").text)
 ```
 
 example: visit deep web
-> 通过CCProxy代理1080端口，然后Vidalia设置Tor的proxy为`socks://127.0.0.1:1080`， 然后使用cow代理Tor的9050端口到7777  
+> 通过CCProxy代理1080端口，然后Vidalia设置Tor的proxy为`socks://127.0.0.1:1080`， 然后使用cow代理Tor的9050端口到7777；也可以配合selenium+PhantomJS的`--proxy`访问带js的页面  
 > ![](res/tor01.png)
 
 ```py
