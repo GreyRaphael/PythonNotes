@@ -1620,3 +1620,70 @@ class AppleSpider(scrapy.spiders.SitemapSpider):
             'title':response.xpath('//head/title/text()').extract_first()
         }
 ```
+
+example: use `meta`
+
+```bash
+.
+│  scrapy.cfg
+└─lesmao
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │
+    └─spiders
+            lsm.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'lesmao'
+
+SPIDER_MODULES = ['lesmao.spiders']
+NEWSPIDER_MODULE = 'lesmao.spiders'
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class LesmaoItem(scrapy.Item):
+    pass
+```
+
+```py
+# lsm.py
+import scrapy
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+    pg=1
+
+    def parse(self, response):
+        urls=response.xpath('//h2/a/@href').extract()
+        titles=response.xpath('//h2/a/text()').extract()
+        for short_url, title in zip(urls, titles):
+            url=f'https://www.lesmao.co/{short_url}'
+            item={'url':url, 'title':title}
+            yield scrapy.Request(url,meta={"item":item}, callback=self.parse_page)
+        
+        if self.pg<5:
+            self.pg+=1
+        yield scrapy.Request(f'https://www.lesmao.co/plugin.php?id=group&page={self.pg}', callback=self.parse)
+
+    def parse_page(self, response):
+        item=response.meta['item']
+        date=response.xpath('//div[@id="thread-title"]/em/text()').extract_first()
+        item['date']=date
+        yield item
+```
