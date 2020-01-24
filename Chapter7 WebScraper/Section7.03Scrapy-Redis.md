@@ -238,9 +238,24 @@ class MyCrawler(RedisCrawlSpider):
 
 ```py
 # main.py和spiders.py同一层
+# method1
 from scrapy import cmdline
 
 cmdline.execute('scrapy runspider lsm4.py'.split())
+```
+
+```py
+# method2
+from scrapy.crawler import CrawlerProcess  #进程启动爬虫
+from scrapy.utils.project import get_project_settings #抓取配置
+from  example.spiders.lsm4 import MyCrawler # 爬虫类
+
+settings = get_project_settings()  #抓取配置
+process = CrawlerProcess(settings=settings)#进程启动爬虫
+process.crawl(MyCrawler)
+#process.crawl(MyCrawler1)   可以并发执行多个
+# process.crawl(MyCrawler2)
+process.start()
 ```
 
 ## Spider with remote Redis
