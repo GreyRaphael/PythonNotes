@@ -186,10 +186,14 @@ socket.socket = socks.socksocket
 print(requests.get("http://checkip.amazonaws.com").text)
 ```
 
+example: visit deep web
+> 通过CCProxy代理1080端口，然后Vidalia设置Tor的proxy为`socks://127.0.0.1:1080`， 然后使用cow代理Tor的9050端口到7777  
+> ![](res/tor01.png)
+
 ```py
 # visit deep web
 import  requests
-proxies={"http":"http://127.0.0.1:9150","https":"https://127.0.0.1:9150"}
+proxies={"http":"http://127.0.0.1:7777","https":"https://127.0.0.1:7777"}
 s=requests.Session()
 print(s.get("http://hcutffpecnc44vef.onion/",proxies=proxies).text)
 ```
@@ -206,7 +210,7 @@ import stem #换ip
 from stem import Signal #信号
 from stem.control import  Controller #控制器
 
-controller=Controller.from_port(port=9151) #端口转发
+controller=Controller.from_port(port=9151) #9151时控制端口
 controller.authenticate() #控制器，换ip
 
 socks.set_default_proxy(socks.SOCKS5,"127.0.0.1",9150)
