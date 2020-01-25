@@ -83,3 +83,21 @@ class Handler(BaseHandler):
 
 tip: GUI中的rate表示每秒发送多少request, burst是令牌桶的数量, 后面几个progressbar是统计信息
 > ![](res/pyspider01.png)
+
+example: pyspider with douban json
+
+```py
+from pyspider.libs.base_handler import *
+
+class Handler(BaseHandler):
+    def on_start(self):
+        self.crawl('http://movie.douban.com/j/search_subjects?type=movie&tag=%E7%83%AD%E9%97%A8&sort=recommend&page_limit=20&page_start=0',
+                   callback=self.json_parser)
+
+    def json_parser(self, response):
+        return [{
+            "title": x['title'],
+            "rate": x['rate'],
+            "url": x['url']
+        } for x in response.json['subjects']]
+```
