@@ -128,3 +128,36 @@ class Handler(BaseHandler):
             "title": response.doc('title').text(),
         }
 ```
+
+```py
+import re
+from pyspider.libs.base_handler import *
+
+class Handler(BaseHandler):
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl('http://movie.douban.com/tag/', callback=self.index_page)
+
+    @config(age=24 * 60 * 60)
+    def index_page(self, response):
+        for each in response.doc('a[href^="http"]').items():
+            if re.match("http://movie.douban.com/tag/\w+", each.attr.href, re.U):
+                self.crawl(each.attr.href, callback=self.list_page)
+
+    @config(age=10 * 24 * 60 * 60, priority=2)
+    def list_page(self, response):
+        for each in response.doc('HTML>BODY>DIV#wrapper>DIV#content>DIV.grid-16-8.clearfix>DIV.article>DIV>TABLE TR.item>TD>DIV.pl2>A').items():
+            self.crawl(each.attr.href, priority=9, callback=self.detail_page)
+        # 翻页
+        for each in response.doc('HTML>BODY>DIV#wrapper>DIV#content>DIV.grid-16-8.clearfix>DIV.article>DIV.paginator>A').items():
+            self.crawl(each.attr.href, callback=self.list_page)
+
+    @config(priority=3)
+    def detail_page(self, response):
+        return {
+            "url": response.url,
+            "title": response.doc('HTML>BODY>DIV#wrapper>DIV#content>H1>SPAN').text(),
+            "导演": [x.text() for x in response.doc('a[rel="v:directedBy"]').items()],
+        }
+```
+
