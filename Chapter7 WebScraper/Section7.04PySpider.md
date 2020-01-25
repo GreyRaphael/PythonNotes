@@ -161,3 +161,34 @@ class Handler(BaseHandler):
         }
 ```
 
+example: pyspider with phantomjs
+> phantomjs already in environment variable
+
+```py
+class Handler(BaseHandler):
+    def on_start(self):
+        # 设置fetch_type来使用phantomjs
+        self.crawl('http://movie.douban.com/explore',fetch_type='js', callback=self.phantomjs_parser)
+
+    def phantomjs_parser(self, response):
+        return [{
+            "rate": x('p strong').text(),
+            "url": x.attr.href,
+        } for x in response.doc('a.item').items()]
+```
+
+```py
+class Handler(BaseHandler):
+    def on_start(self):
+        # 设置js_script来执行翻页
+        self.crawl('http://movie.douban.com/explore#more',fetch_type='js', js_script="""
+                function() {
+                    setTimeout("$('.more').click()", 1000);
+                }""", callback=self.phantomjs_parser)
+
+    def phantomjs_parser(self, response):
+        return [{
+            "rate": x('p strong').text(),
+            "url": x.attr.href,
+        } for x in response.doc('a.item').items()]
+```
