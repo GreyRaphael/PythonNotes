@@ -99,3 +99,29 @@ for android platform
 - cookie: 可以重新连接
 - session：重连需要验证
 - token: 根据用户名、密码、ip判断是否是客户端，防止网络欺骗
+
+不许登录site:
+- 静态html: 
+  - urllib
+  - requests
+- 动态页面(js, ajax):
+  - requests抓json
+  - selenium
+  - scrapy-splash渲染js得到最终的html
+
+需要登录的site:
+- 通用办法selenium登录得到cookie+requests
+- requests的session post登录(适用于很少的网站)，也可获得cookie
+- requests使用浏览器的cookie来访问
+- 研究网站的js加密过程，将加密的数据post来登录
+
+带token的网站:
+- 服务器提供token给客户端，客户端需要利用token和js来加密数据，然后客户端将加密的数据post来进行登录
+- 服务器会经常修改token，导致post难度加大
+
+example: token
+
+本地数据是hello, token是1，js是加密方式(字母+1)，那么得到ifmmp;
+
+如果服务器提供的token变成2，甚至js改变，post会变得异常困难
+
