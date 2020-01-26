@@ -11,11 +11,11 @@
   - [Condition](#condition)
     - [线程调度](#%e7%ba%bf%e7%a8%8b%e8%b0%83%e5%ba%a6)
   - [Queue](#queue)
-  - [Productor &amp; Customer](#productor-amp-customer)
+  - [Productor & Customer](#productor--customer)
   - [Thread Pool](#thread-pool)
   - [定时线程](#%e5%ae%9a%e6%97%b6%e7%ba%bf%e7%a8%8b)
-  - [with](#with)
-  - [前台进程&amp;后台进程](#%e5%89%8d%e5%8f%b0%e8%bf%9b%e7%a8%8bamp%e5%90%8e%e5%8f%b0%e8%bf%9b%e7%a8%8b)
+  - [`with`](#with)
+  - [前台进程&后台进程](#%e5%89%8d%e5%8f%b0%e8%bf%9b%e7%a8%8b%e5%90%8e%e5%8f%b0%e8%bf%9b%e7%a8%8b)
 
 ## Introduction
 
@@ -193,6 +193,22 @@ for i in range(6):  # 6个线程，相当于6个用户同时发给feiQ;1000个�
 
 while True:
     pass
+```
+
+example: attack multiple users
+
+```py
+import threading
+import socket
+
+def func(ip):
+    mystr="1_lbt4_10#32899#002481627512#0#0#0:1289671407:你的baby:你的hello:288:你好少年"
+    udp=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp.connect((ip, 2425))
+    udp.send(mystr.encode('gbk'))
+
+for i in range(1, 10):
+    threading.Thread(target=func, args=(f'192.168.128.{i}',)).start()
 ```
 
 ```python
