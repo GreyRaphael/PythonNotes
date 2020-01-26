@@ -15,7 +15,7 @@
   - [python extending](#python-extending)
     - [python extending with c](#python-extending-with-c)
     - [python extending with .so file](#python-extending-with-so-file)
-    - [python extending with c++](#python-extending-with-c)
+    - [python extending with c++](#python-extending-with-c-1)
     - [python extending with cython](#python-extending-with-cython)
   - [rename mulitiple files](#rename-mulitiple-files)
   - [wifi example](#wifi-example)
@@ -793,6 +793,65 @@ for filename in os.listdir('.'):
 ### windows wifi crack
 
 `pip install pywifi`, `pip install pytest`
+
+example: scan available wifi
+
+```py
+import pywifi
+import time
+import logging
+
+pywifi.set_loglevel(logging.INFO) #  为了观察ssid, bssid
+
+wifi=pywifi.PyWiFi()
+# first network interface card
+card=wifi.interfaces()[0]
+print(card.name())
+
+card.scan()
+time.sleep(5)
+for profile in card.scan_results():
+    print(profile)
+```
+
+example: connect to a wifi
+
+```py
+import pywifi
+import time
+import logging
+
+pywifi.set_loglevel(logging.INFO)
+
+def connect():
+    wifi = pywifi.PyWiFi()
+    iface = wifi.interfaces()[0]
+    iface.disconnect()
+    iface.remove_all_network_profiles()
+
+    profile = pywifi.Profile()
+    profile.ssid = 'wang'
+    profile.auth = pywifi.const.AUTH_ALG_OPEN  # open公开需要密码，share共享无需密码
+    profile.akm.append(pywifi.const.AKM_TYPE_WPA2PSK)  # 默认加密算法
+    profile.cipher = pywifi.const.CIPHER_TYPE_CCMP  # 链接wifi,数据格式ccmp
+    profile.key = 'wangjia999'
+    tmp_profile = iface.add_network_profile(profile)
+
+    iface.connect(tmp_profile)
+    time.sleep(6)
+    ok = False
+    if iface.status() == pywifi.const.IFACE_CONNECTED:
+        ok = True
+        print('connect success!')
+    else:
+        print('connect fail!')
+
+    iface.disconnect()
+    return ok
+
+if __name__ == "__main__":
+    connect()
+```
 
 step1: test
 
