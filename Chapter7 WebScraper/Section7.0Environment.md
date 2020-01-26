@@ -4,6 +4,7 @@
   - [Introduction](#introduction)
   - [Fiddler](#fiddler)
   - [Outline](#outline)
+  - [Security Level](#security-level)
 
 ## Introduction
 
@@ -92,3 +93,9 @@ for android platform
 1. Scrapy分布式原理及Scrapy-Redis源码解析
 1. Scrapy分布式架构搭建抓取知乎
 1. Scrapy分布式的部署详解
+
+## Security Level
+
+- cookie: 可以重新连接
+- session：重连需要验证
+- token: 根据用户名、密码、ip判断是否是客户端，防止网络欺骗
