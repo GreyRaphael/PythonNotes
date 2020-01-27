@@ -5,6 +5,7 @@
   - [Fiddler](#fiddler)
   - [Outline](#outline)
   - [Security Level](#security-level)
+  - [Other environment](#other-environment)
 
 ## Introduction
 
@@ -124,4 +125,13 @@ example: token
 本地数据是hello, token是1，js是加密方式(字母+1)，那么得到ifmmp;
 
 如果服务器提供的token变成2，甚至js改变，post会变得异常困难
+
+## Other environment
+
+tips: 如果slave机器不多，可以每台机器用git同步代码；如果slave机器太多，就需要用到[scrapyd](https://scrapyd.readthedocs.io/en/latest/) or [python-scrapyd-api](https://python-scrapyd-api.readthedocs.io/en/latest/)来部署(deployment)
+
+example: scrapyd usage
+- `pip install scrapyd`
+- `scrapyd`开启服务
+- in browser: `127.0.0.1:6800`
 
