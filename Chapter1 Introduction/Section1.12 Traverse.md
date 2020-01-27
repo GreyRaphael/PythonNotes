@@ -1,18 +1,18 @@
 # Python Traverse
 
 - [Python Traverse](#python-traverse)
-    - [线性递归](#%E7%BA%BF%E6%80%A7%E9%80%92%E5%BD%92)
-    - [树形递归](#%E6%A0%91%E5%BD%A2%E9%80%92%E5%BD%92)
-    - [stack模拟recursive](#stack%E6%A8%A1%E6%8B%9Frecursive)
-        - [深度遍历 vs 广度遍历](#%E6%B7%B1%E5%BA%A6%E9%81%8D%E5%8E%86-vs-%E5%B9%BF%E5%BA%A6%E9%81%8D%E5%8E%86)
-    - [web crawler](#web-crawler)
-        - [BFS](#bfs)
-        - [DFS](#dfs)
-    - [python crawler with finance](#python-crawler-with-finance)
-        - [get data](#get-data)
-        - [download from page](#download-from-page)
-        - [延时处理信息](#%E5%BB%B6%E6%97%B6%E5%A4%84%E7%90%86%E4%BF%A1%E6%81%AF)
-        - [实时处理](#%E5%AE%9E%E6%97%B6%E5%A4%84%E7%90%86)
+  - [线性递归](#%e7%ba%bf%e6%80%a7%e9%80%92%e5%bd%92)
+  - [树形递归](#%e6%a0%91%e5%bd%a2%e9%80%92%e5%bd%92)
+  - [stack模拟recursive](#stack%e6%a8%a1%e6%8b%9frecursive)
+    - [深度遍历 vs 广度遍历](#%e6%b7%b1%e5%ba%a6%e9%81%8d%e5%8e%86-vs-%e5%b9%bf%e5%ba%a6%e9%81%8d%e5%8e%86)
+  - [web crawler](#web-crawler)
+    - [BFS](#bfs)
+    - [DFS](#dfs)
+  - [python crawler with finance](#python-crawler-with-finance)
+    - [get data](#get-data)
+    - [download from page](#download-from-page)
+    - [延时处理信息](#%e5%bb%b6%e6%97%b6%e5%a4%84%e7%90%86%e4%bf%a1%e6%81%af)
+    - [实时处理](#%e5%ae%9e%e6%97%b6%e5%a4%84%e7%90%86)
 
 ## 线性递归
 
@@ -1131,6 +1131,7 @@ browser = webdriver.Firefox(
     firefox_binary=r"D:\Browser\Firefox\Firefox\firefox.exe",
     executable_path=r"D:\Browser\WebDriver\geckodriver.exe")
 browser.get("http://quote.stockstar.com/stock/gem_3_1_1.html")
+# browser.get("http://quote.stockstar.com/stock/stock_index.htm")
 print(browser.page_source)
 ```
 
