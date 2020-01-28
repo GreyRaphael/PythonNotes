@@ -1,24 +1,23 @@
 # Big Data
 
 - [Big Data](#big-data)
-    - [数据分类](#%E6%95%B0%E6%8D%AE%E5%88%86%E7%B1%BB)
-        - [`pickle.dump()`](#pickledump)
-        - [`pickle.load()`](#pickleload)
-        - [数据详细分类](#%E6%95%B0%E6%8D%AE%E8%AF%A6%E7%BB%86%E5%88%86%E7%B1%BB)
-            - [List with for loop](#list-with-for-loop)
-            - [Dict(hash)](#dicthash)
-    - [数据归并&分割](#%E6%95%B0%E6%8D%AE%E5%BD%92%E5%B9%B6%E5%88%86%E5%89%B2)
-        - [数据归并](#%E6%95%B0%E6%8D%AE%E5%BD%92%E5%B9%B6)
-            - [归并算法](#%E5%BD%92%E5%B9%B6%E7%AE%97%E6%B3%95)
-        - [文件的切割](#%E6%96%87%E4%BB%B6%E7%9A%84%E5%88%87%E5%89%B2)
-    - [文件的加密&解密](#%E6%96%87%E4%BB%B6%E7%9A%84%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86)
-        - [文件的加密](#%E6%96%87%E4%BB%B6%E7%9A%84%E5%8A%A0%E5%AF%86)
-        - [文件的解密](#%E6%96%87%E4%BB%B6%E7%9A%84%E8%A7%A3%E5%AF%86)
-    - [`os` module](#os-module)
-        - [`popen()`](#popen)
-        - [file operation](#file-operation)
-    - [密码相关](#%E5%AF%86%E7%A0%81%E7%9B%B8%E5%85%B3)
-        - [排列&组合](#%E6%8E%92%E5%88%97%E7%BB%84%E5%90%88)
+  - [数据分类](#%e6%95%b0%e6%8d%ae%e5%88%86%e7%b1%bb)
+    - [`pickle.dump()`](#pickledump)
+    - [`pickle.load()`](#pickleload)
+    - [seperate data](#seperate-data)
+      - [Dict(hash)](#dicthash)
+  - [数据归并&分割](#%e6%95%b0%e6%8d%ae%e5%bd%92%e5%b9%b6%e5%88%86%e5%89%b2)
+    - [数据归并](#%e6%95%b0%e6%8d%ae%e5%bd%92%e5%b9%b6)
+      - [归并算法](#%e5%bd%92%e5%b9%b6%e7%ae%97%e6%b3%95)
+    - [文件的切割](#%e6%96%87%e4%bb%b6%e7%9a%84%e5%88%87%e5%89%b2)
+  - [文件的加密&解密](#%e6%96%87%e4%bb%b6%e7%9a%84%e5%8a%a0%e5%af%86%e8%a7%a3%e5%af%86)
+    - [文件的加密](#%e6%96%87%e4%bb%b6%e7%9a%84%e5%8a%a0%e5%af%86)
+    - [文件的解密](#%e6%96%87%e4%bb%b6%e7%9a%84%e8%a7%a3%e5%af%86)
+  - [`os` module](#os-module)
+    - [`popen()`](#popen)
+    - [file operation](#file-operation)
+  - [密码相关](#%e5%af%86%e7%a0%81%e7%9b%b8%e5%85%b3)
+    - [排列&组合](#%e6%8e%92%e5%88%97%e7%bb%84%e5%90%88)
 
 ## 数据分类
 
@@ -3517,9 +3516,7 @@ for item in myAnotherList:
     print(item )
 ```
 
-### 数据详细分类
-
-#### List with for loop
+### seperate data
 
 ```python
 import codecs
