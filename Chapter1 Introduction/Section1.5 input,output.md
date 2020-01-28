@@ -1,19 +1,15 @@
 # Python Input & output
 
-<!-- TOC -->
-
 - [Python Input & output](#python-input--output)
-    - [encode, decode](#encode-decode)
-    - [`repr()` vs `str()`](#repr-vs-str)
-    - [file operation](#file-operation)
-    - [文件缓存区](#文件缓存区)
-    - [文件指针](#文件指针)
-    - [数据清洗](#数据清洗)
-        - [QQ Example](#qq-example)
-        - [kaifang Example](#kaifang-example)
-        - [csdn examples](#csdn-examples)
-
-<!-- /TOC -->
+  - [encode, decode](#encode-decode)
+  - [`repr()` vs `str()`](#repr-vs-str)
+  - [file operation](#file-operation)
+  - [文件缓存区](#%e6%96%87%e4%bb%b6%e7%bc%93%e5%ad%98%e5%8c%ba)
+  - [文件指针](#%e6%96%87%e4%bb%b6%e6%8c%87%e9%92%88)
+  - [数据清洗](#%e6%95%b0%e6%8d%ae%e6%b8%85%e6%b4%97)
+    - [QQ Example](#qq-example)
+    - [csdn examples](#csdn-examples)
+  - [big data](#big-data)
 
 ## encode, decode
 
@@ -551,186 +547,6 @@ for  QQfile  in filelist:
     QQfile.close()
 ```
 
-### kaifang Example
-
-![](res/idCard.png)
-
-```python
-#Step1:数据清洗
-#只是获取了18位的身份证，15位的是另外的解释
-import codecs
-filepath=r"C:\Data\kaifangX.txt"
-file=codecs.open(filepath,"rb","gbk","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-savegoodfilepath=r"C:\Data\kaifangXGood18.txt"
-savebadfilepath=r"C:\Data\kaifangXBad.txt"
-filegood=open(savegoodfilepath,"wb")
-filebad=open(savebadfilepath,"wb")
-for  line  in  mylist:
-    linelist=line.split(",")
-    if  len(linelist)>=2:
-        if len(linelist[1])==18:
-            #good
-            filegood.write(line.encode("utf-8"))
-            pass
-        else:
-            #bad
-            filebad.write(line.encode("utf-8"))
-            pass
-    else:
-        #bad
-        filebad.write(line.encode("utf-8"))
-        pass
-
-
-filebad.close()
-filegood.close()
-```
-
-```python
-#6大区域划分,同样的思路，可以统计省份、市、区
-import codecs
-filepath=r"C:\Data\kaifangXGood18.txt"
-file=codecs.open(filepath,"rb","utf-8","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-area=[[1,"华北"],[ 2,"东北" ],[3,"华东"],[4,"中南"],[5,"西南"],[6,"西北"]]
-areafilelist=[]
-length=len(area)#长度
-for  data in area:
-    kffilepath="C:\\Data\\地区\\"+data[1]+".txt"
-    kffile=open(  kffilepath,"wb")
-    areafilelist.append(kffile)
-
-for  line  in  mylist:
-    linelist=line.split(",") #字符串切割
-    chstr=linelist[1][0] #取出一个字符
-    for  i  in range(length):
-        if  chstr==str(area[i][0]):
-            areafilelist[i].write(line.encode("utf-8"))
-            break
-
-for  kffile in areafilelist:#关闭文件
-    kffile.close()
-```
-
-```python
-#省份划分
-import codecs
-filepath=r"C:\Data\kaifangXGood18.txt"
-file=codecs.open(filepath,"rb","utf-8","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-area=[[11,"北京"],[12,"天津"],[13,"河北"],[14,"山西"],[15,"内蒙古"],[21,"辽宁"],[22,"吉林"],[23,"黑龙江"],[31,"上海"],[32,"江苏"],[33,"浙江"],[34, "安徽"],[35,"福建"],[36,"江西"],[37,"山东"],[41,"河南"],[42,"湖北"],[43, "湖南"],[44,"广东"],[45,"广西"],[46,"海南"],[50,"重庆"],[51, "四川"],[52,"贵州"],[53,"云南"],[54,"西藏"],[61,"陕西"],[62, "甘肃"],[63,"青海"],[64,"宁夏"],[65,"新疆"],[71,"台湾"],[81, "香港"],[82,"澳门"]]
-areafilelist=[]
-length=len(area)#长度
-for  data in area:
-    kffilepath="C:\\Data\\省份\\"+data[1]+".txt"
-    kffile=open(  kffilepath,"wb")
-    areafilelist.append(kffile)
-
-for  line  in  mylist:
-    linelist=line.split(",") #字符串切割
-    chstr=linelist[1][0:2] #取出2个字符；不包括2
-    for  i  in range(length):
-        if  str(area[i][0])==chstr:
-            areafilelist[i].write(line.encode("utf-8"))
-            break
-
-for  kffile in areafilelist:#关闭文件
-    kffile.close()
-```
-
-```python
-#划分年龄、星座、属相
-import codecs
-filepath=r"C:\Data\kaifangXGood18.txt"
-file=codecs.open(filepath,"rb","utf-8","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-area=[x  for x in range(1900,2018)]
-areafilelist=[]
-length=len(area)#长度
-for  data in area:
-    kffilepath="C:\\Data\\age\\"+str(data)+".txt"#比如, 1993.txt
-    kffile=open(  kffilepath,"wb")
-    areafilelist.append(kffile)
-
-for  line  in  mylist:
-    linelist=line.split(",") #字符串切割
-    chstr=linelist[1][6:10] #取出4个字符
-    for  i  in range(length):
-        if  str(area[i])==chstr:
-            areafilelist[i].write(line.encode("utf-8"))
-            break
-
-print("over")
-for  kffile in areafilelist:#关闭文件
-    kffile.close()
-```
-
-```python
-#按照月份划分
-import codecs
-filepath=r"C:\Data\kaifangXGood18.txt"
-file=codecs.open(filepath,"rb","utf-8","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-area=["%02d"%x for x in range(1,13)]
-# area=["01","02","03","04","05","06","07","08","09","10","11","12"]
-areafilelist=[]
-length=len(area)#长度
-for  data in area:
-    kffilepath="C:\\Data\\month\\"+str(data)+"月.txt"
-    kffile=open(  kffilepath,"wb")
-    areafilelist.append(kffile)
-
-for  line  in  mylist:
-    linelist=line.split(",") #字符串切割
-    chstr=linelist[1][10:12] #取出2个字符
-    for  i  in range(length):
-        if  str(area[i])==chstr:
-            areafilelist[i].write(line.encode("utf-8"))
-            break
-
-for  kffile in areafilelist:#关闭文件
-    kffile.close()
-```
-
-```python
-#按照day划分
-import codecs
-filepath=r"C:\Data\kaifangXGood18.txt"
-file=codecs.open(filepath,"rb","utf-8","ignore")#按照指定编码
-mylist=file.readlines()#返回一个list,读取到内存
-file.close()
-
-area=["%02d"%x for x in range(1,32)]#01~31
-areafilelist=[]
-length=len(area)#长度
-for  data in area:
-    kffilepath="C:\\Data\\day\\"+str(data)+"日.txt"
-    kffile=open(  kffilepath,"wb")
-    areafilelist.append(kffile)
-
-for  line  in  mylist:
-    linelist=line.split(",") #字符串切割
-    chstr=linelist[1][12:14] #取出2个字符
-    for  i  in range(length):
-        if  str(area[i])==chstr:
-            areafilelist[i].write(line.encode("utf-8"))
-            break
-
-for  kffile in areafilelist:#关闭文件
-    kffile.close()
-```
-
 文件缓冲区是为了保护磁盘，集中在一起，一次写入，一次读取；不是实时地写入；
 
 ```python
@@ -841,3 +657,84 @@ savefile.close()
 ```
 最后读取`C:\data\csdnpasswordsorttimesLast.txt`分理出第二列，然后就可以用来作为破解密码词典了
 
+## big data
+
+![](res/idCard.png)
+
+example: search string in big file (kaifang.txt or 12306.txt)
+
+```py
+# method1: search in disk
+with open('12306_60w.txt') as file:
+    for line in file:
+        if line.find('雷军')!=-1:
+            print(line, end='')
+```
+
+```py
+# method2: search in memory
+with open('12306_60w.txt') as file:
+    data=file.readlines()
+
+for line in data:
+    if line.find('雷军')!=-1:
+        print(line, end='')
+```
+
+example: 数据清洗
+
+```py
+with open('12306_60w.txt') as file1, open('good12306.txt', 'w', encoding='utf8') as file2, open('bad12306.txt', 'w', encoding='utf8') as file3:
+    for line in file1:
+        line_list = line.split('----')
+        id_card = line_list[3]
+        if len(id_card) == 18:
+            file2.write(line)
+        else:
+            file3.write(line)
+```
+
+example: seperate file by area
+
+```py
+area_dict = {"1": "华北",
+             "2": "东北",
+             "3": "华东",
+             "4": "中南",
+             "5": "西南",
+             "6": "西北"}
+file_dict = {}
+count_dict = {}
+for k in area_dict:
+    filename = f'area/{area_dict[k]}.txt'
+    file_dict[k] = open(filename, 'w', encoding='utf8')
+    count_dict[k] = 0
+
+
+with open('good12306.txt', encoding='utf8') as file:
+    for line in file:
+        line_list = line.split('----')
+        id_card = line_list[3]
+        for k in file_dict:
+            if id_card.startswith(k):
+                file_dict[k].write(line)
+                count_dict[k] += 1
+
+for k in file_dict:
+    file_dict[k].close()
+
+print(count_dict)
+```
+
+example: seperate file by province
+
+```py
+# 在上一个例子上修改area_dict
+area_dict = {'11': "北京", '12': "天津", '13': "河北", '14': "山西", '15': "内蒙古",
+             '21': "辽宁", '22': "吉林", '23': "黑龙江",
+             '31': "上海", '32': "江苏", '33': "浙江", '34': "安徽", '35': "福建", '36': "江西", '37': "山东",
+             '41': "河南", '42': "湖北", '43': "湖南", '44': "广东", '45': "广西", '46': "海南",
+             '50': "重庆", '51': "四川", '52': "贵州", '53': "云南", '54': "西藏",
+             '61': "陕西", '62': "甘肃", '63': "青海", '64': "宁夏", '65': "新疆",
+             '71': "台湾", '81': "香港", '82': "澳门"}
+```
