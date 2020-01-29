@@ -1687,3 +1687,24 @@ class LsmSpider(scrapy.Spider):
         item['date']=date
         yield item
 ```
+
+example: scrapy log
+
+```py
+# lsm.py
+import scrapy
+from scrapy import log
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+    pg=1
+
+    def parse(self, response):
+        # log由lsm spider发出
+        self.logger.warning('------------This is warning----------------')
+        # log由scrapy.log发出
+        log.logger.warning('------------This is warning----------------')
+```
+
