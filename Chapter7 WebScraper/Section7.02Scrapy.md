@@ -1708,3 +1708,22 @@ class LsmSpider(scrapy.Spider):
         log.logger.warning('------------This is warning----------------')
 ```
 
+example: stats collection
+
+```py
+import scrapy
+from scrapy import log
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+    pg=1
+
+    def parse(self, response):
+        self.crawler.stats.inc_value('crawl_count')
+        self.crawler.stats.set_value('url', response.url)
+        print('-'*30, self.crawler.stats.get_value('crawl_count'))
+        print('-'*30, self.crawler.stats.get_value('url'))
+```
+
