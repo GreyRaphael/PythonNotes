@@ -1773,6 +1773,7 @@ class LsmSpider(scrapy.Spider):
     def parse(self, response):
         pass
     
-    def myclose(self):
+    def myclose(self, **kwargs):
         print('-'*30,'spider is closed')
+        print(kwargs)
 ```
