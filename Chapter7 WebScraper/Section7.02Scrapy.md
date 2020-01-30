@@ -1777,3 +1777,44 @@ class LsmSpider(scrapy.Spider):
         print('-'*30,'spider is closed')
         print(kwargs)
 ```
+
+example: scrapy send mail
+
+```py
+# ke.py
+import scrapy
+from scrapy.xlib.pydispatch import dispatcher
+from scrapy import signals
+from scrapy import mail
+
+
+class KeSpider(scrapy.Spider):
+    name = 'ke'
+    allowed_domains = ['www.kepu.cn']
+    start_urls = ['http://www.kepu.cn/zt/']
+    pg = 1
+
+    def __init__(self):
+        dispatcher.connect(self.send_mail, signal=signals.spider_closed)
+        self.mailer = mail.MailSender(
+            smtphost='mail.pku.edu.cn',
+            mailfrom='xxxxxx@pku.edu.cn',
+            smtpuser='xxxxxx@pku.edu.cn',
+            smtppass='xxxxxx',
+            smtpport=465,
+            smtpssl=True)
+
+    def parse(self, response):
+        titles = response.xpath('//div[@class="cont"]/h5/a/text()').extract()
+        urls = response.xpath('//div[@class="cont"]/h5/a/@href').extract()
+        for title, url in zip(titles, urls):
+            yield {'title': title, 'url': url}
+        if self.pg < 10:
+            self.pg += 1
+        yield scrapy.Request(f'http://www.kepu.cn/zt/index_{self.pg}.html', callback=self.parse)
+
+    def send_mail(self):
+        # 必须要return, 否则报错
+        return self.mailer.send(to=["vip.gewei@foxmail.com"], subject="SpiderReport", body="The spider is closed", cc=["pku_gewei@163.com"])
+
+```
