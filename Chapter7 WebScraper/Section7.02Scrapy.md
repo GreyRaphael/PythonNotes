@@ -1727,3 +1727,52 @@ class LsmSpider(scrapy.Spider):
         print('-'*30, self.crawler.stats.get_value('url'))
 ```
 
+example: signal dispatch
+
+```py
+# lsm.py
+# method1
+import scrapy
+from scrapy import signals
+from scrapy.xlib.pydispatch import dispatcher
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+    pg=1
+
+    def __init__(self):
+        dispatcher.connect(self.myclose, signal=signals.spider_closed)
+
+    def parse(self, response):
+        pass
+    
+    def myclose(self):
+        print('-'*30,'spider is closed')
+```
+
+```py
+# lsm.py
+# method2
+import scrapy
+from scrapy import signals
+
+class LsmSpider(scrapy.Spider):
+    name = 'lsm'
+    allowed_domains = ['www.lesmao.co']
+    start_urls = ['https://www.lesmao.co/plugin.php?id=group&page=1']
+    pg=1
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(DmozSpider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.myclose, signal=signals.spider_closed)
+        return spider
+
+    def parse(self, response):
+        pass
+    
+    def myclose(self):
+        print('-'*30,'spider is closed')
+```
