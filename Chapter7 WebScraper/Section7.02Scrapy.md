@@ -1766,7 +1766,7 @@ class LsmSpider(scrapy.Spider):
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
-        spider = super(DmozSpider, cls).from_crawler(crawler, *args, **kwargs)
+        spider = super(LsmSpider, cls).from_crawler(crawler, *args, **kwargs)
         crawler.signals.connect(spider.myclose, signal=signals.spider_closed)
         return spider
 
