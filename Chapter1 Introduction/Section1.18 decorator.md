@@ -4,14 +4,15 @@
   - [Closures(闭包)](#closures%e9%97%ad%e5%8c%85)
   - [decorator](#decorator)
   - [decorator with parameters](#decorator-with-parameters)
-    - [property](#property)
-    - [decorator with help](#decorator-with-help)
+    - [`property`](#property)
+    - [decorator with `help`](#decorator-with-help)
   - [静态语言vs动态语言](#%e9%9d%99%e6%80%81%e8%af%ad%e8%a8%80vs%e5%8a%a8%e6%80%81%e8%af%ad%e8%a8%80)
-  - [__slots__](#slots)
+  - [`__slots__`](#slots)
   - [metaclass(元类)](#metaclass%e5%85%83%e7%b1%bb)
-    - [__metaclass__](#metaclass)
+    - [`__metaclass__`](#metaclass)
     - [metaclass application](#metaclass-application)
   - [Reflection](#reflection)
+  - [deep into `super()`](#deep-into-super)
 
 ## Closures(闭包)
 
@@ -1521,4 +1522,160 @@ import importlib
 module=importlib.import_module('PIL.Image')# 相当于from PIL import Image
 img=module.open('rabbit.jpg')
 img.show()
+```
+
+## deep into `super()`
+
+super(a, b): 表示获取b的mro表中, a的下一个class
+
+```py
+# method1: easy to understand
+class A():
+    def __init__(self):
+        print(f'from A: self={self}')
+        self.a=100
+
+class B():
+    def __init__(self):
+        print(f'from B: self={self}')
+        self.b=200
+
+class C():
+    def __init__(self):
+        print(f'from C: self={self}')
+        self.c=300
+
+
+class D(A, B, C):
+    def __init__(self):
+        print(f'from D: self={self}')
+        super(D, self).__init__()
+        super(A, self).__init__()
+        super(B, self).__init__()
+
+if __name__ == "__main__":
+    d=D()
+    print(D.__mro__)
+    print(d.a)
+    print(d.b)
+    print(d.c)
+
+# # result
+# from D: self=<__main__.D object at 0x000001D2771B4688>
+# from A: self=<__main__.D object at 0x000001D2771B4688>
+# from B: self=<__main__.D object at 0x000001D2771B4688>
+# from C: self=<__main__.D object at 0x000001D2771B4688>
+# (<class '__main__.D'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class 'object'>)
+# 100
+# 200
+# 300
+```
+
+```py
+# method2: recommended super call
+class A():
+    def __init__(self):
+        print(f'from A: self={self}')
+        super().__init__()
+        self.a=100
+
+class B():
+    def __init__(self):
+        print(f'from B: self={self}')
+        super().__init__()
+        self.b=200
+
+class C():
+    def __init__(self):
+        print(f'from C: self={self}')
+        super().__init__()
+        self.c=300
+
+
+class D(A, B, C):
+    def __init__(self):
+        print(f'from D: self={self}')
+        super().__init__()
+
+if __name__ == "__main__":
+    d=D()
+    print(D.__mro__)
+    print(d.a)
+    print(d.b)
+    print(d.c)
+
+# # result
+# from D: self=<__main__.D object at 0x000001A6A2374448>
+# from A: self=<__main__.D object at 0x000001A6A2374448>
+# from B: self=<__main__.D object at 0x000001A6A2374448>
+# from C: self=<__main__.D object at 0x000001A6A2374448>
+# (<class '__main__.D'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class 'object'>)
+# 100
+# 200
+# 300
+```
+
+```py
+# method3: python2 style
+class A():
+    def __init__(self):
+        print(f'from A: self={self}')
+        self.a=100
+
+class B():
+    def __init__(self):
+        print(f'from B: self={self}')
+        self.b=200
+
+class C():
+    def __init__(self):
+        print(f'from C: self={self}')
+        self.c=300
+
+
+class D(A, B, C):
+    def __init__(self):
+        print(f'from D: self={self}')
+        A.__init__(self)
+        B.__init__(self)
+        C.__init__(self)
+
+if __name__ == "__main__":
+    d=D()
+    print(D.__mro__)
+    print(d.a)
+    print(d.b)
+    print(d.c)
+```
+
+example: super with classmethod
+
+```py
+class A(object):
+    @classmethod
+    def do_your_stuff(cls):
+        print(f'from A, cls={cls}')
+
+class B(A):
+    @classmethod
+    def do_your_stuff(cls):
+        print(f'from B, cls={cls}')
+        super(B, cls).do_your_stuff()  # CORRECT
+        # super(cls, cls).do_your_stuff()  # WRONG
+
+class C(B):
+    @classmethod
+    def do_your_stuff(cls):
+        print(f'from C, cls={cls}')
+        super(C, cls).do_your_stuff()  # CORRECT
+        # super(cls, cls).do_your_stuff()  # WRONG
+
+C.do_your_stuff()
+print(C.__mro__)
+
+# # result
+# from C, cls=<class '__main__.C'>
+# from B, cls=<class '__main__.C'>
+# from A, cls=<class '__main__.C'>
+# (<class '__main__.C'>, <class '__main__.B'>, <class '__main__.A'>, <class 'object'>)
 ```
