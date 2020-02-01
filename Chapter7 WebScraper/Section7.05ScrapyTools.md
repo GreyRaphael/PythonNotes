@@ -328,13 +328,22 @@ class ZhejiangSpider(scrapy.Spider):
 
 ## scrapyd
 
-tips: 如果slave机器不多，可以每台机器用git同步代码；如果slave机器太多，就需要用到[scrapyd](https://scrapyd.readthedocs.io/en/latest/) or [python-scrapyd-api](https://python-scrapyd-api.readthedocs.io/en/latest/)来部署(deployment)
+tips: 如果slave机器不多，可以每台机器用git同步代码；如果slave机器太多，就需要用到
+- [scrapyd](https://scrapyd.readthedocs.io/en/latest/): server
+- [scrapyd-client](https://github.com/scrapy/scrapyd-client): publish
+- [python-scrapyd-api](https://python-scrapyd-api.readthedocs.io/en/latest/): 控制
 
 scrapyd installation:
 - `pip install Twisted==18.9.0`
 - `pip install scrapyd`
-- run `scrapyd` in server
-- in browser: `127.0.0.1:6800`
+- run `nohup scrapyd &` in linux server
+- 通过不同[url api](https://scrapyd.readthedocs.io/en/latest/api.html)在浏览器查看运行状态
+  - `http://xx.xx.xx.xx:6800/`
+  - `http://xx.xx.xx.xx:6800/jobs`
+  - `http://xx.xx.xx.xx:6800/logs/`
+  - `http://xx.xx.xx.xx:6800/daemonstatus.json`
+  - `http://xx.xx.xx.xx:6800/listprojects.json`
+  - `http://xx.xx.xx.xx:6800/listversions.json?project=coolapk`
 
 ```bash
 # /etc/scrapyd/scrapyd.conf
@@ -369,4 +378,95 @@ delproject.json   = scrapyd.webservice.DeleteProject
 delversion.json   = scrapyd.webservice.DeleteVersion
 listjobs.json     = scrapyd.webservice.ListJobs
 daemonstatus.json = scrapyd.webservice.DaemonStatus
+```
+
+scrapy publish:
+- `pip install scrapyd-client`
+- 将`D:\ProgrammingTools\Anaconda3\Scripts`中的`scrapyd-deploy`拷贝到project目录
+- 修改`scrapy.cfg`的url
+- in Anaconda Prompt: `python scrapyd-deploy -l`
+- in Anaconda Prompt: `python scrapyd-deploy default -p coolapk --version 1.0`
+- 修改文件之后再push, in Anaconda Prompt: `python scrapyd-deploy default -p coolapk --version 2.0`
+
+```
+.
+|-- coolapk
+|   |-- items.py
+|   |-- middlewares.py
+|   |-- pipelines.py
+|   |-- settings.py
+|   `-- spiders
+|       `-- cool.py
+|-- scrapy.cfg
+`-- scrapyd-deploy
+```
+
+```cfg
+[settings]
+default = coolapk.settings
+
+[deploy]
+url = http://xx.xx.xx.xx:6800/
+project = coolapk
+```
+
+```py
+# settings.py
+BOT_NAME = 'coolapk'
+
+SPIDER_MODULES = ['coolapk.spiders']
+NEWSPIDER_MODULE = 'coolapk.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+FEED_EXPORT_ENCODING = 'utf8'
+```
+
+```py
+# cool.py
+import scrapy
+
+class CoolSpider(scrapy.Spider):
+    name = 'cool'
+    allowed_domains = ['www.coolapk.com']
+    start_urls = ['https://www.coolapk.com/game?p=1']
+    pg = 1
+
+    def parse(self, response):
+        appnames = response.xpath("//p[@class='list_app_title']/text()").extract()
+        for name in appnames:
+            yield {'app': name}
+
+        if self.pg < 50:
+            self.pg += 1
+        yield scrapy.Request(f'https://www.coolapk.com/game?p={self.pg}', callback=self.parse)
+```
+
+control spider: 本质是通过POST requests实现控制
+- method1: 任何带curl的命令窗口: `curl http://xx.xx.xx.xx:6800/schedule.json -d project=coolapk -d spider=cool -d setting=FEED_URI=/home/moris/data.json _version=2.0`
+- method2: `pip install python-scrapyd-api`, 然后编程控制spider运行
+
+example: 部署到多台机器
+- 修改scrapy.cfg即可
+- `python scrapyd-deploy -l`可以查看结果
+
+```cfg
+[settings]
+default = coolapk.settings
+
+[deploy]
+url = http://xx.xx.xx.xx:6800/
+project = coolapk
+
+[deploy:machine2]
+url = http://yy.yy.yy.yy:6800/
+project = coolapk
+
+[deploy:machine3]
+url = http://zz.zz.zz.zz:6800/
+project = coolapk
 ```
