@@ -16,6 +16,30 @@
 1. 解析内容: 得到的内容可能是HTML，可以用正则表达式、网页解析库进行解析。可能是Json，可以直接转为Json对象解析，可能是二进制数据，可以做保存或者进一步的处理。
 1. 保存数据: 保存形式多样，可以存为文本，也可以保存至数据库，或者保存特定格式的文件。
 
+抓取静态页面:
+- urllib2, urllib.request
+- requests
+- selenium
+- scrapy
+
+抓取动态页面:
+- scrapy-splash
+- selenium
+- requests访问json
+
+加快下载速度:
+- 协程
+- 多线程
+- 多进程
+- 分布式
+
+反反爬虫:
+- UserAgent
+- Proxy
+- disable cookie
+- selenium, scrapy-splash
+- 验证码: tesseract训练数据识别; tensorflow识别; 
+
 爬虫数据解析方式:
 - 直接解析
 - json解析: `json.loads()`
@@ -23,6 +47,24 @@
 - xpath
 - beautifulsoup
 - pyquery
+- jsonpath
+
+保存数据:
+- json, txt, xml, csv, xls
+- mysql, mongodb, redis
+- scrapy mysql, mongodb 异步保存
+
+数据可视化:
+- pyecharts
+- matplotlib
+- seaborn
+- wordcloud
+
+数据视角
+- 爬虫: 抓取数据
+- 运维: 部署、监控、分布式爬虫、分布式作业
+- web: 管理数据、权限、展示数据
+- 数据分析: 数据加工生成报告; AI
 
 js渲染界面解决方式:
 - 分析ajax请求
