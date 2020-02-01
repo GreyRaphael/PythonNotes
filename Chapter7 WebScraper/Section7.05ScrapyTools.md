@@ -5,6 +5,7 @@
   - [Operation Automation](#operation-automation)
   - [scrapy-splash](#scrapy-splash)
   - [scrapyd](#scrapyd)
+  - [Filter](#filter)
 
 ## Flask-Redis supported proxy pool
 
@@ -469,4 +470,65 @@ project = coolapk
 [deploy:machine3]
 url = http://zz.zz.zz.zz:6800/
 project = coolapk
+```
+
+## Filter
+
+example: bloomfilter
+> 布隆过滤器生成慢，但是查找快，复杂度为O(1), 因为采用了哈希查找法  
+> 哈希查找法: 将所有数据hash; 查找的时候直接对数据hash运算(求模)然后直接定位数据点
+
+```py
+# without bloomfilter
+import time
+
+mylist=[str(x)+"a" for x in range(5000000)]
+start_time=time.time()
+print("4891234a" in mylist)
+end_time=time.time()
+print(end_time-start_time)
+```
+
+```py
+# with bloomfilter
+import time
+from pybloom import BloomFilter
+
+bm = BloomFilter(capacity=5000000, error_rate=0.0000001)
+for i in range(5000000):
+    if i % 1000000 == 0:
+        print(i)
+    bm.add(i)
+print("ok")
+
+start_time = time.time()
+print(4871234 in bm)
+end_time = time.time()
+print(end_time-start_time)
+```
+
+example: bloomfilter用于急速秒传
+> 先对文件进行md5，然后传递给服务器，服务器用bloomfilter查询，如果有的话，直接妙传
+
+```py
+from pybloom import BloomFilter
+import hashlib
+import time
+
+bm = BloomFilter(capacity=5000000, error_rate=0.0000001)
+for i in range(5000000):
+    if i % 1000000 == 0:
+        print(i)
+    md5 = hashlib.md5()
+    md5.update(str(i).encode("utf-8"))
+    bm.add(md5.hexdigest())
+print("ok")
+
+
+start_time = time.time()
+md5 = hashlib.md5()
+md5.update(str(4871234).encode("utf-8"))
+print(md5.hexdigest() in bm)
+end_time = time.time()
+print(end_time-start_time)
 ```
