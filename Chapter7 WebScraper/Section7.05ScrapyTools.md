@@ -3,6 +3,8 @@
 - [Scraper Pool](#scraper-pool)
   - [Flask-Redis supported proxy pool](#flask-redis-supported-proxy-pool)
   - [Operation Automation](#operation-automation)
+  - [scrapy-splash](#scrapy-splash)
+  - [scrapyd](#scrapyd)
 
 ## Flask-Redis supported proxy pool
 
@@ -232,4 +234,139 @@ NS=resolver.query('baidu.com', 'NS')
 # 域名下的子域名
 for i in NS:
     print(i)
+```
+
+## scrapy-splash
+
+scrapy-splash 作为scrapy的中间件来进行js渲染
+
+- install docker
+  - `sudo apt install docker.io`
+  - `sudo systemctl start docker`
+  - `sudo systemctl enable docker`
+  - `docker -v`
+  - `sudo docker info`
+  - `sudo docker images`
+- docker remove images
+  - `sudo docker ps -a`
+  - `sudo docker stop a7638d7e`
+  - `sudo docker rm a7638d7e`
+  - `sudo docker rmi a7638d7e`
+- get docker image and run
+  - `sudo docker pull scrapinghub/splash`
+  - `docker run -p 8050:8050 scrapinghub/splash`, 提供服务
+- begin scrapy project
+  - `pip install scrapy-splash`
+
+tip: [docker pull too slow](https://www.cnblogs.com/BillyYoung/p/11113914.html)
+
+example: scrapy-splash
+
+```
+│  scrapy.cfg
+└─hello
+    │  items.py
+    │  middlewares.py
+    │  pipelines.py
+    │  settings.py
+    │
+    └─spiders
+            zhejiang.py
+```
+
+```py
+# settings.py
+BOT_NAME = 'hello'
+
+SPIDER_MODULES = ['hello.spiders']
+NEWSPIDER_MODULE = 'hello.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+FEED_EXPORT_ENCODING = 'utf8'
+
+# custom setting
+# remote url or localhost
+# SPLASH_URL = 'http://xx.xx.xx.xx:8050'
+SPLASH_URL = 'http://127.0.0.1:8050'
+
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
+    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
+}
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
+```
+
+```py
+# zhejiang.py
+import scrapy
+from scrapy_splash import SplashRequest
+
+class ZhejiangSpider(scrapy.Spider):
+    name = 'zhejiang'
+    allowed_domains = ['zfcg.czt.zj.gov.cn']
+    start_urls = ['http://zfcg.czt.zj.gov.cn/purchaseNotice/index.html?categoryId=40']
+
+    def start_requests(self):
+        for url in self.start_urls:
+            yield SplashRequest(url, self.parse, args={'wait': 0.5})
+
+    def parse(self, response):
+        titles = response.xpath("//span[@class='underline']/text()").extract()
+        for title in titles:
+            yield {'title': title}
+```
+
+## scrapyd
+
+tips: 如果slave机器不多，可以每台机器用git同步代码；如果slave机器太多，就需要用到[scrapyd](https://scrapyd.readthedocs.io/en/latest/) or [python-scrapyd-api](https://python-scrapyd-api.readthedocs.io/en/latest/)来部署(deployment)
+
+scrapyd installation:
+- `pip install Twisted==18.9.0`
+- `pip install scrapyd`
+- run `scrapyd` in server
+- in browser: `127.0.0.1:6800`
+
+```bash
+# /etc/scrapyd/scrapyd.conf
+[scrapyd]
+eggs_dir    = eggs
+logs_dir    = logs
+items_dir   =
+jobs_to_keep = 5
+dbs_dir     = dbs
+max_proc    = 0
+max_proc_per_cpu = 4
+finished_to_keep = 100
+poll_interval = 5.0
+
+# 为了远程访问
+bind_address = 0.0.0.0
+http_port   = 6800
+debug       = off
+runner      = scrapyd.runner
+application = scrapyd.app.application
+launcher    = scrapyd.launcher.Launcher
+webroot     = scrapyd.website.Root
+
+[services]
+schedule.json     = scrapyd.webservice.Schedule
+cancel.json       = scrapyd.webservice.Cancel
+addversion.json   = scrapyd.webservice.AddVersion
+listprojects.json = scrapyd.webservice.ListProjects
+listversions.json = scrapyd.webservice.ListVersions
+listspiders.json  = scrapyd.webservice.ListSpiders
+delproject.json   = scrapyd.webservice.DeleteProject
+delversion.json   = scrapyd.webservice.DeleteVersion
+listjobs.json     = scrapyd.webservice.ListJobs
+daemonstatus.json = scrapyd.webservice.DaemonStatus
 ```
