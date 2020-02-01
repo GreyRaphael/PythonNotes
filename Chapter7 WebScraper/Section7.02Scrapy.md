@@ -234,6 +234,23 @@ class Myspider1Spider(scrapy.Spider):
             yield MyItem
 ```
 
+example: pipeline去重
+
+```py
+# pipelines.py
+class Test1Pipeline(object):
+    def __init__(self):
+        self.urls = []
+
+    def process_item(self, item, spider):
+        if  spider.name=="lsm":
+                if item['url'] in self.urls:
+                    raise DropItem(f"Duplicate item found: {item}")
+                else:
+                    self.urls.add(item['url'])
+            return item
+```
+
 example: scrapy with pagination
 
 ```py
