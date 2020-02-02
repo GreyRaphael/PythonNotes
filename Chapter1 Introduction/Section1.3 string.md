@@ -3,19 +3,18 @@
 <!-- TOC -->
 
 - [python string](#python-string)
-    - [`eval`](#eval)
-    - [`exec`](#exec)
-    - [编码问题](#编码问题)
-    - [常用的函数：](#常用的函数)
-        - [center](#center)
-        - [count](#count)
-        - [some funcions](#some-funcions)
-        - [replace,strip](#replacestrip)
-        - [split,splitlines](#splitsplitlines)
-    - [string format](#string-format)
-        - [string with color](#string-with-color)
-    - [string format attention](#string-format-attention)
-        - [`f'{}'`](#f)
+  - [`eval`](#eval)
+  - [`exec`](#exec)
+  - [常用的函数：](#%e5%b8%b8%e7%94%a8%e7%9a%84%e5%87%bd%e6%95%b0)
+    - [center](#center)
+    - [count](#count)
+    - [some funcions](#some-funcions)
+    - [replace,strip](#replacestrip)
+    - [split,splitlines](#splitsplitlines)
+  - [string format](#string-format)
+    - [string with color](#string-with-color)
+  - [string format attention](#string-format-attention)
+    - [`f'{}'`](#f)
 
 <!-- /TOC -->
 
@@ -119,97 +118,6 @@ for i in myList:
     print(i)
     help("str."+i)#查看每一个函数的help
     help("\"\"."+i)#查看每一个函数的help
-```
-
-## 编码问题
-
-涉及到在内存中的存储问题；
-
-```bash
-英文字母：对常用的编码、解码无所谓；但是下面的utf-16等不行
-
-字节数 : 1;编码：GB2312
-字节数 : 1;编码：GBK
-字节数 : 1;编码：GB18030
-字节数 : 1;编码：ISO-8859-1
-字节数 : 1;编码：UTF-8
-字节数 : 4;编码：UTF-16
-字节数 : 2;编码：UTF-16BE
-字节数 : 2;编码：UTF-16LE
-
-中文汉字：
-
-字节数 : 2;编码：GB2312
-字节数 : 2;编码：GBK
-字节数 : 2;编码：GB18030
-字节数 : 1;编码：ISO-8859-1
-字节数 : 3;编码：UTF-8
-字节数 : 4;编码：UTF-16
-字节数 : 2;编码：UTF-16BE
-字节数 : 2;编码：UTF-16LE
-```
-
-- 编码(encode)：字符串到二进制
-- 解码(decode)：二进制到字符串
-
-```python
-#encode
-a1="你好abc".encode("utf-8")
-a2="你好abc".encode("gbk")
-#decode
-b1=a1.decode("utf-8")
-b2=a2.decode("gbk")
-
-print(a1,a2)#b'\xe4\xbd\xa0\xe5\xa5\xbdabc' b'\xc4\xe3\xba\xc3abc'，和下面的bytes()结果一样的
-print(b1,b2)#你好abc 你好abc
-print(type(a1),type(a2))#<class 'bytes'> <class 'bytes'>
-print(type(b1),type(b2))#<class 'str'> <class 'str'> 
-```
-
-```python
-b1=bytes(10)#bytes是一个class
-print(b1)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',创建一个10bytes的object
-b2=bytes(1)
-print(b2)#b'\x00',创建一个1bytes的object
-
-#同样的一个东西，不同编码，大小不同
-#编码是对一个二进制进行不同的解释，用另外一种解释就会乱码
-#encode，字符串到二进制码
-a1=bytes("你好abc","utf-8")#一个汉字占3bytes
-a2=bytes("你好abc","gbk")#一个汉字占2bytes
-a3=bytes("abc","utf-8")
-a4=bytes("abc","gbk")
-print(a1,a2)#b'\xe4\xbd\xa0\xe5\xa5\xbdabc' b'\xc4\xe3\xba\xc3abc'
-print(a3,a4)#b'abc' b'abc'
-
-#decode,二进制码到字符串
-print(b'\xe4\xbd\xa0\xe5\xa5\xbdabc'.decode("utf-8"))#你好abc
-print(b'\xe4\xbd\xa0\xe5\xa5\xbdabc'.decode("gbk"))#浣犲ソabc，出现了乱码
-# print(b'\xc4\xe3\xba\xc3abc'.decode("utf-8"))#error
-print(b'\xc4\xe3\xba\xc3abc'.decode("gbk"))#你好abc
-print(b'abc'.decode("utf-8"))#abc
-print(b'abc'.decode("gbk"))#abc
-```
-
-文件编码和字符串编码：[区别](http://blog.csdn.net/sun_abc/article/details/5590983)
-
-文件不存在什么编码(归根结底文件都是二进制文件，用ue打开可以看到都是一个个的16进制数)，只有文件中的字符才可以说编码。通常保存的时候提示对文件编码(utf-8,ANSI)就是对文件中的字符串编码成二进制的方式。
-
-一个用**ANSI**保存的`.py`文件如果有中文，那么`python3 test.py`的时候，python3默认将二进制按照**utf-8**解析为字符串，那么中文的那一段就会乱码，如果中文英文混合，就会decode失败。
-
-而且用**utf-8**保存的文件比**ANSI**保存的文件大
-
-```python
-a1="你好abc".encode("utf-8")
-a2="你好abc".encode("gbk")
-b1=a1.decode("utf-8")
-b2=a2.decode("gbk")
-b3=a1.decode("gbk")
-b4=a2.decode("utf-8","ignore")#解码失败不出错，第二个参数默认是'strict'，还有一个'replace'
-
-print(a1,a2)#b'\xe4\xbd\xa0\xe5\xa5\xbdabc' b'\xc4\xe3\xba\xc3abc'
-print(b1,b2)#你好abc 你好abc
-print(b3,b4)#浣犲ソabc abc
 ```
 
 ## 常用的函数：
