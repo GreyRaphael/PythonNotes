@@ -13,23 +13,96 @@
 
 ## encode, decode
 
-![](res/unicode01.png)
+**字符串编码**: unicode只规定了**字符**与**二进制**的对应关系，但是没有规定这种二进制数据在内存中具体用几个字节存储。utf8, gbk才考虑用几个字节存储二进制
 
-python3的字符串编码始终是unicode, 可以直接encode到gbk, utf8的二进制;
+python3 encode, decode:
+- 编码(encode)：字符串到二进制(bytes)
+- 解码(decode)：二进制(bytes)到字符串
 
-如果该py文件编码为utf8, 那么开头就要`#-*-coding:utf8-*-`; 如果文件编码是gbk, 那么文件开头就要`#-*-coding:gbk-*-`; 不论文件编码是啥，字符串的编码都是`unicode`
+英文字母：
+- 字节数 : 1 bytes; 编码：GB2312
+- 字节数 : 1 bytes; 编码：GBK
+- 字节数 : 1 bytes; 编码：GB18030
+- 字节数 : 1 bytes; 编码：UTF-8
+- 字节数 : 4 bytes; 编码：UTF-16
+- 字节数 : 2 bytes; 编码：UTF-16BE
+- 字节数 : 2 bytes; 编码：UTF-16LE
 
-```python
-# unicode_str=u'你好' # 默认是u''
-unicode_str='你好'
-print(unicode_str)
+中文汉字：
+- 字节数 : 2 bytes; 编码：GB2312
+- 字节数 : 2 bytes; 编码：GBK
+- 字节数 : 2 bytes; 编码：GB18030
+- 字节数 : 3 bytes; 编码：UTF-8
+- 字节数 : 4 bytes; 编码：UTF-16
+- 字节数 : 2 bytes; 编码：UTF-16BE
+- 字节数 : 2 bytes; 编码：UTF-16LE
 
-utf8_str=unicode_str.encode('utf8')
-print(utf8_str)
+example: 不同编码占用的字节数不同
 
-gbk_str=unicode_str.encode('gbk')
-print(gbk_str)
+```py
+a = '我'  # 等价于 u'我' 等价于 '\u6211', 6211即我的unicode编号
+print(a.encode('utf8')) # b'\xe6\x88\x91', 一个16进制数4个bit
+print(a.encode('utf16')) # b'\xff\xfe\x11b', 这是4bytes的简化写法
+print(a.encode('gbk')) # b'\xce\xd2'
+print(a.encode('gb2312')) # b'\xce\xd2'
+
+b = 'a'
+print(b.encode('utf8')) # b'a'
+print(b.encode('utf16')) # b'\xff\xfea\x00', 这是4bytes的简化写法
+print(b.encode('gbk')) # b'a'
+print(b.encode('gb2312')) # b'a'
 ```
+
+example: 编码解码不同导致乱码
+
+```py
+a1="你好abc".encode("utf-8")
+a2="你好abc".encode("gbk")
+print(a1,a2)#b'\xe4\xbd\xa0\xe5\xa5\xbdabc' b'\xc4\xe3\xba\xc3abc'
+print(type(a1), type(a2)) #<class 'bytes'> <class 'bytes'>
+
+b1=a1.decode("utf-8")
+b2=a2.decode("gbk")
+print(b1,b2)#你好abc 你好abc
+print(type(b1), type(b2)) #<class 'str'> <class 'str'> 
+
+b3=a1.decode("gbk")
+b4=a2.decode("utf-8","ignore")#解码失败不出错，第二个参数默认是'strict'
+print(b3,b4)#浣犲ソabc abc
+```
+
+example: 可以用`bytes()`实现encode
+
+```py
+b1=bytes(10)#bytes是一个class
+print(b1)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',创建一个10bytes的object
+b2=bytes(1)
+print(b2)#b'\x00',创建一个1bytes的object
+
+#encode，字符串到二进制码
+a1=bytes("你好abc","utf-8")#一个汉字占3bytes
+a2=bytes("你好abc","gbk")#一个汉字占2bytes
+a3=bytes("abc","utf-8")
+a4=bytes("abc","gbk")
+print(a1,a2)#b'\xe4\xbd\xa0\xe5\xa5\xbdabc' b'\xc4\xe3\xba\xc3abc'
+print(a3,a4)#b'abc' b'abc'
+
+#decode,二进制码到字符串
+print(b'\xe4\xbd\xa0\xe5\xa5\xbdabc'.decode("utf-8"))#你好abc
+print(b'\xe4\xbd\xa0\xe5\xa5\xbdabc'.decode("gbk"))#浣犲ソabc，出现了乱码
+# print(b'\xc4\xe3\xba\xc3abc'.decode("utf-8"))#error
+print(b'\xc4\xe3\xba\xc3abc'.decode("gbk"))#你好abc
+print(b'abc'.decode("utf-8"))#abc
+print(b'abc'.decode("gbk"))#abc
+```
+
+文件编码和字符串编码[区别](http://blog.csdn.net/sun_abc/article/details/5590983)
+
+文件不存在什么编码(归根结底文件都是二进制文件，用ue打开可以看到都是一个个的16进制数)，只有文件中的字符才可以说编码。通常保存的时候提示对文件编码(utf-8,ANSI,gbk)就是对文件中的字符串编码成二进制的方式。
+
+一个用**gbk**保存的`.py`文件如果有中文，那么`python3 test.py`的时候，python3默认将二进制按照**utf-8**解析为字符串，那么中文的那一段可能就会decode失败。文件开头的`#-*-coding:utf8-*-`只是为了提醒编译器采用何种方式解析文件对应的二进制。
+- 如果该py文件编码为utf8, 那么开头就要`#-*-coding:utf8-*-`; 
+- 如果该py文件编码为gbk, 那么开头就要`#-*-coding:gbk-*-`; 
 
 ## `repr()` vs `str()`
 
