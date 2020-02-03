@@ -1833,5 +1833,62 @@ class KeSpider(scrapy.Spider):
     def send_mail(self):
         # 必须要return, 否则报错
         return self.mailer.send(to=["vip.gewei@foxmail.com"], subject="SpiderReport", body="The spider is closed", cc=["pku_gewei@163.com"])
+```
 
+example: scrpay with `__setitem__`
+
+```
+.
+|-- coolapk
+|   |-- items.py
+|   |-- settings.py
+|   `-- spiders
+|       `-- cool.py
+`-- scrapy.cfg
+```
+
+```py
+# settings.py
+BOT_NAME = 'coolapk'
+
+SPIDER_MODULES = ['coolapk.spiders']
+NEWSPIDER_MODULE = 'coolapk.spiders'
+
+ROBOTSTXT_OBEY = False
+
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0',
+}
+
+FEED_EXPORT_ENCODING='utf8'
+```
+
+```py
+# items.py
+import scrapy
+
+class CoolapkItem(scrapy.Item):
+    def __setitem__(self, key, value):
+        if key not in self.fields:
+            self.fields[key] = scrapy.Field()
+        self._values[key] = value
+```
+
+```py
+# cool.py
+import scrapy
+from coolapk import items
+
+class CoolSpider(scrapy.Spider):
+    name = 'cool'
+    allowed_domains = ['www.coolapk.com']
+    start_urls = [f'https://www.coolapk.com/game?p={i+1}' for i in range(10)]
+
+    def parse(self, response):
+        myItem = items.CoolapkItem()
+        names = response.xpath("//p[@class='list_app_title']/text()").extract()
+        for name in names:
+            myItem['game_name'] = name
+            yield myItem
 ```
