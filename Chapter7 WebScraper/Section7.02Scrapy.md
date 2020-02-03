@@ -1892,3 +1892,34 @@ class CoolSpider(scrapy.Spider):
             myItem['game_name'] = name
             yield myItem
 ```
+
+example: scrapy with `ItemLoader`
+> 方便大型项目的管理
+
+```py
+# items.py
+import scrapy
+
+class CoolapkItem(scrapy.Item):
+    games = scrapy.Field()
+    current_time = scrapy.Field()
+```
+
+```py
+# cool.py
+import scrapy
+from coolapk import items
+from scrapy import loader
+import time
+
+class CoolSpider(scrapy.Spider):
+    name = 'cool'
+    allowed_domains = ['www.coolapk.com']
+    start_urls = [f'https://www.coolapk.com/game?p={i+1}' for i in range(10)]
+
+    def parse(self, response):
+        myLoader=loader.ItemLoader(item=items.CoolapkItem(), response=response)
+        myLoader.add_xpath(field_name='games', xpath="//p[@class='list_app_title']/text()")
+        myLoader.add_value(field_name='current_time', value=time.asctime())
+        yield myLoader.load_item()
+```
