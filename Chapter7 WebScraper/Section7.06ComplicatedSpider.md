@@ -5,6 +5,7 @@
     - [Coroutine Spider](#coroutine-spider)
     - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
   - [Distributed Spider](#distributed-spider)
+  - [DFS & BFS Spider](#dfs--bfs-spider)
 
 ## Spider Acceleration
 
@@ -1003,4 +1004,63 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+## DFS & BFS Spider
+
+example: 深度优先爬虫递归实现
+
+```py
+import requests
+import re
+
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(thread-.+?html)"')
+visited_set = set()
+
+def scrape_urls(url):
+    r = requests.get(url, headers=headers)
+    return [f'https://www.lesmao.co/{short_url}' for short_url in pat.findall(r.text)]
+
+def scrape(url, file, depth=1):
+    visited_set.add(url)
+    url_list = scrape_urls(url)
+    # duplicate filter
+    working_urls = set(url_list)-visited_set
+
+    for url in working_urls:
+        file.write(f'depth={depth}, url={url}\n')
+
+        if depth < 2:
+            scrape(url, file, depth+1)
+
+if __name__ == "__main__":
+    with open('result.txt', 'w') as file:
+        scrape('https://www.lesmao.co/', file=file)
+```
+
+example: 深度优先爬虫stack实现
+
+```py
+import requests
+import re
+
+headers = {
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(thread-.+?html)"')
+
+def scrape_urls(url):
+    r = requests.get(url, headers=headers)
+    return [f'https://www.lesmao.co/{short_url}' for short_url in pat.findall(r.text)]
+
+url_stack = [(0, 'https://www.lesmao.co/'), ]
+visited_set = set()
+while len(url_stack) != 0:
+    depth, url = url_stack.pop()
+    print(" "*depth, url)
+    url_list = scrape_urls(url)
+    working_urls = set(url_list)-visited_set
+    for url in working_urls:
+        url_stack.append((depth+2, url))
+        visited_set.add(url)
 ```
