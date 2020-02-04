@@ -1443,6 +1443,8 @@ from selenium import webdriver
 
 opt=webdriver.FirefoxOptions()
 opt.headless=False
+# # firefox disable js
+# opt.set_preference("javascript.enabled", False)
 
 driver = webdriver.Firefox(firefox_binary="D:/Browser/Firefox/firefox.exe", executable_path='geckodriver.exe',firefox_profile=r'D:\Browser\Firefox\Profile\Mozilla\Firefox\Profiles\04q5ed1u.default-release', options=opt)
 driver.get('https://m.huxiu.com')
