@@ -6,6 +6,7 @@
     - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
   - [Distributed Spider](#distributed-spider)
   - [DFS & BFS Spider](#dfs--bfs-spider)
+- [list, set, dict等container的赋值、添加是线程安全的](#list-set-dict%e7%ad%89container%e7%9a%84%e8%b5%8b%e5%80%bc%e6%b7%bb%e5%8a%a0%e6%98%af%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e7%9a%84)
 
 ## Spider Acceleration
 
@@ -1093,4 +1094,42 @@ while not url_queue.empty():
     for url in working_urls:
         url_queue.put((depth+2, url))
         visited_set.add(url)
+```
+
+example: 广度优先+多线程
+
+``py
+import requests
+import re
+import queue
+import threading
+
+headers = {
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+# list, set, dict等container的赋值、添加是线程安全的
+visited_url = set()
+
+
+def func(url_queue):
+    while True:
+        depth, url = url_queue.get()
+        if depth > 4: # 超过2层目录就停止;每层2, 2层就是4
+            break
+        print(" "*depth, url)
+
+        r = requests.get(url, headers=headers)
+        url_list = pat.findall(r.text)
+        working_url = set(url_list) - visited_url
+        for url in working_url:
+            visited_url.add(url)
+            url_queue.put((depth+2, url))
+
+
+if __name__ == "__main__":
+    url_queue = queue.Queue()
+    url_queue.put((0, 'https://www.meitulu.com/'))
+    for i in range(4):
+        t = threading.Thread(target=func, args=(url_queue, ))
+        t.start()
 ```
