@@ -1064,3 +1064,33 @@ while len(url_stack) != 0:
         url_stack.append((depth+2, url))
         visited_set.add(url)
 ```
+
+example: 广度优先queue实现
+
+```py
+import requests
+import re
+import queue
+
+headers = {
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(thread-.+?html)"')
+
+
+def scrape_urls(url):
+    r = requests.get(url, headers=headers)
+    return [f'https://www.lesmao.co/{short_url}' for short_url in pat.findall(r.text)]
+
+
+url_queue = queue.Queue()
+url_queue.put((0, 'https://www.lesmao.co/'))
+visited_set = set()
+while not url_queue.empty():
+    depth, url = url_queue.get()
+    print(" "*depth, url)
+    url_list = scrape_urls(url)
+    working_urls = set(url_list)-visited_set
+    for url in working_urls:
+        url_queue.put((depth+2, url))
+        visited_set.add(url)
+```
