@@ -1132,3 +1132,58 @@ if __name__ == "__main__":
         t = threading.Thread(target=func, args=(url_queue, ))
         t.start()
 ```
+
+exmaple: 广度优先+多线程
+
+```py
+import requests
+import re
+import queue
+import threading
+
+headers = {
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+class Worker(threading.Thread):
+    def __init__(self, url_queue, visited_url, MAX_DEPTH=2):
+        super().__init__()
+        self.url_queue = url_queue
+        self.visited_url = visited_url
+        self.MAX_DEPTH = MAX_DEPTH
+
+    def run(self):
+        while True:
+            depth, url = self.url_queue.get()
+            if depth > self.MAX_DEPTH:
+                break
+            print('  '*depth, url)
+
+            url_list = self.get_urls(url)
+            working_url = set(url_list)-self.visited_url
+            for url in working_url:
+                self.visited_url.add(url)
+                self.url_queue.put((depth+1, url))
+
+    def get_urls(self, url):
+        r = requests.get(url, headers=headers)
+        return pat.findall(r.text)
+
+
+class Crawler(object):
+    def __init__(self, url, thread_num=4):
+        self.url_queue = queue.Queue()
+        self.url_queue.put((0, url))
+        self.visited_url = set()
+        self.thread_num = thread_num
+
+    def crawl(self):
+        for _ in range(self.thread_num):
+            t = Worker(self.url_queue, self.visited_url)
+            t.start()
+
+
+if __name__ == "__main__":
+    crawler = Crawler('https://www.meitulu.com/')
+    crawler.crawl()
+```
