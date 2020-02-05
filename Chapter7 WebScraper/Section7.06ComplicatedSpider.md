@@ -1113,16 +1113,16 @@ visited_url = set()
 def func(url_queue):
     while True:
         depth, url = url_queue.get()
-        if depth > 4: # 超过2层目录就停止;每层2, 2层就是4
+        if depth > 2: # 超过2层目录就停止
             break
-        print(" "*depth, url)
+        print("  "*depth, url)
 
         r = requests.get(url, headers=headers)
         url_list = pat.findall(r.text)
         working_url = set(url_list) - visited_url
         for url in working_url:
             visited_url.add(url)
-            url_queue.put((depth+2, url))
+            url_queue.put((depth+1, url))
 
 
 if __name__ == "__main__":
