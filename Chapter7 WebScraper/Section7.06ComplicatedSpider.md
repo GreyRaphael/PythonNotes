@@ -6,7 +6,6 @@
     - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
   - [Distributed Spider](#distributed-spider)
   - [DFS & BFS Spider](#dfs--bfs-spider)
-- [list, set, dict等container的赋值、添加是线程安全的](#list-set-dict%e7%ad%89container%e7%9a%84%e8%b5%8b%e5%80%bc%e6%b7%bb%e5%8a%a0%e6%98%af%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e7%9a%84)
 
 ## Spider Acceleration
 
@@ -1098,7 +1097,7 @@ while not url_queue.empty():
 
 example: 广度优先+多线程
 
-``py
+```py
 import requests
 import re
 import queue
