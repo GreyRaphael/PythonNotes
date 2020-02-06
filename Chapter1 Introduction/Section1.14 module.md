@@ -3,32 +3,32 @@
 <!-- TOC -->
 
 - [Python Module](#python-module)
-    - [`import`](#import)
-        - [`import` module](#import-module)
-        - [`import` package](#import-package)
-        - [some attention](#some-attention)
-        - [module classification](#module-classification)
-    - [`getpass` module](#getpass-module)
-    - [`time` & `datetime`](#time--datetime)
-    - [`sys` & `os` module](#sys--os-module)
-    - [`shutil` module](#shutil-module)
-    - [`pickle` , `json`, `shelve`](#pickle--json-shelve)
-    - [`xml` module](#xml-module)
-    - [`pyyaml` & `configparser` module](#pyyaml--configparser-module)
-    - [`hashlib` &`hmac` module](#hashlib-hmac-module)
-    - [module storage](#module-storage)
-        - [diy module](#diy-module)
-    - [`__all__`](#__all__)
-    - [package](#package)
-        - [标准格式](#标准格式)
-    - [制作package并发布](#制作package并发布)
-        - [method 1：手动](#method-1手动)
-        - [method2: pycharm 制作](#method2-pycharm-制作)
-    - [给程序传参数](#给程序传参数)
-    - [循环导入](#循环导入)
-    - [standard library](#standard-library)
-    - [extend library](#extend-library)
-    - [pdb](#pdb)
+  - [`import`](#import)
+    - [`import` module](#import-module)
+    - [`import` package](#import-package)
+    - [some attention](#some-attention)
+    - [module classification](#module-classification)
+  - [`getpass` module](#getpass-module)
+  - [`time` & `datetime`](#time--datetime)
+  - [`sys` & `os` module](#sys--os-module)
+  - [`shutil` module](#shutil-module)
+  - [`pickle` , `json`, `shelve`](#pickle--json-shelve)
+  - [`xml` module](#xml-module)
+  - [`pyyaml` & `configparser` module](#pyyaml--configparser-module)
+  - [`hashlib` &`hmac` module](#hashlib-hmac-module)
+  - [module storage](#module-storage)
+    - [diy module](#diy-module)
+  - [`__all__`](#all)
+  - [package](#package)
+    - [标准格式](#%e6%a0%87%e5%87%86%e6%a0%bc%e5%bc%8f)
+  - [制作package并发布](#%e5%88%b6%e4%bd%9cpackage%e5%b9%b6%e5%8f%91%e5%b8%83)
+    - [method 1：手动](#method-1%e6%89%8b%e5%8a%a8)
+    - [method2: pycharm 制作](#method2-pycharm-%e5%88%b6%e4%bd%9c)
+  - [给程序传参数](#%e7%bb%99%e7%a8%8b%e5%ba%8f%e4%bc%a0%e5%8f%82%e6%95%b0)
+  - [循环导入](#%e5%be%aa%e7%8e%af%e5%af%bc%e5%85%a5)
+  - [standard library](#standard-library)
+  - [extend library](#extend-library)
+  - [pdb](#pdb)
 
 <!-- /TOC -->
 
@@ -1030,12 +1030,7 @@ Python有一套很有用的标准库(standard library)
 
 | 扩展库               | 说明                                      |
 | -------------------- | ----------------------------------------- |
-| requests             | 使用的是 urllib3，继承了urllib2的所有特性 |
-| urllib               | 基于http的高层库                          |
-| scrapy               | 爬虫                                      |
-| beautifulsoup4       | HTML/XML的解析器                          |
 | celery               | 分布式任务调度模块                        |
-| redis                | 缓存                                      |
 | Pillow(PIL)          | 图像处理                                  |
 | xlsxwriter           | 仅写excle功能,支持xlsx                    |
 | xlwt                 | 仅写excle功能,支持xls ,2013或更早版office |
@@ -1043,17 +1038,11 @@ Python有一套很有用的标准库(standard library)
 | elasticsearch        | 全文搜索引擎                              |
 | pymysql              | 数据库连接库                              |
 | mongoengine/pymongo  | mongodbpython接口                         |
-| matplotlib           | 画图                                      |
-| numpy/scipy          | 科学计算                                  |
 | django/tornado/flask | web框架                                   |
 | xmltodict            | xml 转 dict                               |
 | SimpleHTTPServer     | 简单地HTTP Server,不使用Web框架           |
 | gevent               | 基于协程的Python网络库                    |
 | fabric               | 系统管理                                  |
-| pandas               | 数据处理库                                |
-| scikit-learn         | 机器学习库                                |
-
-爬虫：requests, urllib, scrapy, beautifulsoup4,redis
 
 ```bash
 #-m就是module的意思
@@ -1065,8 +1054,6 @@ http://localhost:8888/
 #其他机器访问，必须知道本机的ip
 http://10.128.160.66:8888/
 ```
-
-爬虫获取的数据，配合django, tornado可以图形化数据；
 
 ## pdb
 
