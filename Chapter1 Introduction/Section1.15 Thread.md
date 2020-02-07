@@ -5,7 +5,7 @@
   - [Thread Synchronization](#thread-synchronization)
     - [threading.Lock()](#threadinglock)
     - [threading.RLock()](#threadingrlock)
-  - [semaphore(信号量)](#semaphore%e4%bf%a1%e5%8f%b7%e9%87%8f)
+  - [semaphore](#semaphore)
   - [凑几个然后执行](#%e5%87%91%e5%87%a0%e4%b8%aa%e7%84%b6%e5%90%8e%e6%89%a7%e8%a1%8c)
   - [线程通信 Event](#%e7%ba%bf%e7%a8%8b%e9%80%9a%e4%bf%a1-event)
   - [Condition](#condition)
@@ -598,22 +598,21 @@ else:
     print(num, num2)
 ```
 
-## semaphore(信号量)
+## semaphore
 
-semaphore通过一个计数器限制可以同时运行的线程数量。计数器表示的是还可以运行的数量，acquire()减小计数，release()增加计数。
+semaphore(信号量)通过一个计数器限制可以同时运行的线程数量。计数器表示的是还可以运行的数量，acquire()减小计数，release()增加计数。
 > 互斥锁只是信号量的特殊情况   
 > 因为CPython存在GIL(同一时刻只有一个线程运行)，所以CPython的semaphore并不是表示允许N个线程并行运行，表示运行N个线程并发运行。
 
-一个服务器假设只能处理1000个线程(假设一个线程服务一个人)，那么超过1000的人就要排队；
+一个服务器假设只能处理1000个线程(假设一个线程服务一个人)，那么超过1000的人就要排队；比如，每个page有100个url; 那么第二层就是10000个url了；每个url创建一个thread去玩，就不现实了(内存有限)；要限定线程的数量，也就是**信号量**
 
-比如，每个page有100个url; 那么第二层就是10000个url了；每个url创建一个thread去玩，就不现实了(内存有限)；要限定线程的数量，也就是**信号量**
+example: simple one
 
-```python
+```py
 import threading
 import time
 
 sem = threading.Semaphore(2)
-
 
 def task():
     sem.acquire()
@@ -622,13 +621,14 @@ def task():
         time.sleep(1)
     sem.release()
 
-
 if __name__ == "__main__":
     for i in range(4):
         threading.Thread(target=task).start()
 ```
 
-```python
+example: semaphore by `with`
+
+```py
 import threading
 import time
 
@@ -644,21 +644,33 @@ for i in range(4):
     threading.Thread(target=show).start()
 ```
 
-```python
-使用with后不管with中的代码出现什么错误，都会进行对当前对象进行清理工作。
+`with` 应用于ContextManger对象(即实现了`__enter__(self)`, `__exit__(self, type, value ,trace)`方法)
+> `with`相当于`try...finally...`，无论是否报错，都调用`__exit__`; 比如文件对象对应的class在`__exit__`中放了`file.close()`
 
-例如file的file.close()方法，无论with中出现任何错误，都会执行file.close()方法
+builtin ContextManager:
+- file
+- threading.Lock
+- threading.RLock
+- threading.Condition
+- threading.Semaphore
+- threading.BoundedSemaphore
 
-其次with只有特定场合下才能使用。，这个特定场合只的是那些支持了上下文管理器的对象。
+example: custom ContextManager
 
-file
-decimal.Context
-thread.LockType
-threading.Lock
-threading.RLock
-threading.Condition
-threading.Semaphore
-threading.BoundedSemaphore
+```py
+class MyContext():
+    def __enter__(self):
+        return self
+    def __exit__(self, t, value, trace):
+        if t or value or trace:
+            print('error_type=', t)
+            print('value=', value)
+            print('trace=', trace)
+    def do_something(self):
+        print(2/0)
+
+with MyContext() as target:
+    target.do_something()
 ```
 
 ## 凑几个然后执行
