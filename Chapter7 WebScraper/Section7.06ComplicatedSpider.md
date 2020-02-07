@@ -1039,6 +1039,41 @@ if __name__ == "__main__":
         scrape('https://www.lesmao.co/', file=file)
 ```
 
+```py
+import requests
+import re
+import json
+
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(thread-.+?html)"')
+
+def scrape_urls(url):
+    r = requests.get(url, headers=headers)
+    return [f'https://www.lesmao.co/{short_url}' for short_url in pat.findall(r.text)]
+
+
+def scrape(url, depth_dict, DEPTH=3):
+    current_depth = depth_dict[url]
+
+    url_list = scrape_urls(url)
+    for link in url_list:
+        if link not in depth_dict:
+            new_depth = current_depth+1
+            depth_dict[link] = new_depth
+            print('  '*new_depth, link)
+
+            if current_depth < DEPTH:
+                scrape(link, depth_dict, new_depth)
+
+
+if __name__ == "__main__":
+    start_url = 'https://www.lesmao.co/'
+    depth_dict = {start_url: 0, }
+    scrape(start_url, depth_dict)
+    with open('data.json', 'w', encoding='utf8') as file:
+        json.dump(depth_dict, file, ensure_ascii=False)
+```
+
 example: 深度优先爬虫stack实现
 
 ```py
