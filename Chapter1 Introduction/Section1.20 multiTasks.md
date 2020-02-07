@@ -106,13 +106,9 @@ def func(x, barrier):
 
 if __name__ == '__main__':
     b = multiprocessing.Barrier(3)
-    p_list = []
     for i in range(10):
         p = multiprocessing.Process(target=func, args=(i, b))
         p.start()
-        p_list.append(p)
-    for p in p_list:
-        p.join()
 ```
 
 ```bash
@@ -135,7 +131,7 @@ if __name__ == '__main__':
 64
 343
 1
-9 ***** # 凑够3个才能运行，所以这里卡住了
+9 ***** # 凑够3个才能运行，所以这里卡住了，换成range(9)就可以完成
 ```
 
 ```python
