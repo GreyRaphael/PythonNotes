@@ -1039,39 +1039,60 @@ if __name__ == "__main__":
         scrape('https://www.lesmao.co/', file=file)
 ```
 
+example: 递归+多线程+无法区分深度优先还是广度优先了
+
 ```py
 import requests
 import re
-import json
+import threading
+import time
+import queue
 
 headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
-pat = re.compile(r'href="(thread-.+?html)"')
+pat1 = re.compile(r'href="(thread-.+?html)"')
+pat2 = re.compile(r'src="(.+?)" /></a></li>')
 
-def scrape_urls(url):
-    r = requests.get(url, headers=headers)
-    return [f'https://www.lesmao.co/{short_url}' for short_url in pat.findall(r.text)]
+def save_src(src_queue):
+    file=open('img_src.txt', 'w')
+    while not src_queue.empty():
+        src=src_queue.get()
+        file.write(f'{src}\n')
+        file.flush()
+        time.sleep(0.05)
+    else:
+        file.close()
 
-
-def scrape(url, depth_dict, DEPTH=3):
+def scrape(url, depth_dict, src_queue, sem):
     current_depth = depth_dict[url]
 
-    url_list = scrape_urls(url)
+    r = requests.get(url, headers=headers).text
+    url_list = [f'https://www.lesmao.co/{short_url}' for short_url in pat1.findall(r)]
+    src_list= pat2.findall(r)
+    for src in src_list:
+        src_queue.put(src)
+
     for link in url_list:
         if link not in depth_dict:
             new_depth = current_depth+1
             depth_dict[link] = new_depth
             print('  '*new_depth, link)
 
-            if current_depth < DEPTH:
-                scrape(link, depth_dict, new_depth)
-
+            if current_depth < 2: # max DEPTH = 1
+                with sem:
+                    threading.Thread(target=scrape, args=(link, depth_dict, src_queue, sem)).start()
 
 if __name__ == "__main__":
-    start_url = 'https://www.lesmao.co/'
-    depth_dict = {start_url: 0, }
-    scrape(start_url, depth_dict)
-    with open('data.json', 'w', encoding='utf8') as file:
-        json.dump(depth_dict, file, ensure_ascii=False)
+    # about img src
+    src_quque=queue.Queue()
+    # start at 3 seconds later
+    write_thread=threading.Timer(interval=3, function=save_src, args=(src_quque, ))
+    write_thread.start()
+    
+    # about page
+    start_url='https://www.lesmao.co/'
+    depth_dict={start_url:0, }
+    sem = threading.Semaphore(4)
+    scrape(start_url, depth_dict, src_quque, sem)
 ```
 
 example: 深度优先爬虫stack实现
@@ -1092,11 +1113,11 @@ url_stack = [(0, 'https://www.lesmao.co/'), ]
 visited_set = set()
 while len(url_stack) != 0:
     depth, url = url_stack.pop()
-    print(" "*depth, url)
+    print("  "*depth, url)
     url_list = scrape_urls(url)
     working_urls = set(url_list)-visited_set
     for url in working_urls:
-        url_stack.append((depth+2, url))
+        url_stack.append((depth+1, url))
         visited_set.add(url)
 ```
 
@@ -1122,11 +1143,11 @@ url_queue.put((0, 'https://www.lesmao.co/'))
 visited_set = set()
 while not url_queue.empty():
     depth, url = url_queue.get()
-    print(" "*depth, url)
+    print("  "*depth, url)
     url_list = scrape_urls(url)
     working_urls = set(url_list)-visited_set
     for url in working_urls:
-        url_queue.put((depth+2, url))
+        url_queue.put((depth+1, url))
         visited_set.add(url)
 ```
 
