@@ -3,18 +3,18 @@
 <!-- TOC -->
 
 - [python multiTasks](#python-multitasks)
-    - [about CPU](#about-cpu)
-    - [`multiprocessing.Pool()`](#multiprocessingpool)
-    - [processing communication](#processing-communication)
-        - [Queue](#queue)
-        - [pool Queue](#pool-queue)
-    - [Thread](#thread)
-    - [线程(tid) vs 进程(pid)](#%E7%BA%BF%E7%A8%8Btid-vs-%E8%BF%9B%E7%A8%8Bpid)
-        - [利用lock来协调线程的顺序](#%E5%88%A9%E7%94%A8lock%E6%9D%A5%E5%8D%8F%E8%B0%83%E7%BA%BF%E7%A8%8B%E7%9A%84%E9%A1%BA%E5%BA%8F)
-    - [Producer & Consumer](#producer--consumer)
-    - [`threading.local()`](#threadinglocal)
-    - [异步](#%E5%BC%82%E6%AD%A5)
-    - [GIL](#gil)
+  - [about CPU](#about-cpu)
+  - [`multiprocessing.Pool()`](#multiprocessingpool)
+  - [processing communication](#processing-communication)
+    - [Queue](#queue)
+    - [pool Queue](#pool-queue)
+  - [Thread](#thread)
+  - [线程(tid) vs 进程(pid)](#%e7%ba%bf%e7%a8%8btid-vs-%e8%bf%9b%e7%a8%8bpid)
+    - [利用lock来协调线程的顺序](#%e5%88%a9%e7%94%a8lock%e6%9d%a5%e5%8d%8f%e8%b0%83%e7%ba%bf%e7%a8%8b%e7%9a%84%e9%a1%ba%e5%ba%8f)
+  - [Producer & Consumer](#producer--consumer)
+  - [`threading.local()`](#threadinglocal)
+  - [异步](#%e5%bc%82%e6%ad%a5)
+  - [GIL](#gil)
 
 <!-- /TOC -->
 
@@ -79,6 +79,20 @@ if __name__ == "__main__":
     res=po.imap(func, data) # type is IMapIterator, 不支持lambda expr
     for item in res:
         print(item, end=';') # 0;1;8;27;64;125;216;343;512;729;
+```
+
+```py
+import multiprocessing as mp
+
+def func(x): return x**3
+
+if __name__ == "__main__":
+    data=range(10)
+    po=mp.Pool() # 进程数目为cpu core的数目
+    res=po.map_async(func, data)
+    po.close()
+    po.join()
+    print(res.get())
 ```
 
 ```python
