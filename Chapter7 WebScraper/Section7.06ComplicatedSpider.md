@@ -1361,3 +1361,41 @@ if __name__ == "__main__":
         # 必须join,否则AttributeError: 'ForkAwareLocal' object has no attribute 'connection'
         p.join()
 ```
+
+example: 多线程Pool+BFS
+
+```py
+import requests
+import re
+from lxml import etree
+import time
+import multiprocessing
+
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+def save_src(src_queue):
+    pass
+
+def func(url_queue, visit_url, src_queue):
+    pass
+
+if __name__ == "__main__":
+    m=multiprocessing.Manager()
+
+    src_queue=m.Queue()
+    write_process=multiprocessing.Process(target=save_src, args=(src_queue,))
+    write_process.start()
+
+    start_url='https://www.meitulu.com/'
+    url_queue=m.Queue()
+    url_queue.put((0, start_url))
+    # 多进程通过Manager().dict, Manager().list()共享数据
+    visit_url=m.list()
+    visit_url.append(start_url)
+
+    pool=multiprocessing.Pool(4, func, (url_queue, visit_url, src_queue))
+    pool.close()
+    pool.join()
+    write_process.join()
+```
