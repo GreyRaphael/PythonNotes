@@ -1159,12 +1159,10 @@ import re
 import queue
 import threading
 
-headers = {
-    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
 pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
 # list, set, dict等container的赋值、添加是线程安全的
 visited_url = set()
-
 
 def func(url_queue):
     while True:
@@ -1184,9 +1182,60 @@ def func(url_queue):
 if __name__ == "__main__":
     url_queue = queue.Queue()
     url_queue.put((0, 'https://www.meitulu.com/'))
-    for i in range(4):
-        t = threading.Thread(target=func, args=(url_queue, ))
-        t.start()
+    for _ in range(4):
+        threading.Thread(target=func, args=(url_queue, )).start()
+```
+
+```py
+import requests
+import re
+import time
+import queue
+import threading
+from lxml import etree
+
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+def func(url_queue, visited_url, src_queue):
+    while True:
+        url = url_queue.get()
+        print(threading.current_thread().name, url)
+        r = requests.get(url, headers=headers).text
+
+        tree=etree.HTML(r)
+        src_list=tree.xpath('//center/img/@src')
+        for src in src_list:
+            src_queue.put(src)
+
+        url_list = pat.findall(r)
+        working_url = set(url_list)-visited_url
+        for link in working_url:
+            visited_url.add(link)
+            url_queue.put(link)
+
+def save_src(src_queue):
+    file=open('img_src.txt', 'w')
+    while not src_queue.empty():
+        src=src_queue.get()
+        file.write(f'{src}\n')
+        file.flush()
+        time.sleep(0.01)
+    else:
+        file.close()
+
+if __name__ == "__main__":
+    # about img src
+    src_quque=queue.Queue()
+    write_thread=threading.Timer(interval=3, function=save_src, args=(src_quque, ))
+    write_thread.start()
+    # about page
+    url_queue = queue.Queue()
+    url_queue.put('https://www.meitulu.com/')
+    visited_url = set()
+
+    for _ in range(4):
+        threading.Thread(target=func, args=(url_queue, visited_url, src_quque)).start()
 ```
 
 exmaple: 广度优先+多线程
