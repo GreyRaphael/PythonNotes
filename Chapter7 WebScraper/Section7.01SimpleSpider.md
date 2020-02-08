@@ -356,6 +356,31 @@ for item in all_ip_port:
 print(all_addr)
 ```
 
+```py
+import requests
+import random
+import re
+
+pat1 = re.compile(r'href="(thread-.+?html)"')
+pat2 = re.compile(r'src="(.+?)" /></a></li>')
+
+def random_headers():
+    version = random.randint(60, 72)
+    random_ua = f'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:{version}.0) Gecko/20100101 Firefox/{version}.0'
+    return {'User-Agent': random_ua}
+
+r = requests.get('https://www.lesmao.co/', headers=random_headers()).text
+url_list = [f'https://www.lesmao.co/{short_url}' for short_url in pat1.findall(r)]
+
+with open('img_src.txt', 'w') as file:
+    for url in set(url_list):
+        print(url)
+        r = requests.get(url, headers=random_headers()).text
+        for src in pat2.findall(r):
+            file.write(f'{src}\n')
+            file.flush()
+```
+
 example6: check ip
 
 ```python
