@@ -1292,3 +1292,72 @@ if __name__ == "__main__":
     crawler = Crawler('https://www.meitulu.com/')
     crawler.crawl()
 ```
+
+example: 多进程+BFS
+
+```py
+import requests
+import re
+import multiprocessing
+from lxml import etree
+import time
+
+headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+pat = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+def func(url_queue, visit_url, src_queue):
+    while True:
+        depth, url= url_queue.get()
+        if depth > 2:
+            break
+        print(multiprocessing.current_process().name, url)
+
+        r = requests.get(url, headers=headers).text
+        tree=etree.HTML(r)
+        src_list=tree.xpath('//center/img/@src')
+        for src in src_list:
+            src_queue.put(src)
+
+        url_list = pat.findall(r)
+        for link in url_list:
+            if link not in visit_url:
+                visit_url.append(link)
+                url_queue.put((depth+1, link))
+
+
+def save_src(src_queue):
+    time.sleep(3)
+    file=open('img_src.txt', 'w')
+    while not src_queue.empty():
+        src=src_queue.get()
+        file.write(f'{src}\n')
+        file.flush()
+        time.sleep(0.01)
+    else:
+        file.close()
+
+
+if __name__ == "__main__":
+    m=multiprocessing.Manager()
+
+    src_queue=m.Queue()
+    write_process=multiprocessing.Process(target=save_src, args=(src_queue,))
+    write_process.start()
+
+    start_url='https://www.meitulu.com/'
+    url_queue=m.Queue()
+    url_queue.put((0, start_url))
+    # 多进程通过Manager().dict, Manager().list()共享数据
+    visit_url=m.list()
+    visit_url.append(start_url)
+
+    process_list=[write_process, ]
+    for _ in range(4):
+        p=multiprocessing.Process(target=func, args=(url_queue, visit_url, src_queue))
+        p.start()
+        process_list.append(p)
+
+    for p in process_list:
+        # 必须join,否则AttributeError: 'ForkAwareLocal' object has no attribute 'connection'
+        p.join()
+```
