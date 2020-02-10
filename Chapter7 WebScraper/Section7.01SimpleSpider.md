@@ -2249,6 +2249,7 @@ for li in doc('ul').children():
 ## Onlilne File Spider
 
 example: read online pdf
+> `pip install pdfminer`
 
 ```py
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -2277,14 +2278,12 @@ def pdf_to_text(pdf_file):
 
 # # online pdf to text by urllib
 # online_pdf_file=urllib.request.urlopen('http://www.dabeaz.com/python/UnderstandingGIL.pdf')
-# memory=io.BytesIO()
-# memory.write(online_pdf_file.read())
-# print(pdf_to_text(memory))
+# pdf_memory_file=io.BytesIO(online_pdf_file.read())
+# print(pdf_to_text(pdf_memory_file))
 
 # online pdf to text by requests
-r=requests.get('http://www.dabeaz.com/python/UnderstandingGIL.pdf').content
-memory=io.BytesIO()
-memory.write(r)
-print(pdf_to_text(memory))
+response = requests.get('http://www.dabeaz.com/python/UnderstandingGIL.pdf')
+pdf_memory_file = io.BytesIO(response.content)
+print(pdf_to_text(pdf_memory_file))
 ```
 
