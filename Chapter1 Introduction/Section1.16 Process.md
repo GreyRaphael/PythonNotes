@@ -569,13 +569,13 @@ def func():
         time.sleep(1)
 
 if __name__ == "__main__":
-    # 直接启动8个并行的线程
+    # 直接启动8个并发的线程
     po=pool.ThreadPool(8, initializer=func)
     po.close()
     po.join()
 
 if __name__ == "__main__":
-    # 进程池8个，只启动4个并行的线程
+    # 进程池8个，只启动4个并发的线程
     po=pool.ThreadPool(8)
     for _ in range(4):
         po.apply_async(func)
