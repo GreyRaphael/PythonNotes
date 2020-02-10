@@ -3,21 +3,22 @@
 <!-- TOC -->
 
 - [Python Process](#python-process)
-    - [Introduction](#introduction)
-        - [Concurrency & Parallelism](#concurrency--parallelism)
-        - [process vs thread](#process-vs-thread)
-        - [CPython GIL](#cpython-gil)
-    - [multiprocess global varibale](#multiprocess-global-varibale)
-    - [multiprocessing](#multiprocessing)
-    - [进程同步(Lock, RLock)](#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5lock-rlock)
-    - [进程共享](#%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB)
-    - [`multiprocessing.Pipe()`](#multiprocessingpipe)
-    - [`multiprocessing.Queue()`](#multiprocessingqueue)
-    - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
-    - [``Manager()``](#manager)
-    - [csv related](#csv-related)
-    - [多线程，多进程应用](#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%BA%94%E7%94%A8)
-    - [常见问题](#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)
+  - [Introduction](#introduction)
+    - [Concurrency & Parallelism](#concurrency--parallelism)
+    - [process vs thread](#process-vs-thread)
+    - [CPython GIL](#cpython-gil)
+  - [multiprocess global varibale](#multiprocess-global-varibale)
+  - [multiprocessing](#multiprocessing)
+  - [ThreadPool vs ProcessPool](#threadpool-vs-processpool)
+  - [进程同步(Lock, RLock)](#%e8%bf%9b%e7%a8%8b%e5%90%8c%e6%ad%a5lock-rlock)
+  - [进程共享](#%e8%bf%9b%e7%a8%8b%e5%85%b1%e4%ba%ab)
+  - [`multiprocessing.Pipe()`](#multiprocessingpipe)
+  - [`multiprocessing.Queue()`](#multiprocessingqueue)
+  - [`multiprocessing.Value` & `multiprocessing.Array`](#multiprocessingvalue--multiprocessingarray)
+  - [``Manager()``](#manager)
+  - [csv related](#csv-related)
+  - [多线程，多进程应用](#%e5%a4%9a%e7%ba%bf%e7%a8%8b%e5%a4%9a%e8%bf%9b%e7%a8%8b%e5%ba%94%e7%94%a8)
+  - [常见问题](#%e5%b8%b8%e8%a7%81%e9%97%ae%e9%a2%98)
 
 <!-- /TOC -->
 
@@ -511,6 +512,81 @@ if __name__ == '__main__':
         process.start()
     for process in process_list:#主线程等待，所有的process执行完
         process.join()
+```
+
+## ThreadPool vs ProcessPool
+
+example: multitask by process
+
+```py
+from concurrent import futures
+import multiprocessing
+import time
+
+def func():
+    for j in range(11, 16):
+        print(multiprocessing.current_process().name, j)
+        time.sleep(1)
+
+if __name__ == "__main__":
+    # 直接启动8个进程
+    po=multiprocessing.Pool(8, initializer=func)
+    po.close()
+    po.join()
+ 
+if __name__ == "__main__":
+    # 线程池8个，只启动4个
+    po=multiprocessing.Pool(8)
+    for i in range(4):
+        po.apply_async(func)
+    po.close()
+    po.join()
+
+if __name__ == "__main__":
+    # 启动8个进程
+    executor=futures.ProcessPoolExecutor(max_workers=8)
+    for _ in range(8):
+        # submit是async
+        executor.submit(func)
+
+if __name__ == "__main__":
+    # 直接启动8个进程
+    executor=futures.ProcessPoolExecutor(max_workers=8, initializer=func)
+    executor.submit(None)
+```
+
+example: multitask by thread
+
+```py
+from concurrent import futures
+from multiprocessing import pool
+import threading
+import time
+
+def func():
+    for j in range(11, 16):
+        print(threading.current_thread().name, j)
+        time.sleep(1)
+
+if __name__ == "__main__":
+    # 直接启动8个并行的线程
+    po=pool.ThreadPool(8, initializer=func)
+    po.close()
+    po.join()
+
+if __name__ == "__main__":
+    # 进程池8个，只启动4个并行的线程
+    po=pool.ThreadPool(8)
+    for _ in range(4):
+        po.apply_async(func)
+    po.close()
+    po.join()
+
+if __name__ == "__main__":
+    # 启动8个并发的线程，但不能initializer直接启动8个线程
+    executor=futures.ThreadPoolExecutor(max_workers=8)
+    for _ in range(8):
+        executor.submit(func)
 ```
 
 ## 进程同步(Lock, RLock)
