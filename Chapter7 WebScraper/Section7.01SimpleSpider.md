@@ -27,6 +27,7 @@
   - [OCR vs verify code](#ocr-vs-verify-code)
   - [requests vs selenium](#requests-vs-selenium)
   - [pyquery](#pyquery)
+  - [Onlilne File Spider](#onlilne-file-spider)
 
 ## Introdution
 
@@ -2244,3 +2245,46 @@ for li in doc('ul').children():
     print(doc(li).text(), end='; ')
 # 0 item; 1 item; 2 item; 3 item; 4 item; 10 item; 11 item; 12 item; 13 item; 14 item;   
 ```
+
+## Onlilne File Spider
+
+example: read online pdf
+
+```py
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.layout import LAParams
+from pdfminer.converter import TextConverter
+from pdfminer.pdfpage import PDFPage
+import io
+import urllib.request
+import requests
+
+def pdf_to_text(pdf_file):
+    memory_file = io.StringIO()
+
+    rsrcmgr = PDFResourceManager()
+    device=TextConverter(rsrcmgr, memory_file, laparams=LAParams())
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    for page in PDFPage.get_pages(pdf_file, pagenos=(0, 1, 2)):
+        interpreter.process_page(page)
+    text=memory_file.getvalue()
+    memory_file.close()
+    return text
+
+# # local pdf to text
+# local_pdf_file=open('UnderstandingGIL.pdf', 'rb')
+# print(pdf_to_text(local_pdf_file))
+
+# # online pdf to text by urllib
+# online_pdf_file=urllib.request.urlopen('http://www.dabeaz.com/python/UnderstandingGIL.pdf')
+# memory=io.BytesIO()
+# memory.write(online_pdf_file.read())
+# print(pdf_to_text(memory))
+
+# online pdf to text by requests
+r=requests.get('http://www.dabeaz.com/python/UnderstandingGIL.pdf').content
+memory=io.BytesIO()
+memory.write(r)
+print(pdf_to_text(memory))
+```
+
