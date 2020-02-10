@@ -516,7 +516,7 @@ if __name__ == '__main__':
 
 ## ThreadPool vs ProcessPool
 
-example: multitask by process
+example: multitask by ProcessPool
 
 ```py
 from concurrent import futures
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     executor.submit(None)
 ```
 
-example: multitask by thread
+example: multitask by ThreadPool
 
 ```py
 from concurrent import futures
