@@ -2287,3 +2287,69 @@ pdf_memory_file = io.BytesIO(response.content)
 print(pdf_to_text(pdf_memory_file))
 ```
 
+example: read online txt
+
+```py
+import requests
+
+r=requests.get('http://www.pythonscraping.com/pages/warandpeace/chapter1.txt')
+print(r.text)
+```
+
+example: read online csv
+
+```py
+# csv text reader
+import requests
+import io
+import csv
+
+response=requests.get('http://pythonscraping.com/files/MontyPythonAlbums.csv')
+memory_file=io.StringIO(response.text)
+for line in csv.reader(memory_file):
+    print(line)
+```
+
+```py
+# csv dictionary reader
+import requests
+import io
+import csv
+
+response=requests.get('http://pythonscraping.com/files/MontyPythonAlbums.csv')
+memory_file=io.StringIO(response.text)
+reader=csv.DictReader(memory_file) # ['Name', 'Year']
+print(reader.fieldnames)
+for line in reader: # every line is OrderedDict
+    print(line['Name'], '--->', line['Year'])
+```
+
+example: read online docx
+
+```py
+import requests
+import io
+import zipfile
+import re
+
+response=requests.get('http://pythonscraping.com/pages/AWordDocument.docx')
+memory_file=io.BytesIO(response.content)
+doc=zipfile.ZipFile(memory_file)
+xml=doc.read('word/document.xml').decode('utf8')
+pat=re.compile(r'<w:t>(.+?)</w:t>')
+print(pat.findall(xml))
+```
+
+> `pip install python-docx`
+
+```py
+import requests
+import io
+import docx
+
+response=requests.get('http://pythonscraping.com/pages/AWordDocument.docx')
+memory_file=io.BytesIO(response.content)
+doc=docx.Document(memory_file)
+for p in doc.paragraphs:
+    print(p.text)
+```
