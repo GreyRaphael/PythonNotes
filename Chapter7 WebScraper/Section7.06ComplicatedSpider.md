@@ -170,6 +170,32 @@ gevent.joinall(gevent_tasks)
 df=pd.DataFrame({'age':age, 'sexy':sexy, 'areaName': areaName, 'duty':duty, 'iname':iname, 'publishDateStamp':publishDateStamp, 'regDate': regDate})
 ```
 
+examle: Coroutine Pool
+
+```py
+import requests
+import re
+from gevent import pool
+from gevent import monkey
+
+monkey.patch_all() # monkey可能与分布式爬虫冲突，可以关闭
+
+HEADERS={'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:73.0) Gecko/20100101 Firefox/73.0"}
+pat=re.compile(r'<h2><a href="(.+?)"')
+
+def func(url):
+    print('crawling --->', url)
+    r=requests.get(url, headers=HEADERS)
+    return pat.findall(r.text)
+
+if __name__ == "__main__":
+    po=pool.Pool(4)
+    urls=[f'https://www.lesmao.co/plugin.php?id=group&page={i+1}' for i in range(10)]
+    result=po.map(func, urls)
+    po.join()
+    print(result)
+```
+
 ### coroutine, threading, multiprocessing
 
 example1: simple example
