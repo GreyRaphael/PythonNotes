@@ -653,6 +653,51 @@ if __name__ == '__main__':
     main()
 ```
 
+example: process嵌套thread, thread嵌套coroutine
+
+```py
+import multiprocessing
+import threading
+import gevent
+import numpy as np
+
+def gevent_func(point):
+    print(point**2)
+
+def thread_func(line):
+    task_list = []
+    for point in line:
+        g = gevent.spawn(gevent_func, point)
+        task_list.append(g)
+    gevent.joinall(task_list)
+    print(threading.current_thread().name, 'finished')
+
+def process_func(plane):
+    thread_list = []
+    for line in plane:
+        t = threading.Thread(target=thread_func, args=(line,))
+        t.start()
+        thread_list.append(t)
+    for t in thread_list:
+        t.join()
+    print(multiprocessing.current_process().name, 'finished')
+
+def main(cube):
+    process_list = []
+    for plane in cube:
+        p = multiprocessing.Process(target=process_func, args=(plane, ))
+        p.start()
+        process_list.append(p)
+    for p in process_list:
+        p.join()
+
+if __name__ == "__main__":
+    array = np.arange(24).reshape((2, 3, 4))
+    cube = array.tolist()
+    # 2个process, 2x3个thread, 2x3x4个gevent
+    main(cube)
+```
+
 ## Distributed Spider
 
 Distributed:
