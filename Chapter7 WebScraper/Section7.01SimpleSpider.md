@@ -772,13 +772,13 @@ if __name__ == '__main__':
 
 ## `urllib`
 
-python3中urllib, urllib2合并为[urllib](https://docs.python.org/3/howto/urllib2.html#urllib-howto); 现在一般用的requests, 而不用urllib; [requests vs urllib](https://www.cnblogs.com/znyyy/p/7868511.html)
-
-urllib modules:
+python3 urllib modules:
 - `urllib.request`
 - `urllib.error`
 - `urllib.parse`: url解析模块
 - `urllib.robotparse`: robots.txt解析模块
+
+> python3中urllib, urllib2合并为[urllib](https://docs.python.org/3/howto/urllib2.html#urllib-howto); 现在一般用的requests, 而不用urllib; [requests vs urllib](https://www.cnblogs.com/znyyy/p/7868511.html)
 
 ```py
 # python2
