@@ -688,78 +688,144 @@ if __name__ == "__main__":
 
 ## Distributed Spider
 
-Distributed:
 - 分布式计算
 - 分布式控制
 - 分布式爬虫
 
-分布式意味着在局域网中多台电脑干活。
-> 要分成Server, Client  
+分布式意味着在局域网中多台电脑干活: 要分成Server, Client  
 > Server: 将任务put到task_queue中，从result_queue中get结果  
 > Client: 从task_queue中get任务，计算得到结果，将结果put到result_queue中
 
-example1: 分布式计算
+examle: distributed computation in Linux
+
+```py
+# server.py
+import multiprocessing
+from multiprocessing import managers
+
+if __name__ == "__main__":
+    # task queue & result queue
+    tq=multiprocessing.Queue()
+    rq=multiprocessing.Queue()
+    
+    m=managers.BaseManager(address=('',7777), authkey=b'xxxxxx')
+    m.register('task_queue', callable=lambda : tq )
+    m.register('result_queue', callable=lambda : rq )
+    m.start()
+    
+    tq, rq=m.task_queue(), m.result_queue()
+    for i in range(10):
+        tq.put(i)
+    print('finish task queue')
+    for _ in range(10):
+        print('result=', rq.get())
+```
+
+```py
+# client.py
+from multiprocessing import managers
+
+if __name__ == "__main__":
+    m=managers.BaseManager(address=('127.0.0.1',7777), authkey=b'xxxxxx')
+    m.register('task_queue')
+    m.register('result_queue')
+    m.connect()
+    
+    task_q, result_q=m.task_queue(), m.result_queue()
+    for _ in range(10):
+        i=task_q.get()
+        print('client get ', i)
+        result_q.put(i**2)
+```
+
+example: distributed computation in all platform
+> 分布式+多进程+多线程+多协程
 
 ```python
-# Server
-from multiprocessing import Process, Queue
-from multiprocessing.managers import BaseManager
+# Server.py
+import multiprocessing
+from multiprocessing import managers
 
-class Worker(Process):
+class Worker(multiprocessing.Process):
     def __init__(self, tq, rq):
+        super().__init__()
         self.tq = tq
         self.rq = rq
-        super().__init__()
 
     def run(self):
-        for i in range(3):
+        for i in range(24):
             self.tq.put(i)
-        print('waiting for ...')
-        for _ in range(3):
-            print(self.rq.get())
+        print('finish task queue')
+        for _ in range(24):
+            print('result=',self.rq.get())
 
-class QueueManager(BaseManager):pass
 
-def main():
-    tq = Queue()
-    rq = Queue()
+if __name__ == '__main__':
+    # task queue & result queue
+    tq = multiprocessing.Queue()
+    rq = multiprocessing.Queue()
     w = Worker(tq, rq)
     w.start()
 
-    QueueManager.register('task_queue', callable=lambda: tq) # lambda的return不用写
-    QueueManager.register('result_queue', callable=lambda: rq)# lambda的return不用写
-    m = QueueManager(address=('', 6666), authkey=b'666666')
+    m = managers.BaseManager(address=('', 6666), authkey=b'666666')
+    m.register('task_queue', callable=lambda: tq) # lambda的return不用写
+    m.register('result_queue', callable=lambda: rq)# lambda的return不用写
     s = m.get_server()
     s.serve_forever()
-
-
-if __name__ == '__main__':
-    main()
 ```
 
 ```python
-# Client
-from multiprocessing.managers import BaseManager
+# Client.py
+from multiprocessing import managers
+import multiprocessing
+import threading
+import gevent
+import numpy as np
 
-class QueueManager(BaseManager): pass
+def gevent_func(point, rq):
+    result=point**2
+    print(result)
+    rq.put(result)
 
-def main():
-    QueueManager.register('task_queue')
-    QueueManager.register('result_queue')
-    
-    m = QueueManager(address=('127.0.0.1', 6666), authkey=b'666666')
-    m.connect()
+def thread_func(line, rq):
+    task_list = []
+    for point in line:
+        g = gevent.spawn(gevent_func, point, rq)
+        task_list.append(g)
+    gevent.joinall(task_list)
+    print(threading.current_thread().name, 'finished')
 
-    tq=m.task_queue()
-    rq=m.result_queue()
+def process_func(plane, rq):
+    thread_list = []
+    for line in plane:
+        t = threading.Thread(target=thread_func, args=(line,rq))
+        t.start()
+        thread_list.append(t)
+    for t in thread_list:
+        t.join()
+    print(multiprocessing.current_process().name, 'finished')
 
-    for _ in range(3):
-        data=tq.get()
-        print(f'client get: {data}')
-        rq.put(data**2)
+def main(cube, rq):
+    process_list = []
+    for plane in cube:
+        p = multiprocessing.Process(target=process_func, args=(plane, rq))
+        p.start()
+        process_list.append(p)
+    for p in process_list:
+        p.join()
 
 if __name__ == '__main__':
-    main()
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, rq=m.task_queue(), m.result_queue()
+    data_list=[tq.get() for _ in range(24)]
+    array=np.array(data_list).reshape((2, 3, 4))
+    cube=array.tolist()
+    # 2个process, 2x3个thread, 2x3x4个gevent
+    main(cube, rq)
 ```
 
 example2: 分布式控制
