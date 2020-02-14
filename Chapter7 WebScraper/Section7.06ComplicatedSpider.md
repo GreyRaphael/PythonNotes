@@ -904,17 +904,18 @@ class Worker(multiprocessing.Process):
 # 与上一个例子相同, 并且client端有相应的文件
 ```
 
-example4: 分布式爬虫
+example: 分布式爬虫
+- Server抓取urls并put进入task_queue
+- Clients get task_queue中的urls并提取data，Clients将data put进入result_queue
+- Server get result_queue中的data并保存。
 
-Server抓取urls并put进入task_queue, Clients get task_queue中的urls并提取data，Clients将data put进入result_queue, Server get result_queue中的data并保存。
+> 因为一般的云端的Linux没有GUI，无法用selenium，所以Server.py放在云端运行，Client.py放在windows运行
 
-因为一般的云端的Linux没有GUI，无法用selenium，所以Server.py放在云端运行，Client.py放在windows运行。
-
-```python
+```py
 # Server
 import re
 import multiprocessing
-from multiprocessing.managers import BaseManager
+from multiprocessing import managers
 import requests
 
 def get_total_numbers(url):
@@ -946,9 +947,9 @@ def write_data(q, total_pages):
 
 class Worker(multiprocessing.Process):
     def __init__(self, tq, rq):
+        super().__init__()
         self.tq = tq
         self.rq = rq
-        super().__init__()
 
     def run(self):
         # total_numbers=get_total_numbers('http://wz.sun0769.com/html/top/report.shtml')
@@ -961,30 +962,23 @@ class Worker(multiprocessing.Process):
         print('Server finishes putting urls in task_queue...')
         write_data(self.rq, total_pages)
 
-
-class QueueManager(BaseManager):pass
-
-def main():
+if __name__ == '__main__':
+    # task queue & result queue
     tq = multiprocessing.Queue()
     rq = multiprocessing.Queue()
-    
     w = Worker(tq, rq)
     w.start()
 
-    QueueManager.register('task_queue', callable=lambda: tq) # lambda的return不用写
-    QueueManager.register('result_queue', callable=lambda: rq)# lambda的return不用写
-    m = QueueManager(address=('', 6666), authkey=b'666666')
+    m = managers.BaseManager(address=('', 7777), authkey=b'xxxxxx')
+    m.register('task_queue', callable=lambda: tq)
+    m.register('result_queue', callable=lambda: rq)
     s = m.get_server()
     s.serve_forever()
-
-
-if __name__ == '__main__':
-    main()
 ```
 
-```python
+```py
 # Client
-from multiprocessing.managers import BaseManager
+from multiprocessing import managers
 from bs4 import BeautifulSoup
 import requests
 
@@ -1024,27 +1018,18 @@ def download(urls, q):
         print('Clients finishes:', url)
         q.put(data)
 
-
-class QueueManager(BaseManager): pass
-
-def main():
-    QueueManager.register('task_queue')
-    QueueManager.register('result_queue')
-    
-    m = QueueManager(address=('222.29.69.149', 6666), authkey=b'666666')
+if __name__ == "__main__":
+    m = managers.BaseManager(address=('127.0.0.1', 7777), authkey=b'xxxxxx')
+    m.register('task_queue')
+    m.register('result_queue')
     m.connect()
 
-    tq=m.task_queue()
-    rq=m.result_queue()
-
+    tq, rq = m.task_queue(), m.result_queue()
     urls=[]
     while not tq.empty():
         urls.append(tq.get())
     print(f'client gets: {len(urls)} urls')
     download(urls, rq)
-
-if __name__ == '__main__':
-    main()
 ```
 
 example: 生产者消费者模式爬虫
