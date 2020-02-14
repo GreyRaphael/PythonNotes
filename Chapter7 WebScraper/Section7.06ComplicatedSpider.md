@@ -731,17 +731,17 @@ if __name__ == "__main__":
     m.register('result_queue')
     m.connect()
     
-    task_q, result_q=m.task_queue(), m.result_queue()
+    tq, rq=m.task_queue(), m.result_queue()
     for _ in range(10):
-        i=task_q.get()
+        i=tq.get()
         print('client get ', i)
-        result_q.put(i**2)
+        rq.put(i**2)
 ```
 
 example: distributed computation in all platform
 > 分布式+多进程+多线程+多协程
 
-```python
+```py
 # Server.py
 import multiprocessing
 from multiprocessing import managers
@@ -774,7 +774,7 @@ if __name__ == '__main__':
     s.serve_forever()
 ```
 
-```python
+```py
 # Client.py
 from multiprocessing import managers
 import multiprocessing
@@ -828,49 +828,57 @@ if __name__ == '__main__':
     main(cube, rq)
 ```
 
-example2: 分布式控制
+example: 分布式控制
 
-```python
-# Server在example1基础上修改
-class Worker(Process):
+```py
+# server.py
+import multiprocessing
+from multiprocessing import managers
+
+class Worker(multiprocessing.Process):
     def __init__(self, tq, rq):
+        super().__init__()
         self.tq = tq
         self.rq = rq
-        super().__init__()
 
     def run(self):
         self.tq.put('notepad')
         self.tq.put('mspaint')
         self.tq.put('explorer')
-        print('waiting for ...')
+        print('finish task queue')
         for _ in range(3):
-            print(self.rq.get())
-````
-
-```python
-# Client
-from multiprocessing.managers import BaseManager
-import os
-
-class QueueManager(BaseManager): pass
-
-def main():
-    QueueManager.register('task_queue')
-    QueueManager.register('result_queue')
-    
-    m = QueueManager(address=('127.0.0.1', 6666), authkey=b'666666')
-    m.connect()
-
-    tq=m.task_queue()
-    rq=m.result_queue()
-
-    for i in range(3):
-        cmd=tq.get()
-        os.system(cmd)
-        rq.put(i**2)
+            print('result = ', self.rq.get())
 
 if __name__ == '__main__':
-    main()
+    # task queue & result queue
+    tq = multiprocessing.Queue()
+    rq = multiprocessing.Queue()
+    w = Worker(tq, rq)
+    w.start()
+
+    m = managers.BaseManager(address=('', 7777), authkey=b'xxxxxx')
+    m.register('task_queue', callable=lambda: tq)
+    m.register('result_queue', callable=lambda: rq)
+    s = m.get_server()
+    s.serve_forever()
+```
+
+```py
+# client.py
+from multiprocessing import managers
+import os
+
+if __name__ == "__main__":
+    m = managers.BaseManager(address=('127.0.0.1', 7777), authkey=b'xxxxxx')
+    m.register('task_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, rq = m.task_queue(), m.result_queue()
+    for i in range(3):
+        cmd = tq.get()
+        os.system(cmd)
+        rq.put(i**2)
 ```
 
 example3: 分布式作业系统
