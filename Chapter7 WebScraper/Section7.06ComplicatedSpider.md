@@ -759,7 +759,6 @@ class Worker(multiprocessing.Process):
         for _ in range(24):
             print('result=',self.rq.get())
 
-
 if __name__ == '__main__':
     # task queue & result queue
     tq = multiprocessing.Queue()
@@ -842,9 +841,9 @@ class Worker(multiprocessing.Process):
         self.rq = rq
 
     def run(self):
-        self.tq.put('notepad')
-        self.tq.put('mspaint')
-        self.tq.put('explorer')
+        cmd_list=['notepad', 'mspaint', 'explorer']
+        for cmd in cmd_list:
+            self.tq.put(cmd)
         print('finish task queue')
         for _ in range(3):
             print('result = ', self.rq.get())
@@ -881,26 +880,28 @@ if __name__ == "__main__":
         rq.put(i**2)
 ```
 
-example3: 分布式作业系统
+example: 分布式作业系统
 
-```python
-# Server在example1基础上修改
-class Worker(Process):
+```py
+# server.py
+class Worker(multiprocessing.Process):
     def __init__(self, tq, rq):
+        super().__init__()
         self.tq = tq
         self.rq = rq
-        super().__init__()
 
     def run(self):
-        self.tq.put('python my_work1.py')
-        print('waiting for ...')
+        work_list=['my_work1.py','my_work2.py','my_work3.py']
+        for work in work_list:
+            self.tq.put(f'python {work}')
+        print('finish task queue')
         for _ in range(3):
             print(self.rq.get())
 ```
 
-```python
-# Client与example2相同
-# 另外写一个在client端写一个my_work1.py
+```py
+# client.py
+# 与上一个例子相同, 并且client端有相应的文件
 ```
 
 example4: 分布式爬虫
