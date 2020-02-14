@@ -4,7 +4,7 @@
   - [Spider Acceleration](#spider-acceleration)
     - [Coroutine Spider](#coroutine-spider)
     - [coroutine, threading, multiprocessing](#coroutine-threading-multiprocessing)
-  - [Distributed Spider](#distributed-spider)
+    - [Distributed Computation & Spider](#distributed-computation--spider)
   - [DFS & BFS Spider](#dfs--bfs-spider)
 
 ## Spider Acceleration
@@ -650,7 +650,7 @@ import gevent
 import numpy as np
 
 def gevent_func(point):
-    print(point**2)
+    print(gevent.getcurrent(), point**2)
 
 def thread_func(line):
     task_list = []
@@ -686,7 +686,7 @@ if __name__ == "__main__":
     main(cube)
 ```
 
-## Distributed Spider
+### Distributed Computation & Spider
 
 - 分布式计算
 - 分布式控制
@@ -783,7 +783,7 @@ import numpy as np
 
 def gevent_func(point, rq):
     result=point**2
-    print(result)
+    print(gevent.getcurrent(), result)
     rq.put(result)
 
 def thread_func(line, rq):
