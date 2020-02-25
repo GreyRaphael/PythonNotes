@@ -1620,3 +1620,52 @@ if __name__ == "__main__":
             next(save_tool)
         urls_list=temp
 ```
+
+```py
+# method3: custom spawn gevent
+import gevent
+from gevent import monkey
+monkey.patch_all()
+
+import requests
+import re
+import queue
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+URL_QUEUE=queue.Queue()
+SRC_QUEUE = queue.Queue()
+VISITED_URLS=set()
+
+def func(url):
+    print(gevent.getcurrent().name, url)
+    VISITED_URLS.add(url)
+    r = requests.get(url, headers=HEADERS).text
+
+    tree = etree.HTML(r)
+    src_list = tree.xpath('//center/img/@src')
+    for src in src_list:
+        SRC_QUEUE.put(src)
+
+    for url in PAT.findall(r):
+        URL_QUEUE.put(url)
+
+def save_src(file):
+    while not SRC_QUEUE.empty():
+        src = SRC_QUEUE.get()
+        file.write(f'{src}\n')
+        file.flush()
+
+
+if __name__ == "__main__":
+    file = open('img_src.txt', 'w')
+    URL_QUEUE.put('https://www.meitulu.com/')
+
+    while True:
+        url_list=[URL_QUEUE.get() for _ in range(10) if not URL_QUEUE.empty()]
+        working_urls=set(url_list)-VISITED_URLS
+        task_list=[gevent.spawn(func, url) for url in working_urls]
+        gevent.joinall(task_list)
+        save_src(file)
+```
