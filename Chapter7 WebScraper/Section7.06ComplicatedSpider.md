@@ -1669,3 +1669,75 @@ if __name__ == "__main__":
         gevent.joinall(task_list)
         save_src(file)
 ```
+
+example: simple distributed spider
+
+```py
+# server.py
+import multiprocessing
+from multiprocessing import managers
+
+class Worker(multiprocessing.Process):
+    def __init__(self, tq, rq):
+        super().__init__()
+        self.tq = tq
+        self.rq = rq
+
+    def run(self):
+        self.tq.put('https://www.meitulu.com/')
+        print('finish task queue')
+        with open('img_src.txt', 'w') as file:
+            while True:
+                try:
+                    src=self.rq.get(timeout=30)
+                    file.write(src)
+                    file.write('\n')
+                    file.flush()
+                except:
+                    # timeout exception
+                    break
+
+if __name__ == '__main__':
+    # task queue & result queue
+    tq = multiprocessing.Queue()
+    rq = multiprocessing.Queue()
+    w = Worker(tq, rq)
+    w.start()
+
+    m = managers.BaseManager(address=('', 6666), authkey=b'666666')
+    m.register('task_queue', callable=lambda: tq) # lambda的return不用写
+    m.register('result_queue', callable=lambda: rq)# lambda的return不用写
+    s = m.get_server()
+    s.serve_forever()
+```
+
+```py
+# client.py
+from multiprocessing import managers
+import re
+import requests
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+if __name__ == '__main__':
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, rq=m.task_queue(), m.result_queue()
+    while not tq.empty():
+        url = tq.get()
+        print(f'crawl {url}')
+        r = requests.get(url, headers=HEADERS).text
+
+        tree = etree.HTML(r)
+        src_list = tree.xpath('//center/img/@src')
+        for src in src_list:
+            rq.put(src)
+
+        for url in PAT.findall(r):
+            tq.put(url)
+```
