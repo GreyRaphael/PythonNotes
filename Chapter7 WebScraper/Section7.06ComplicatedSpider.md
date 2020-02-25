@@ -18,33 +18,27 @@
 
 ### Coroutine Spider
 
-```python
+```py
 import gevent
 
 def func(n):
     for i in range(n):
-        print(f'{i}=====>{gevent.getcurrent()}')
+        print(f'{i}=====>{gevent.getcurrent().name}')
         gevent.sleep(1) # 碰到等待的操作，自动切换到其他上面去
 
-g1=gevent.spawn(func,3)
-g2=gevent.spawn(func,3)
-g3=gevent.spawn(func,3)
+g1=gevent.spawn(func,2)
+g2=gevent.spawn(func,2)
+g3=gevent.spawn(func,2)
 g1.join()
 g2.join()
 g3.join()
-```
 
-```bash
-# output
-0=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
-0=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
-0=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
-1=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
-1=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
-1=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
-2=====><Greenlet "Greenlet-0" at 0x2daac3766a8: func(3)>
-2=====><Greenlet "Greenlet-1" at 0x2daac376598: func(3)>
-2=====><Greenlet "Greenlet-2" at 0x2daac376ae8: func(3)>
+# 0=====>Greenlet-0
+# 0=====>Greenlet-1
+# 0=====>Greenlet-2
+# 1=====>Greenlet-0
+# 1=====>Greenlet-1
+# 1=====>Greenlet-2
 ```
 
 example: coroutine download
