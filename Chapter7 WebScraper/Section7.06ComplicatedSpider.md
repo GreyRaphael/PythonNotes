@@ -1519,3 +1519,104 @@ if __name__ == "__main__":
     pool.join()
     write_process.join()
 ```
+
+example: Coroutine Pool + BFS
+
+```py
+# method1: normal
+import gevent
+from gevent import pool
+from gevent import monkey
+monkey.patch_all()
+
+import requests
+import re
+import queue
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+SRC_QUEUE = queue.Queue()
+VISITED_URLS=set()
+
+def func(url):
+    print(gevent.getcurrent().name, url)
+    VISITED_URLS.add(url)
+    r = requests.get(url, headers=HEADERS).text
+
+    tree = etree.HTML(r)
+    src_list = tree.xpath('//center/img/@src')
+    for src in src_list:
+        SRC_QUEUE.put(src)
+
+    return PAT.findall(r)
+
+def save_src(file):
+    while not SRC_QUEUE.empty():
+        src = SRC_QUEUE.get()
+        file.write(f'{src}\n')
+        file.flush()
+
+
+if __name__ == "__main__":
+    file = open('img_src.txt', 'w')
+    urls_list=[['https://www.meitulu.com/']]
+    po=pool.Pool(4)
+
+    while True:
+        temp=[]
+        for urls in urls_list:
+            working_urls=set(urls)-VISITED_URLS
+            result = po.map(func, working_urls)
+            temp.extend(result)
+            save_src(file)
+        urls_list=temp
+```
+
+```py
+# method2: with yield
+import gevent
+from gevent import pool
+from gevent import monkey
+monkey.patch_all()
+
+import requests
+import re
+import queue
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+SRC_QUEUE = queue.Queue()
+VISITED_URLS=set()
+
+def func(url):
+    pass
+
+
+def save_src():
+    file = open('img_src.txt', 'w')
+
+    while True:
+        if not SRC_QUEUE.empty():
+            src = SRC_QUEUE.get()
+            file.write(f'{src}\n')
+            file.flush()
+        else:
+            yield
+
+
+if __name__ == "__main__":
+    urls_list=[['https://www.meitulu.com/']]
+    po=pool.Pool(4)
+    save_tool=save_src() # generator
+
+    while True:
+        temp=[]
+        for urls in urls_list:
+            working_urls=set(urls)-VISITED_URLS
+            result = po.map(func, working_urls)
+            temp.extend(result)
+            next(save_tool)
+        urls_list=temp
+```
