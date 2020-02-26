@@ -1890,3 +1890,56 @@ if __name__ == '__main__':
             for url in url_list:
                 filter_q.put(url)
 ```
+
+example: distributed spider with corouitine pool
+
+```py
+# server.py
+# same as the above one
+```
+
+```py
+# client.py
+import gevent
+from gevent import pool, monkey
+# 分布式中socket不能替换，其他的照常换成异步
+monkey.patch_all(socket=False)
+
+from multiprocessing import managers
+import re
+import requests
+from lxml import etree
+
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+SESS=requests.session()
+
+def func(url):
+    print(f'{gevent.getcurrent().name} crawl {url}')
+    # 没有cookie容易被ban
+    r = SESS.get(url, headers=HEADERS).text
+    tree = etree.HTML(r)
+    src_list = tree.xpath('//center/img/@src')
+    url_list= PAT.findall(r)
+    return src_list, url_list
+
+if __name__ == '__main__':
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('filter_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, filter_q, rq = m.task_queue(), m.filter_queue(), m.result_queue()
+    po = pool.Pool(4)
+    while True:
+        urls = [tq.get() for _ in range(20) if not tq.empty()]
+        
+        data=po.map(func, urls) # list of tuples
+        for src_list, url_list in data:
+            for src in src_list:
+                rq.put(src)
+            for url in url_list:
+                filter_q.put(url)
+```
