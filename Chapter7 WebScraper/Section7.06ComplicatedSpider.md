@@ -1670,7 +1670,7 @@ if __name__ == "__main__":
         save_src(file)
 ```
 
-example: simple distributed spider
+example: simple distributed spider without duplicate filter
 
 ```py
 # server.py
@@ -1852,6 +1852,7 @@ example: distributed spider with process pool
 ```
 
 ```py
+# method1: 直接有return
 # client.py
 from multiprocessing import managers, Pool
 import re
@@ -1889,6 +1890,13 @@ if __name__ == '__main__':
                 rq.put(src)
             for url in url_list:
                 filter_q.put(url)
+```
+
+```py
+# method2: 因为多进程数据需要Manager()进行共享，将
+# src_queue=multiprocessing.Manager().Queue()
+# url_queue=multiprocessing.Manager().Queue()
+# 作为参数传入多进程，然后主进程从这两个queue中收集数据发送给rq, filter_q
 ```
 
 example: distributed spider with corouitine pool
@@ -1987,4 +1995,96 @@ if __name__ == '__main__':
         
         task_list=[gevent.spawn(func, url, rq, filter_q) for url in urls]
         gevent.joinall(task_list)
+```
+
+example: distributed spider with thread pool
+
+```py
+# server.py
+# same as the above one
+```
+
+```py
+# method1: 可以随意ProcessPoolExecutor or ThreadPoolExecutor
+# client.py
+from multiprocessing import managers
+import threading
+from concurrent import futures
+import re
+import requests
+from lxml import etree
+
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+SESS=requests.session()
+
+def func(url):
+    print(f'{threading.current_thread().name} crawl {url}')
+    r = SESS.get(url, headers=HEADERS).text
+    tree = etree.HTML(r)
+    src_list = tree.xpath('//center/img/@src')
+    url_list= PAT.findall(r)
+    return src_list, url_list
+
+if __name__ == '__main__':
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('filter_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, filter_q, rq = m.task_queue(), m.filter_queue(), m.result_queue()
+    executor=futures.ThreadPoolExecutor(max_workers=4)
+    while True:
+        urls = [tq.get() for _ in range(20) if not tq.empty()]
+        
+        data=executor.map(func, urls) # generator
+        for src_list, url_list in data:
+            for src in src_list:
+                rq.put(src)
+            for url in url_list:
+                filter_q.put(url)
+```
+
+```py
+# method2: 因为process数据不共享，只适用于ThreadPoolExecutor
+# client.py
+from multiprocessing import managers
+import threading
+from concurrent import futures
+import re
+import requests
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+SESS=requests.session()
+
+def func(data):
+    url, rq, filter_q=data
+    print(f'{threading.current_thread().name} crawl {url}')
+    r = SESS.get(url, headers=HEADERS).text
+    tree = etree.HTML(r)
+    src_list = tree.xpath('//center/img/@src')
+    url_list= PAT.findall(r)
+    for src in src_list:
+        rq.put(src)
+    for link in url_list:
+        filter_q.put(link)
+
+if __name__ == '__main__':
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('filter_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, filter_q, rq = m.task_queue(), m.filter_queue(), m.result_queue()
+    executor=futures.ThreadPoolExecutor(max_workers=4)
+    while True:
+        urls = [tq.get() for _ in range(20) if not tq.empty()]
+        data=[(url, rq, filter_q) for url in urls]
+        # queue是线程安全的
+        executor.map(func, data) # generator
 ```
