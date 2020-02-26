@@ -1741,3 +1741,105 @@ if __name__ == '__main__':
         for url in PAT.findall(r):
             tq.put(url)
 ```
+
+example: simple distributed spider with url duplicate filter
+
+```py
+# server.py
+import multiprocessing
+from multiprocessing import managers
+import threading
+
+class Worker(multiprocessing.Process):
+    def __init__(self, tq, filter_q, rq):
+        super().__init__()
+        self.tq = tq
+        self.filter_q=filter_q
+        self.rq = rq
+        self.visited_urls=['https://www.meitulu.com/', ]
+
+    def write_src(self):
+        with open('img_src.txt', 'w') as file:
+            while True:
+                try:
+                    src=self.rq.get(timeout=30)
+                    file.write(src)
+                    file.write('\n')
+                    file.flush()
+                except Exception as e:
+                    # timeout exception
+                    print(e)
+                    break
+
+    def filter_url(self):
+        while True:
+            try:
+                raw_url=self.filter_q.get(timeout=30)
+                if raw_url not in self.visited_urls:
+                    self.tq.put(raw_url)
+                    self.visited_urls.append(raw_url)
+            except Exception as e:
+                print(e)
+                break
+
+    def run(self):
+        self.tq.put('https://www.meitulu.com/')
+        t1=threading.Thread(target=self.write_src)
+        t1.start()
+        t2=threading.Thread(target=self.filter_url)
+        t2.start()
+        t1.join()
+        t2.join()
+
+
+if __name__ == '__main__':
+    tq = multiprocessing.Queue()
+    filter_q=multiprocessing.Queue()
+    rq = multiprocessing.Queue()
+    w = Worker(tq, filter_q, rq)
+    w.start()
+
+    m = managers.BaseManager(address=('', 6666), authkey=b'666666')
+    m.register('task_queue', callable=lambda: tq)
+    m.register('filter_queue', callable=lambda: filter_q)
+    m.register('result_queue', callable=lambda: rq)
+    s = m.get_server()
+    s.serve_forever()
+```
+
+```py
+# client.py
+from multiprocessing import managers
+import re
+import requests
+from lxml import etree
+
+HEADERS = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"}
+PAT = re.compile(r'href="(https://www.meitulu.com/item/\d+.html)"')
+
+if __name__ == '__main__':
+    m = managers.BaseManager(address=('127.0.0.1', 6666), authkey=b'666666')
+    m.register('task_queue')
+    m.register('filter_queue')
+    m.register('result_queue')
+    m.connect()
+
+    tq, filter_q, rq=m.task_queue(), m.filter_queue(), m.result_queue()
+    while True:
+        try:
+            url = tq.get(timeout=30)
+            print(f'crawl {url}')
+        except Exception as e:
+            # timeout exception
+            print(e)
+            break
+        r = requests.get(url, headers=HEADERS).text
+
+        tree = etree.HTML(r)
+        src_list = tree.xpath('//center/img/@src')
+        for src in src_list:
+            rq.put(src)
+
+        for url in PAT.findall(r):
+            filter_q.put(url)
+```
