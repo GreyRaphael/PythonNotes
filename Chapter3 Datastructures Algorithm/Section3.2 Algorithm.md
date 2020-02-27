@@ -1,20 +1,155 @@
 # Python Algorithm
 
 - [Python Algorithm](#python-algorithm)
-    - [sort](#sort)
-        - [Bubble Sort](#bubble-sort)
-        - [Selection sort](#selection-sort)
-        - [Insertion Sort](#insertion-sort)
-        - [Shell Sort(希尔排序)](#shell-sort%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F)
-        - [Quick sort](#quick-sort)
-        - [merge sort](#merge-sort)
-        - [sort sunnmary](#sort-sunnmary)
-    - [search](#search)
-        - [二分查找](#%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE)
-    - [Tree](#tree)
-        - [广度遍历](#%E5%B9%BF%E5%BA%A6%E9%81%8D%E5%8E%86)
-        - [深度遍历](#%E6%B7%B1%E5%BA%A6%E9%81%8D%E5%8E%86)
-        - [tree summary](#tree-summary)
+  - [Time & Space Complecity](#time--space-complecity)
+  - [Search](#search)
+  - [sort](#sort)
+    - [Bubble Sort](#bubble-sort)
+    - [Selection sort](#selection-sort)
+    - [Insertion Sort](#insertion-sort)
+    - [Shell Sort(希尔排序)](#shell-sort%e5%b8%8c%e5%b0%94%e6%8e%92%e5%ba%8f)
+    - [Quick sort](#quick-sort)
+    - [merge sort](#merge-sort)
+    - [sort sunnmary](#sort-sunnmary)
+  - [Tree](#tree)
+    - [广度遍历](#%e5%b9%bf%e5%ba%a6%e9%81%8d%e5%8e%86)
+    - [深度遍历](#%e6%b7%b1%e5%ba%a6%e9%81%8d%e5%8e%86)
+    - [tree summary](#tree-summary)
+
+## Time & Space Complecity
+
+时间复杂度：用来评估算法运行效率
+> 常见时间复杂度: `O(1)<O(logn)<O(n)<O(nlogn)<O(n2)<O(n2logn)<O(n3)`
+
+```py
+# O(logn)
+n=128
+
+while n>1:
+    print(n)
+    n=n//2
+```
+
+空间复杂度：用来评估算法内存占用大小
+- 创建一个变量: O(1)
+- 创建一个列表: O(n)
+- 创建一个二维列表: O(n2)
+
+## Search
+
+Problem:
+- 列表查找：从列表中查找指定元素
+  - 输入：列表、待查找元素
+  - 输出：元素下标或未查找到元素
+
+Solutions:
+- 顺序查找
+  - 从列表第一个元素开始，顺序进行搜索，直到找到为止。
+- 二分查找
+  - 从有序列表的候选区data[0:n]开始，通过对待查找的值与候选区中间值的比较，可以使候选区减少一半。
+
+二分查找的条件：有序的顺序表
+
+- 序列必须有序
+- 支持下标索引(顺序表)
+- 最劣时间复杂度$O(logn)$
+- 最优时间复杂度$O(1)$
+
+如果遍历:
+
+- 最劣时间复杂度$O(n)$
+- 最优时间复杂度$O(1)$
+
+```py
+def binary_search(a_list, item):
+    """非递归实现"""
+    first_index = 0
+    last_index = len(a_list)-1
+
+    while first_index <= last_index:
+        mid_index = (first_index+last_index)//2
+        if a_list[mid_index] == item:
+            return True
+        elif item < a_list[mid_index]:
+            last_index = mid_index-1
+        else:
+            first_index = mid_index+1
+        print(f'{first_index},{last_index}')
+    return False
+
+
+list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
+print(binary_search(list1, 9))  # True
+print(binary_search(list1, 7))  # False
+```
+
+```bash
+#output
+5,8
+True
+5,8
+5,5
+6,5
+False
+```
+
+```py
+def binary_search(a_list, item):
+    """递归实现"""
+    n = len(a_list)
+
+    # 递归终止条件
+    if n == 0:
+        return False
+    
+    mid = n//2
+    print(f'mid={mid}')
+    if a_list[mid] == item:
+        return True
+    elif item < a_list[mid]:
+        return binary_search(a_list[:mid], item)
+    else:
+        return binary_search(a_list[mid+1:], item)
+
+
+list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
+print(binary_search(list1, 9))  # True
+print(binary_search(list1, 7))  # False
+```
+
+```bash
+#output
+mid=4
+mid=2
+mid=1
+True
+mid=4
+mid=2
+mid=1
+mid=0
+False
+```
+
+example: 递归与尾递归
+
+```py
+# 有一个进入然后返回的过程
+def recursive_sum(x):
+    if x==0:
+        return x
+    else:
+        return x+recursive_sum(x-1)
+
+# 只有进入过程，没有返回过程
+def tail_recursive_sum(x, result=0):
+    if x==0:
+        return result
+    else:
+        return tail_recursive_sum(x-1, result+x)
+
+recursive_sum(5)
+tail_recursive_sum(5)
+```
 
 ## sort
 
@@ -417,92 +552,6 @@ print(sorted_list)
 merger-sort时候需要子序列，而子序列和原序列一样大，所以是n;
 
 quick-sort最平衡,所以要掌握; python默认sort也是quick-sort;
-
-## search
-
-### 二分查找
-
-二分查找的条件：有序的顺序表
-
-- 序列必须有序
-- 支持下标索引(顺序表)
-- 最劣时间复杂度$O(logn)$
-- 最优时间复杂度$O(1)$
-
-如果遍历:
-
-- 最劣时间复杂度$O(n)$
-- 最优时间复杂度$O(1)$
-
-```python
-def binary_search(a_list, item):
-    """非递归实现"""
-    first_index = 0
-    last_index = len(a_list)-1
-
-    while first_index <= last_index:
-        mid_index = (first_index+last_index)//2
-        if a_list[mid_index] == item:
-            return True
-        elif item < a_list[mid_index]:
-            last_index = mid_index-1
-        else:
-            first_index = mid_index+1
-        print(f'{first_index},{last_index}')
-    return False
-
-
-list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
-print(binary_search(list1, 9))  # True
-print(binary_search(list1, 7))  # False
-```
-
-```bash
-#output
-5,8
-True
-5,8
-5,5
-6,5
-False
-```
-
-```python
-def binary_search(a_list, item):
-    """递归实现"""
-    n = len(a_list)
-
-    # 递归终止条件
-    if n == 0:
-        return False
-    
-    mid = n//2
-    print(f'mid={mid}')
-    if a_list[mid] == item:
-        return True
-    elif item < a_list[mid]:
-        return binary_search(a_list[:mid], item)
-    else:
-        return binary_search(a_list[mid+1:], item)
-
-
-list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
-print(binary_search(list1, 9))  # True
-print(binary_search(list1, 7))  # False
-```
-
-```bash
-#output
-mid=4
-mid=2
-mid=1
-True
-mid=4
-mid=2
-mid=1
-mid=0
-False
-```
 
 ## Tree
 
