@@ -19,7 +19,8 @@
 ## Time & Space Complecity
 
 时间复杂度：用来评估算法运行效率
-> 常见时间复杂度: `O(1)<O(logn)<O(n)<O(nlogn)<O(n2)<O(n2logn)<O(n3)`
+> 常见时间复杂度: `O(1)<O(logn)<O(n)<O(nlogn)<O(n2)<O(n2logn)<O(n3)`  
+> eg. quick-sort: `O(nlogn)`
 
 ```py
 # O(logn)
@@ -157,9 +158,8 @@ tail_recursive_sum(5)
 
 ### Bubble Sort
 
-先要研究内层循环。
-
-时间复杂度$O(n^2)$
+- 普通版本的冒泡时间复杂度是O(n2)
+- 优化版本的冒泡最好时间复杂度为O(n), 扫描一遍有序，然后break, 最坏为O(n2)
 
 ```python
 import random
@@ -299,6 +299,8 @@ print(list1)
 
 认为一个序列分成两部分,每次从后部分挑一个到前面部分按顺序的位置
 
+[插入排序优化](https://www.cnblogs.com/liugangjiayou/p/11729367.html)
+
 - 最优时间复杂度$O(n)$，已经出于有序状态
 - 最劣时间复杂度$O(n^2)$
 - 排序算法稳定
@@ -394,6 +396,8 @@ print(list1)
 
 ### Quick sort
 
+python自带的sort也是timsort平均复杂度也是O(nlogn)，但是因为调用c, 比自己实现的快速排序要更快
+
 关键是用了两个游标; 而且要递归
 
 -  排序不稳定, 因为有多个相同的元素的时候，会出现左右移动的情况
@@ -412,6 +416,7 @@ def quick_sort(a_list, first_index, last_index):
     while low_index < high_index:
         # step1
         # 与mid_value相同的元素都放在右边，所以两个循环只能有一个=
+        # 如果是逆序，改<=号和下面while的>=
         while mid_value <= a_list[high_index] and low_index < high_index:
             high_index -= 1
         a_list[low_index] = a_list[high_index]  # 这个时候的high_index的位置相当于空白
@@ -545,7 +550,19 @@ print(sorted_list)
 
 ### sort sunnmary
 
-![](res/sort01.png)
+| Name           | Average | Best  | Worst | Memory  | Stable  |
+|----------------|---------|-------|-------|---------|---------|
+| bubble sort    | n^2     | n     | n^2   | 1       | Yes     |
+| insertion sort | n^2     | n     | n^2   | 1       | Yes     |
+| selection sort | n^2     | n^2   | n^2   | 1       | depends |
+| quick sort     | nlogn   | nlogn | n^2   | logn    | depends |
+| heap sort      | nlogn   | nlogn | nlogn | 1       | No      |
+| merge sort     | nlogn   | nlogn | nlogn | depends | Yes     |
+| Timsort        | nlogn   | n     | nlogn | n       | Yes     |
+| Introsort      | nlogn   | nlogn | nlogn | logn    | No      |
+
+
+如果list本身是逆序，那么quick-sort就是最坏情况，logn无法发生作用，时间复杂度为O(n2)
 
 因为quick-sort的时候需要用递归，而递归需要stack, 最好的情况递归深度为logn,最坏的情况需要n;
 
