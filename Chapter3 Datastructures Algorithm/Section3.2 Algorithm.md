@@ -7,14 +7,14 @@
     - [Bubble Sort](#bubble-sort)
     - [Selection sort](#selection-sort)
     - [Insertion Sort](#insertion-sort)
-    - [Shell Sort(希尔排序)](#shell-sort%e5%b8%8c%e5%b0%94%e6%8e%92%e5%ba%8f)
+    - [Shell Sort](#shell-sort)
     - [Quick sort](#quick-sort)
     - [heap sort](#heap-sort)
     - [merge sort](#merge-sort)
     - [sort sunnmary](#sort-sunnmary)
   - [Tree](#tree)
-    - [广度遍历](#%e5%b9%bf%e5%ba%a6%e9%81%8d%e5%8e%86)
-    - [深度遍历](#%e6%b7%b1%e5%ba%a6%e9%81%8d%e5%8e%86)
+    - [BFS](#bfs)
+    - [DFS](#dfs)
     - [tree summary](#tree-summary)
 
 ## Time & Space Complecity
@@ -359,7 +359,7 @@ insertion_sort(list1)
 print(list1)
 ```
 
-### Shell Sort(希尔排序)
+### Shell Sort
 
 核心思想是gap的设置;分组;在插入排序基础上修改而来
 
@@ -460,7 +460,7 @@ print(list1)
 1. 堆顶元素为第二大元素。
 1. 重复步骤3，直到堆变空。
 
-一次调整
+建立堆
 > ![](res/adjust_heap.gif)
 
 堆排序:(直接取出堆顶最大)
@@ -471,6 +471,7 @@ print(list1)
 
 ```py
 def sift(data, low, high):
+    '''一次调整'''
     i = low
     j = 2 * i + 1
     tmp = data[i]
@@ -494,6 +495,29 @@ def heap_sort(data):
             data[0], data[i] = data[i], data[0]
             sift(data, 0, i - 1)
 ```
+
+example: 逆序heap sort
+
+```py
+def sift(data, low, high):
+    '''一次调整'''
+    i = low
+    j = 2 * i + 1
+    tmp = data[i]
+    while j <= high:
+        if j < high and data[j] > data[j + 1]:
+            j += 1
+        if tmp > data[j]:
+            data[i] = data[j]
+            i = j
+            j = 2 * i + 1
+        else:
+            break
+    data[i] = tmp
+```
+
+三者速度比较:
+quick-sort>merge-sort>heap-sort
 
 ### merge sort
 
@@ -622,7 +646,7 @@ quick-sort最平衡,所以要掌握; python默认sort也是quick-sort;
 
 树的实现需要队列，从右边加入，从左边读取;实现广度遍历;
 
-### 广度遍历
+### BFS
 
 ```python
 class Node(object):
@@ -699,7 +723,7 @@ current elem=8
 current elem=9
 ```
 
-### 深度遍历
+### DFS
 
 ```python
 class Node(object):
