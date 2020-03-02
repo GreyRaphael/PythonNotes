@@ -9,6 +9,7 @@
     - [Insertion Sort](#insertion-sort)
     - [Shell Sort(希尔排序)](#shell-sort%e5%b8%8c%e5%b0%94%e6%8e%92%e5%ba%8f)
     - [Quick sort](#quick-sort)
+    - [heap sort](#heap-sort)
     - [merge sort](#merge-sort)
     - [sort sunnmary](#sort-sunnmary)
   - [Tree](#tree)
@@ -449,6 +450,49 @@ print(list1)
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ==============================
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+```
+
+### heap sort
+
+1. 建立堆
+1. 得到堆顶元素，为最大元素
+1. 去掉堆顶，将堆最后一个元素放到堆顶，此时可通过**一次调整**重新使堆有序。
+1. 堆顶元素为第二大元素。
+1. 重复步骤3，直到堆变空。
+
+一次调整
+> ![](res/adjust_heap.gif)
+
+堆排序:(直接取出堆顶最大)
+> ![](res/head_sort01.gif)
+
+堆排序:为了节约内存，交换堆顶最大和完全二叉树最后一个
+> ![](res/heap_sort02.gif)
+
+```py
+def sift(data, low, high):
+    i = low
+    j = 2 * i + 1
+    tmp = data[i]
+    while j <= high: #只要没到子树的最后
+        if j < high and data[j] < data[j + 1]:
+            j += 1
+        if tmp < data[j]:#如果领导不能干
+            data[i] = data[j] #小领导上位
+            i = j
+            j = 2 * i + 1
+        else:
+            break
+    data[i] = tmp
+
+
+def heap_sort(data):
+    n = len(data)
+    for i in range(n // 2 - 1, -1, -1):
+        sift(data, i, n - 1)
+        for i in range(n - 1, -1, -1):
+            data[0], data[i] = data[i], data[0]
+            sift(data, 0, i - 1)
 ```
 
 ### merge sort
