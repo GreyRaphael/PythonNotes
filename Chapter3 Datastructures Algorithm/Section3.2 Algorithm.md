@@ -78,8 +78,7 @@ print(recursive_sum(5))
 print(tail_recursive_sum(5))
 ```
 
-example: 比较循环实现与递归实现的效率
-> 递归不能加装饰器
+example: 比较顺序查找、二分查找循环实现、二分查找递归实现的运行效率
 
 ```py
 import time
@@ -92,6 +91,12 @@ def calc_time(func):
         print(f'{func.__name__} running time: {t2-t1} s')
         return result
     return wrapper
+
+@calc_time
+def linear_search(data_set, val):
+    for i, d in enumerate(data_set):
+        if d==val:
+            return i
 
 @calc_time
 def bin_search(data_set, val):
@@ -111,7 +116,12 @@ def bin_search(data_set, val):
     return False
 
 def _recur_bin_search(data_set, val):
-    """递归实现：缺点是无法定位目标val的index"""
+    """
+    递归实现
+    缺点1: 是无法定位目标val的index
+    缺点2: 频繁创建list导致内存占用大，还占用了大量运行时间
+    """
+
     n = len(data_set)
 
     # 递归终止条件
@@ -129,12 +139,15 @@ def _recur_bin_search(data_set, val):
 
 @calc_time
 def recur_bin_search(data_set, val):
+    # 递归不能加装饰器，所以需要新函数
     return _recur_bin_search(data_set, val)
 
 
-data=list(range(100000000))
+data=list(range(200000000))
+print(linear_search(data, 173320))
 print(bin_search(data, 173320))
 print(recur_bin_search(data, 173320))
+# 速度: bin_search> linear_search > recur_bin_search
 ```
 
 example: search struct
