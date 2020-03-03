@@ -305,64 +305,59 @@ print(data)
 ### Insertion Sort
 
 认为一个序列分成两部分,每次从后部分挑一个到前面部分按顺序的位置
-
-[插入排序优化](https://www.cnblogs.com/liugangjiayou/p/11729367.html)
-
-- 最优时间复杂度$O(n)$，已经出于有序状态
+> ![](res/insertion_sort.gif)
+- 最优时间复杂度$O(n)$，已经处于有序状态
 - 最劣时间复杂度$O(n^2)$
 - 排序算法稳定
 
-```python
-def insertion_sort(a_list):
-    n = len(a_list)
+```py
+import random
+import time
+
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+
+@calc_time
+def insertion_sort_1(data_set):
+    '''method1'''
+    n = len(data_set)
     # 从第二个位置，即下标为1的元素开始向前插入
     for i in range(1, n):
-        for j in range(i, 0, -1): # 从右往左判断
-            if a_list[j] < a_list[j-1]:
-                a_list[j], a_list[j-1] = a_list[j-1], a_list[j]
-
-
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-insertion_sort(list1)
-print(list1)
-print('='*30)
-insertion_sort(list1)
-print(list1)
-```
-
-```bash
-#output
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-==============================
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-```
-
-```python
-# 优化
-def insertion_sort(a_list):
-    n = len(a_list)
-    # 从第二个位置，即下标为1的元素开始向前插入
-    for i in range(1, n):
-        for j in range(i, 0, -1):
-            if a_list[j] < a_list[j-1]:
-                a_list[j], a_list[j-1] = a_list[j-1], a_list[j]
-            else: #如果判断不成立，再往前的就不用比较了，因为肯定是大于它们的
+        for j in range(i, 0, -1):  # 从右往左判断
+            if data_set[j] < data_set[j-1]:
+                data_set[j], data_set[j-1] = data_set[j-1], data_set[j]
+            else: #这一句是优化，如果判断不成立，再往前的就不用比较了，因为肯定是大于它们的
                 break
 
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-insertion_sort(list1)
-print(list1)
-print('='*30)
-insertion_sort(list1)
-print(list1)
+@calc_time
+def insertion_sort_2(data_set):
+    '''method2: 优化版本，因为没有进入循环而进行while判断，当有序时，时间复杂度为O(n)'''
+    n = len(data_set)
+    for i in range(1, n):
+        tmp = data_set[i]
+        j = i - 1
+        while j >= 0 and data_set[j] > tmp:
+            data_set[j+1] = data_set[j]
+            j = j - 1
+        data_set[j + 1] = tmp
+
+
+data1 = list(range(10000000))
+# random.shuffle(data1)
+data2=data1.copy()
+# print(data1, data2)
+insertion_sort_1(data1)
+insertion_sort_2(data2)
+# print(data1, data2)
 ```
 
 ### Shell Sort
