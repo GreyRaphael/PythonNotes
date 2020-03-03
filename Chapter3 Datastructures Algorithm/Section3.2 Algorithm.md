@@ -190,7 +190,7 @@ print(bin_search(data, 2000))
 ## Sort
 
 排序算法分类:
-- easy
+- easy: 重点在于**有序区**和**无序区**
   - bubble sort
   - selection sort
   - insertion sort
@@ -206,7 +206,6 @@ print(bin_search(data, 2000))
 ### Bubble Sort
 
 > ![](res/bubble_sort.gif)
-
 
 ```py
 import random
@@ -269,39 +268,38 @@ print(data)
 ### Selection sort
 
 认为一个序列分成两部分，前部分是排号顺序的，后部分是待遍历的；先找到最小值
-
-- 最优时间复杂度$O(n^2)$, 没有办法优化，而且排序算法不稳定
+- 最优时间复杂度$O(n^2)$, 没有办法优化
 - 最劣时间复杂度$O(n^2)$
 
-```python
-def selection_sort(a_list):
-    n = len(a_list)
+```py
+import random
+import time
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+@calc_time
+def selection_sort(data_set):
+    n = len(data_set)
     for i in range(n-1):
-        min_index = i
+        min_loc = i
         for j in range(i+1, n):
-            if a_list[j] < a_list[min_index]:
-                min_index = j
-        if min_index != i:
-            a_list[i], a_list[min_index] = a_list[min_index], a_list[i]
+            if data_set[j] < data_set[min_loc]:
+                min_loc = j
+        if min_loc != i:  # 加入这一条能够将不稳定的选择排序变为稳定的
+            data_set[i], data_set[min_loc] = data_set[min_loc], data_set[i]
 
-
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-selection_sort(list1)
-print(list1)
-print('='*30)
-selection_sort(list1)
-print(list1)
-```
-
-```bash
-#output
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-==============================
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+data = list(range(10))
+random.shuffle(data)
+print(data)
+selection_sort(data)
+print(data)
 ```
 
 ### Insertion Sort
