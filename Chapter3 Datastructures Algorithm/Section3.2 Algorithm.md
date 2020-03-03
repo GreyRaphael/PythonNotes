@@ -23,6 +23,10 @@
 > 常见时间复杂度: `O(1)<O(logn)<O(n)<O(nlogn)<O(n2)<O(n2logn)<O(n3)`  
 > eg. quick-sort: `O(nlogn)`
 
+直接判断时间复杂度:
+- 循环减半: O(logn)
+- x重循环嵌套: O(n^x)
+
 ```py
 # O(logn)
 n=128
@@ -47,100 +51,21 @@ Problem:
 Solutions:
 - 顺序查找
   - 从列表第一个元素开始，顺序进行搜索，直到找到为止。
+    - 最劣时间复杂度$O(n)$
+    - 最优时间复杂度$O(1)$
 - 二分查找
   - 从有序列表的候选区data[0:n]开始，通过对待查找的值与候选区中间值的比较，可以使候选区减少一半。
-
-二分查找的条件：有序的顺序表
-
-- 序列必须有序
-- 支持下标索引(顺序表)
-- 最劣时间复杂度$O(logn)$
-- 最优时间复杂度$O(1)$
-
-如果遍历:
-
-- 最劣时间复杂度$O(n)$
-- 最优时间复杂度$O(1)$
-
-```py
-def binary_search(a_list, item):
-    """非递归实现"""
-    first_index = 0
-    last_index = len(a_list)-1
-
-    while first_index <= last_index:
-        mid_index = (first_index+last_index)//2
-        if a_list[mid_index] == item:
-            return True
-        elif item < a_list[mid_index]:
-            last_index = mid_index-1
-        else:
-            first_index = mid_index+1
-        print(f'{first_index},{last_index}')
-    return False
-
-
-list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
-print(binary_search(list1, 9))  # True
-print(binary_search(list1, 7))  # False
-```
-
-```bash
-#output
-5,8
-True
-5,8
-5,5
-6,5
-False
-```
-
-```py
-def binary_search(a_list, item):
-    """递归实现"""
-    n = len(a_list)
-
-    # 递归终止条件
-    if n == 0:
-        return False
-    
-    mid = n//2
-    print(f'mid={mid}')
-    if a_list[mid] == item:
-        return True
-    elif item < a_list[mid]:
-        return binary_search(a_list[:mid], item)
-    else:
-        return binary_search(a_list[mid+1:], item)
-
-
-list1 = [1, 3, 3, 4, 5, 6, 9, 11, 49]
-print(binary_search(list1, 9))  # True
-print(binary_search(list1, 7))  # False
-```
-
-```bash
-#output
-mid=4
-mid=2
-mid=1
-True
-mid=4
-mid=2
-mid=1
-mid=0
-False
-```
+    - 序列必须有序
+    - 支持下标索引(顺序表)
+    - 最劣时间复杂度$O(logn)$
+    - 最优时间复杂度$O(1)$
 
 example: 递归与尾递归
 
 ```py
 # 有一个进入然后返回的过程
 def recursive_sum(x):
-    if x==0:
-        return x
-    else:
-        return x+recursive_sum(x-1)
+    return x if x==0 else x+recursive_sum(x-1)
 
 # 只有进入过程，没有返回过程
 def tail_recursive_sum(x, result=0):
@@ -149,8 +74,104 @@ def tail_recursive_sum(x, result=0):
     else:
         return tail_recursive_sum(x-1, result+x)
 
-recursive_sum(5)
-tail_recursive_sum(5)
+print(recursive_sum(5))
+print(tail_recursive_sum(5))
+```
+
+example: 比较循环实现与递归实现的效率
+> 递归不能加装饰器
+
+```py
+import time
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1=time.time()
+        result=func(*args, **kwargs)
+        t2=time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+@calc_time
+def bin_search(data_set, val):
+    """非递归实现"""
+    low = 0
+    high = len(data_set)-1
+
+    while low <= high:
+        mid = (low+high)//2
+        if data_set[mid] == val:
+            return mid
+        elif val < data_set[mid]:
+            high = mid-1
+        else:
+            low = mid+1
+        # print(f'{low},{high}')
+    return False
+
+def _recur_bin_search(data_set, val):
+    """递归实现：缺点是无法定位目标val的index"""
+    n = len(data_set)
+
+    # 递归终止条件
+    if n == 0:
+        return False
+    
+    mid = n//2
+    # print(f'mid={mid}')
+    if data_set[mid] == val:
+        return data_set[mid]
+    elif val < data_set[mid]:
+        return _recur_bin_search(data_set[:mid], val)
+    else:
+        return _recur_bin_search(data_set[mid+1:], val)
+
+@calc_time
+def recur_bin_search(data_set, val):
+    return _recur_bin_search(data_set, val)
+
+
+data=list(range(100000000))
+print(bin_search(data, 173320))
+print(recur_bin_search(data, 173320))
+```
+
+example: search struct
+
+```py
+import time
+import random
+
+def generate_data(n):
+    result = []
+    ids = list(range(1001, 1001+n))
+    a1 = ['zhao', 'qian', 'sun', 'li']
+    a2 = ['li', 'hao', '', '']
+    a3 = ['qiang', 'guo']
+    for i in ids:
+        name = random.choice(a1)+random.choice(a2)+random.choice(a3)
+        student = {'id': i, 'age': random.randint(18, 60), 'name': name}
+        result.append(student)
+    return result
+
+def bin_search(data_set, val):
+    """非递归实现"""
+    low = 0
+    high = len(data_set)-1
+
+    while low <= high:
+        mid = (low+high)//2
+        if data_set[mid]['id'] == val:
+            return data_set[mid]
+        elif val < data_set[mid]['id']:
+            high = mid-1
+        else:
+            low = mid+1
+    return False
+
+data = generate_data(1000)
+print(bin_search(data, 2000))
 ```
 
 ## sort
