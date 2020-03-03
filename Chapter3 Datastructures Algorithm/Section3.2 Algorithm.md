@@ -3,7 +3,7 @@
 - [Python Algorithm](#python-algorithm)
   - [Time & Space Complecity](#time--space-complecity)
   - [Search](#search)
-  - [sort](#sort)
+  - [Sort](#sort)
     - [Bubble Sort](#bubble-sort)
     - [Selection sort](#selection-sort)
     - [Insertion Sort](#insertion-sort)
@@ -187,109 +187,83 @@ data = generate_data(1000)
 print(bin_search(data, 2000))
 ```
 
-## sort
+## Sort
 
-排序算法的稳定性；
+排序算法分类:
+- easy
+  - bubble sort
+  - selection sort
+  - insertion sort
+- 常用
+  - quick sort
+  - heap sort
+  - merge sort
+- rarely used
+  - shell sort: 希尔排序
+  - raidx sort: 基数排序
+  - bucket sort: 桶排序
 
 ### Bubble Sort
 
-- 普通版本的冒泡时间复杂度是O(n2)
-- 优化版本的冒泡最好时间复杂度为O(n), 扫描一遍有序，然后break, 最坏为O(n2)
+> ![](res/bubble_sort.gif)
 
-```python
+
+```py
 import random
+import time
 
-def bubble_sort(a_list):
-    """因为链表作为参数交换相邻的node稍微麻烦，使用顺序表的list"""
-    n = len(a_list)
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1=time.time()
+        result=func(*args, **kwargs)
+        t2=time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+@calc_time
+def bubble_sort(data_set):
+    '''时间复杂度是O(n^2)'''
+    n=len(data_set)
+    for i in range(n-1): # n个元素，只需要n-1趟
+        for j in range(n-1-i): # 第1趟循环到index=n-2就ok, 所以是range(n-1-i)
+            if data_set[j]>data_set[j+1]:
+                data_set[j], data_set[j+1]=data_set[j+1], data_set[j]
+
+@calc_time
+def bubble_sort_x(data_set):
+    '''
+    针对初始就有序的序列进行优化
+    最好时间复杂度为O(n), 只扫描一遍
+    最坏时间复杂度为O(n^2)
+    '''
+    n=len(data_set)
     for i in range(n-1):
-        for j in range(n-i-1):
-            if a_list[j] > a_list[j+1]:
-                a_list[j], a_list[j+1] = a_list[j+1], a_list[j]
-
-list1 = []
-for i in range(10):
-    list1.append(random.randint(1, 100))
-print(list1)
-bubble_sort(list1)
-print(list1)
-```
-
-```bash
-#output
-[15, 94, 53, 21, 66, 36, 69, 64, 56, 7]
-[7, 15, 21, 36, 53, 56, 64, 66, 69, 94]
-```
-
-```python
-#便于理解
-def bubble_sort(a_list):
-    """因为链表作为参数交换相邻的node稍微麻烦，使用顺序表的list"""
-    n = len(a_list)
-    for i in range(n-1, 0, -1):  # 0是取不到的
-        for j in range(i):
-            if a_list[j] > a_list[j+1]:
-                a_list[j], a_list[j+1] = a_list[j+1], a_list[j]
+        exchange=False
+        for j in range(n-1-i):
+            if data_set[j]>data_set[j+1]:
+                data_set[j], data_set[j+1]=data_set[j+1], data_set[j]
+                exchange=True
+        if not exchange:
+            break
 
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-bubble_sort(list1)
-print(list1)
-```
-
-```bash
-#ouput
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-```
-
-```python
-# 冒泡排序的优化，如果开始的时候就有顺序
-# 最优时间复杂度O(n)
-def bubble_sort(a_list):
-    """因为链表作为参数交换相邻的node稍微麻烦，使用顺序表的list"""
-    n = len(a_list)
-    for i in range(n-1, 0, -1):  # 0是取不到的
-        count = 0
-        for j in range(i):
-            if a_list[j] > a_list[j+1]:
-                a_list[j], a_list[j+1] = a_list[j+1], a_list[j]
-                count += 1
-        print(f'count={count}')
-        if 0 == count:  # 如果已经是顺序的，直接退出
-            return
+# example1: sort
+data=list(range(10))
+random.shuffle(data)
+print(data)
+bubble_sort_x(data)
+print(data)
 
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-bubble_sort(list1)
-print(list1)
-print('='*30)
-bubble_sort(list1)
-print(list1)
-```
+# # example2: 比较优化前后版本的效率
+# data1=list(range(10000))
+# data2=data1.copy() # deep copy
 
-```bash
-#ouptut
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-count=9
-count=8
-count=7
-count=6
-count=5
-count=4
-count=3
-count=2
-count=1
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-==============================
-count=0
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# bubble_sort(data1)
+# print(data1)
+# bubble_sort_x(data2)
+# print(data2)
 ```
 
 ### Selection sort
@@ -651,6 +625,8 @@ print(sorted_list)
 ```
 
 ### sort sunnmary
+
+排序算法的稳定性: 同一序列的两个相同数值，排序完毕后，相对位置是否发生变化
 
 | Name           | Average | Best  | Worst | Memory  | Stable  |
 |----------------|---------|-------|-------|---------|---------|
