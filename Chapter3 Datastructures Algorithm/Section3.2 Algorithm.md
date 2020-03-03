@@ -362,59 +362,71 @@ insertion_sort_2(data2)
 
 ### Quick sort
 
-python自带的sort是**timsort**平均复杂度也是O(nlogn)，但是因为调用c, 比自己实现的快速排序要更快
-
 关键: 整理分区+递归
 > 好写的排序算法里最快的, 快的排序算法里最好写的
--  排序不稳定, 因为有多个相同的元素的时候，会出现左右移动的情况
--  最优时间复杂度O(nlogn), 每一层是n, 共logn层,所以时间复杂度为O(nlogn), 正好mid_value是中间值的情况
+- 排序不稳定, 因为有多个相同的元素的时候，会出现左右移动的情况
+- 最优时间复杂度O(nlogn), 每一层是n, 共logn层,所以时间复杂度为O(nlogn), 正好mid_value是中间值的情况
 - 最劣时间复杂度O(n^2), 正好是顺序导致无法整理分区，每一层为n, 共n层
 
-```python
-def quick_sort(a_list, first_index, last_index):
-    # 递归终止条件
-    if first_index >= last_index:
-        return
+快排思路：
+> <img src='res/quicksort01.png' width=400>
+- 取一个元素p（第一个元素），使元素p归位；
+- 列表被p分成两部分，左边都比p小，右边都比p大；
+- 递归完成排序。
+  > ![](res/quick_sort.gif)
 
-    mid_value = a_list[first_index]  # 这个时候，第一个元素相当于空白
-    low_index, high_index = first_index, last_index
+```py
+import random
+import time
 
-    while low_index < high_index:
-        # step1
-        # 与mid_value相同的元素都放在右边，所以两个循环只能有一个=
-        # 如果是逆序，改<=号和下面while的>=
-        while mid_value <= a_list[high_index] and low_index < high_index:
-            high_index -= 1
-        a_list[low_index] = a_list[high_index]  # 这个时候的high_index的位置相当于空白
-        # step2
-        while a_list[low_index] < mid_value and low_index < high_index:
-            low_index += 1
-        a_list[high_index] = a_list[low_index]  # 这个时候的low_index的位置相当于空白
-    # low_index==high_index
-    a_list[low_index] = mid_value
-    # recursive left
-    quick_sort(a_list, first_index, low_index-1)
-    # recursive right
-    quick_sort(a_list, low_index+1, last_index)
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
 
+def _quck_sort(data_set, left, right):
+    if left < right: # 递归终止条件 left >= right
+        mid = partition(data_set, left, right)
+        _quck_sort(data_set, left, mid-1)
+        _quck_sort(data_set, mid+1, right)
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-quick_sort(list1, 0, len(list1)-1)
-print(list1)
-print('='*30)
-quick_sort(list1, 0, len(list1)-1)
-print(list1)
-```
+def partition(data_set, left, right):
+    tmp = data_set[left]
+    while left < right:
+        # 下面两个循环使得tmp的左边都<tmp, tmp的右边>=tmp
+        # 如果逆序: data_set[right]<tmp, 下面data_set[left]>=tmp
+        while left < right and data_set[right] >= tmp:
+            right -= 1
+        data_set[left] = data_set[right]
+        
+        while left < right and data_set[left] < tmp:
+            left += 1
+        data_set[right] = data_set[left]
+    
+    data_set[left] = tmp
+    return left # 此时left==right
 
-```bash
-#output
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-==============================
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+@calc_time
+def quick_sort(data_set):
+    return _quck_sort(data_set, 0, len(data_set)-1)
+
+@calc_time
+def sys_sort(data_set):
+    '''python自带的sort是Timsort平均复杂度也是O(nlogn)，但是因为调用c, 比自己实现的快速排序要更快'''
+    data_set.sort()
+
+data1 = list(range(10000))
+random.shuffle(data1)
+data2= data1.copy()
+print(id(data1)==id(data2)) # False, because is deep copy
+
+quick_sort(data1)
+sys_sort(data2)
+# print(data1, data2)
 ```
 
 ### heap sort
