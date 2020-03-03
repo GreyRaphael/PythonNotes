@@ -7,10 +7,10 @@
     - [Bubble Sort](#bubble-sort)
     - [Selection sort](#selection-sort)
     - [Insertion Sort](#insertion-sort)
-    - [Shell Sort](#shell-sort)
     - [Quick sort](#quick-sort)
     - [heap sort](#heap-sort)
     - [merge sort](#merge-sort)
+    - [Shell Sort](#shell-sort)
     - [sort sunnmary](#sort-sunnmary)
   - [Tree](#tree)
     - [BFS](#bfs)
@@ -360,51 +360,15 @@ insertion_sort_2(data2)
 # print(data1, data2)
 ```
 
-### Shell Sort
-
-核心思想是gap的设置;分组;在插入排序基础上修改而来
-
--  最坏时间复杂度$O(n^2)$, gap=1的时候
--  最优时间复杂度$O(n^{1.3})$, 统计结果
--  排序算法不稳定
-
-```python
-# 在插入排序基础上直接修改
-def shell_sort(a_list):
-    n = len(a_list)
-    gap = n//2
-    while gap != 0:
-        for i in range(gap, n):
-            j = i
-            while j > 0:
-                if a_list[j] < a_list[j-gap]:
-                    a_list[j], a_list[j-gap] = a_list[j-gap], a_list[j]
-                    j -= gap
-                else:
-                    break
-        gap //= 2
-
-
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-shell_sort(list1)
-print(list1)
-print('='*30)
-shell_sort(list1)
-print(list1)
-```
-
 ### Quick sort
 
-python自带的sort也是timsort平均复杂度也是O(nlogn)，但是因为调用c, 比自己实现的快速排序要更快
+python自带的sort是**timsort**平均复杂度也是O(nlogn)，但是因为调用c, 比自己实现的快速排序要更快
 
-关键是用了两个游标; 而且要递归
-
+关键: 整理分区+递归
+> 好写的排序算法里最快的, 快的排序算法里最好写的
 -  排序不稳定, 因为有多个相同的元素的时候，会出现左右移动的情况
--  最优时间复杂度$O(nlog(n))$, 每一层是n, 执行x次导致每一个元素只有一个$2^x=n$即$log_2n$次,所以时间复杂度为$nlog_2n$, 正好mid_value是中间值的情况
-- 最劣时间复杂度$O(n^2)$, 正好是顺序
+-  最优时间复杂度O(nlogn), 每一层是n, 共logn层,所以时间复杂度为O(nlogn), 正好mid_value是中间值的情况
+- 最劣时间复杂度O(n^2), 正好是顺序导致无法整理分区，每一层为n, 共n层
 
 ```python
 def quick_sort(a_list, first_index, last_index):
@@ -615,6 +579,42 @@ print(list1)
 print('='*30)
 sorted_list=merge_sort(list1)
 print(sorted_list)
+```
+
+### Shell Sort
+
+核心思想是gap的设置;分组;在插入排序基础上修改而来
+
+-  最坏时间复杂度$O(n^2)$, gap=1的时候
+-  最优时间复杂度$O(n^{1.3})$, 统计结果
+-  排序算法不稳定
+
+```python
+# 在插入排序基础上直接修改
+def shell_sort(a_list):
+    n = len(a_list)
+    gap = n//2
+    while gap != 0:
+        for i in range(gap, n):
+            j = i
+            while j > 0:
+                if a_list[j] < a_list[j-gap]:
+                    a_list[j], a_list[j-gap] = a_list[j-gap], a_list[j]
+                    j -= gap
+                else:
+                    break
+        gap //= 2
+
+
+list1 = []
+for i in range(10):
+    list1.append(10-i)
+print(list1)
+shell_sort(list1)
+print(list1)
+print('='*30)
+shell_sort(list1)
+print(list1)
 ```
 
 ### sort sunnmary
