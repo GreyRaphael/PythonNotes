@@ -378,6 +378,10 @@ insertion_sort_2(data2)
 ```py
 import random
 import time
+import sys
+
+# 调整递归深度
+sys.setrecursionlimit(10000)
 
 def calc_time(func):
     def wrapper(*args, **kwargs):
@@ -447,30 +451,51 @@ sys_sort(data2)
 > ![](res/heap_sort02.gif)
 
 ```py
-def sift(data, low, high):
-    '''一次调整'''
+import random
+import time
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+def sift(data_set, low, high):
     i = low
     j = 2 * i + 1
-    tmp = data[i]
-    while j <= high: #只要没到子树的最后
-        if j < high and data[j] < data[j + 1]:
-            j += 1
-        if tmp < data[j]:#如果领导不能干
-            data[i] = data[j] #小领导上位
-            i = j
-            j = 2 * i + 1
+    tmp = data_set[i]
+    while j <= high:  # 孩子在堆里
+        if j < high and data_set[j] < data_set[j+1]:  # 如果有右孩子且比左孩子大
+            j += 1  # j指向右孩子
+        if data_set[j] > tmp:  # 孩子比最高领导大
+            data_set[i] = data_set[j]  # 孩子填到父亲的空位上
+            i = j  # 孩子成为新父亲
+            j = 2 * i + 1  # 新孩子
         else:
             break
-    data[i] = tmp
+    data_set[i] = tmp  # 最高领导放到父亲位置
 
-
-def heap_sort(data):
-    n = len(data)
+@calc_time
+def heap_sort(data_set):
+    n = len(data_set)
+    # 初次建堆
     for i in range(n // 2 - 1, -1, -1):
-        sift(data, i, n - 1)
-        for i in range(n - 1, -1, -1):
-            data[0], data[i] = data[i], data[0]
-            sift(data, 0, i - 1)
+        sift(data_set, i, n - 1)
+    # 每次调整之后，将堆顶从树的最后节点一直往前放
+    for i in range(n-1, -1, -1):  # i指向未排序堆部分的最后
+        data_set[0], data_set[i] = data_set[i], data_set[0]  # 堆顶逐步换到后面
+        sift(data_set, 0, i - 1)  # 调整出新堆顶最大
+
+
+data1 = list(range(10))
+random.shuffle(data1)
+
+print(data1)
+heap_sort(data1)
+print(data1)
 ```
 
 example: 逆序heap sort
