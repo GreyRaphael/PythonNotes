@@ -435,14 +435,41 @@ sys_sort(data2)
 
 ### heap sort
 
+树是一种可以递归定义的数据结构。树是由n个节点组成的集合：
+- 如果n=0，那这是一棵空树；
+- 如果n>0，那存在1个节点作为树的根节点，其他节点可以分为m个集合，每个集合本身又是一棵树。
+
+一些概念：
+- 父节点、子节点、根节点、叶子节点
+- 树的高度(深度)、树的度
+- 子树
+
+二叉树(binary tree)：度不超过2的树(包括完全二叉树、满二叉树)
+> 二叉树可以用列表来存储，通过规律可以从父亲找到孩子或从孩子找到父亲
+
+二叉树存储方式:
+- 链式存储
+- 顺序存储：即列表
+
+顺序存储父子节点关系：对于父节点i, 左子节点为2i+1, 右子节点为2i+2
+> <img src='res/binary_tree_linear_storage.png' width=350>
+
+堆：
+- 大根堆：一棵完全二叉树，满足任一节点都比其孩子节点大
+- 小根堆：一棵完全二叉树，满足任一节点都比其孩子节点小
+
+节点的左右子树都是堆，但自身不是堆: 当根节点的左右子树都是堆时，可以通过一次向下的调整来将其变换成一个堆。
+> <img src='res/heap_adjust.gif' width=350>
+
+堆排序过程:
 1. 建立堆
 1. 得到堆顶元素，为最大元素
 1. 去掉堆顶，将堆最后一个元素放到堆顶，此时可通过**一次调整**重新使堆有序。
 1. 堆顶元素为第二大元素。
 1. 重复步骤3，直到堆变空。
 
-建立堆
-> ![](res/adjust_heap.gif)
+建立堆: 多次调整得到大根堆
+> ![](res/construct_heap.gif)
 
 堆排序:(直接取出堆顶最大)
 > ![](res/head_sort01.gif)
@@ -517,9 +544,6 @@ def sift(data, low, high):
             break
     data[i] = tmp
 ```
-
-三者速度比较:
-quick-sort>merge-sort>heap-sort
 
 ### merge sort
 
@@ -669,6 +693,9 @@ print(list1)
 | Timsort        | nlogn   | n     | nlogn | n       | Yes     |
 | Introsort      | nlogn   | nlogn | nlogn | logn    | No      |
 
+
+常用排序速度比较:
+quick-sort>merge-sort>heap-sort
 
 如果list本身是逆序，那么quick-sort就是最坏情况，logn无法发生作用，时间复杂度为O(n2)
 
