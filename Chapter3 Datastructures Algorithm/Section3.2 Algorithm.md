@@ -683,7 +683,6 @@ print(data1, data2)
 shell_sort_1(data1)
 shell_sort_2(data2)
 print(data1, data2)
-
 ```
 
 ### sort sunnmary
