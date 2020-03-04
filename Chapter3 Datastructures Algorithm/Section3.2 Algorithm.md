@@ -674,6 +674,11 @@ print(list1)
 常用排序速度比较:
 quick-sort>merge-sort>heap-sort
 
+快速排序、归并排序、堆排序的时间复杂度都是O(nlogn)j; 但是一般运行时间quick-sort < merge-sort < heap-sort, 因为快排的常数项比其他两个小
+- 快速排序：极端情况下排序效率低, O(n^2)
+- 归并排序：需要额外的内存开销
+- 堆排序：在快的排序算法中相对较慢
+
 如果list本身是逆序，那么quick-sort就是最坏情况，logn无法发生作用，时间复杂度为O(n2)
 
 因为quick-sort的时候需要用递归，而递归需要stack, 最好的情况递归深度为logn,最坏的情况需要n;
