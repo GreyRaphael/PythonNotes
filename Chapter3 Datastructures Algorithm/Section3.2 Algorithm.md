@@ -873,9 +873,6 @@ def main():
     tree.mid_order(tree.root)
     print()
     tree.pos_order(tree.root)
-    
-
-
 
 if __name__ == '__main__':
     main()
@@ -891,12 +888,10 @@ if __name__ == '__main__':
 ### tree summary
 
 广度遍历:
-
 - 已知一个tree→广度遍历
 - 已知一个广度遍历的结果→获得tree的结构
 
 深度遍历:
-
 - 已知一个tree→前中后序遍历
 - 单独知道前中后序遍历中的一个不能得到tree的结构
 - 前中序遍历→获得tree的结构
