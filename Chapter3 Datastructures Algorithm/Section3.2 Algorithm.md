@@ -621,38 +621,69 @@ print(data1)
 
 ### Shell Sort
 
-核心思想是gap的设置;分组;在插入排序基础上修改而来
+希尔排序:分组插入排序算法。希尔排序每趟并不使某些元素有序，而是使整体数据越来越接近有序；最后一趟排序使得所有数据有序。
+> <img src='res/shell_sort.gif' width=350>
+- 首先取一个整数d1=n/2，将元素分为d1个组，每组相邻量元素之间距离为d1，在各组内进行直接插入排序；
+- 取第二个整数d2=d1/2，重复上述分组排序过程，直到di=1，即所有元素在同一组内进行直接插入排序。
 
+希尔排序性质:
 -  最坏时间复杂度$O(n^2)$, gap=1的时候
--  最优时间复杂度$O(n^{1.3})$, 统计结果
+-  最优时间复杂度$O(n^{5/4})$, 统计结果
 -  排序算法不稳定
 
 ```python
-# 在插入排序基础上直接修改
-def shell_sort(a_list):
-    n = len(a_list)
+# 直接在插入排序基础上直接修改1 为gap
+import random
+import time
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+@calc_time
+def shell_sort_1(data_set):
+    '''method1'''
+    n = len(data_set)
     gap = n//2
-    while gap != 0:
+    while gap >= 1:
         for i in range(gap, n):
-            j = i
-            while j > 0:
-                if a_list[j] < a_list[j-gap]:
-                    a_list[j], a_list[j-gap] = a_list[j-gap], a_list[j]
-                    j -= gap
+            for j in range(i, 0, -1):  # 从右往左判断
+                if data_set[j] < data_set[j-gap]:
+                    data_set[j], data_set[j-gap] = data_set[j-gap], data_set[j]
                 else:
                     break
+        gap = gap//2
+
+@calc_time
+def shell_sort_2(data_set):
+    '''method2: 优化版本'''
+    n = len(data_set)
+    gap = n//2
+    while gap >= 1:
+        for i in range(gap, n):
+            tmp = data_set[i]
+            j = i - gap
+            while j >= 0 and data_set[j] > tmp:
+                data_set[j+gap] = data_set[j]
+                j -= gap
+            data_set[j + gap] = tmp
         gap //= 2
 
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-shell_sort(list1)
-print(list1)
-print('='*30)
-shell_sort(list1)
-print(list1)
+data1 = list(range(20))
+random.shuffle(data1)
+data2 = data1.copy()
+
+print(data1, data2)
+shell_sort_1(data1)
+shell_sort_2(data2)
+print(data1, data2)
+
 ```
 
 ### sort sunnmary
@@ -667,6 +698,7 @@ print(list1)
 | quick sort     | nlogn   | nlogn | n^2   | logn    | depends |
 | heap sort      | nlogn   | nlogn | nlogn | 1       | No      |
 | merge sort     | nlogn   | nlogn | nlogn | depends | Yes     |
+| shell sort     | n^(5/4) | nlogn |       |         | No      |
 | Timsort        | nlogn   | n     | nlogn | n       | Yes     |
 | Introsort      | nlogn   | nlogn | nlogn | logn    | No      |
 
