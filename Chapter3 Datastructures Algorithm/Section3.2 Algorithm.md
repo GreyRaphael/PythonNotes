@@ -547,99 +547,76 @@ def sift(data, low, high):
 
 ### merge sort
 
-核心思想：先拆开再合并(合并时候，用到了两个游标，然后互相比较)；也要用到递归
+一次归并: 列表分**两段有序**，通过**一次归并**将其**合成为一个有序列表**
+> <img src='res/merge_once.gif' width=350>
 
-拆开时候需要$logn$次，每次切片需要n次，合并的时候需要合并$logn$次，但是对于每次合并，都需要循环添加到新的list, 所以每一循环n次，时间复杂度$2nlogn$也就是$O(nlogn)$
+归并排序：先拆开再合并(用到了两个游标，然后互相比较)；也要用到递归
+> <img src='res/merge_sort.png' width=350>
+- 分解：将列表越分越小，直至分成一个元素。
+- 一个元素是有序的。
+- 合并：将两个有序列表归并，列表越来越大。
 
+
+拆开的时候需要$logn$层，每一层n次；合并的时候也需要合并$logn$层，每层循环n次，时间复杂度$2nlogn$也就是$O(nlogn)$
 - 最优时间复杂度$O(nlogn)$
 - 最劣时间复杂度$O(nlogn)$
 - 排序算法稳定
-- 时间上是小的复杂度，空间上要另外有一片空间
+- 空间复杂度O(n)
 
-```python
-def merge_sort(a_list):
-    n = len(a_list)
-    # 递归终止条件
-    if n <= 1:
-        return a_list
+```py
+import random
+import time
 
-    # 拆分, 用新的子序列来处理，而不是在原来的本身处理
-    mid_index = n//2
-    # 归并之后形成的有序的子序列
-    left_list = merge_sort(a_list[:mid_index])
-    right_list = merge_sort(a_list[mid_index:])
-    
-    # 合并
-    lp, rp = 0, 0
-    result = []
-    while lp < len(left_list) and rp < len(right_list):
-        if left_list[lp] <= right_list[rp]:
-            result.append(left_list[lp]) # 这样做是逆序的
-            lp += 1
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+def merge(data, low, mid, high):
+    '''一次归并'''
+    i = low
+    j = mid+1
+    ltmp = []
+    # 两边有序序列分别比较添加进入ltmp
+    while i <= mid and j <= high:
+        if data[i] <= data[j]:
+            ltmp.append(data[i])
+            i += 1
         else:
-            result.append(right_list[rp])
-            rp += 1
-    # 补充剩下的部分
-    result+=left_list[lp:]        
-    result+=right_list[rp:]
-    return result        
+            ltmp.append(data[j])
+            j += 1
+
+    # 剩下的序列ltmp补充道ltmp
+    while i <= mid:
+        ltmp.append(data[i])
+        i += 1
+    while j <= high:
+        ltmp.append(data[j])
+        j += 1
+    data[low:high+1] = ltmp
+
+def _merge_sort(data, low, high):
+    if low < high:
+        mid = (low+high)//2
+        _merge_sort(data, low, mid)
+        _merge_sort(data, mid+1, high)
+        merge(data, low, mid, high)
+
+@calc_time
+def merge_sort(data):
+    _merge_sort(data, 0, len(data)-1)
 
 
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-print('='*30)
-sorted_list=merge_sort(list1)
-print(sorted_list)  
-```
+data1 = list(range(10))
+random.shuffle(data1)
 
-```bash
-#output
-[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-==============================
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-```
-
-```python
-# 优化代码
-def merge_sort(a_list):
-    n = len(a_list)
-    # 递归终止条件
-    if n <= 1:
-        return a_list
-
-    # 拆分, 用新的子序列来处理，而不是在原来的本身处理
-    mid_index = n//2
-    # 归并之后形成的有序的子序列
-    left_list = merge_sort(a_list[:mid_index])
-    right_list = merge_sort(a_list[mid_index:])
-    return merge(left_list, right_list)
-
-def merge(left_list, right_list):
-    # 合并
-    lp, rp = 0, 0
-    result = []
-    while lp < len(left_list) and rp < len(right_list):
-        if left_list[lp] <= right_list[rp]:
-            result.append(left_list[lp]) # 这样做是逆序的
-            lp += 1
-        else:
-            result.append(right_list[rp])
-            rp += 1
-    # 补充剩下的部分
-    result+=left_list[lp:]        
-    result+=right_list[rp:]
-    return result        
-
-
-list1 = []
-for i in range(10):
-    list1.append(10-i)
-print(list1)
-print('='*30)
-sorted_list=merge_sort(list1)
-print(sorted_list)
+print(data1)
+merge_sort(data1)
+print(data1)
 ```
 
 ### Shell Sort
