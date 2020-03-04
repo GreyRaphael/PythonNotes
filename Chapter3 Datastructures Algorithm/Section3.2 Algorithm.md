@@ -16,6 +16,7 @@
     - [BFS](#bfs)
     - [DFS](#dfs)
     - [tree summary](#tree-summary)
+  - [Other Algorithm](#other-algorithm)
 
 ## Time & Space Complecity
 
@@ -899,3 +900,46 @@ if __name__ == '__main__':
 - 前后序遍历→无法获得tree的结构, 因为左右子树分不开
 
 那么可以先通过前中序的遍历结果得到tree的结构，然后写出后序遍历的结果；
+
+## Other Algorithm
+
+example: 现在有一个列表，列表中的数范围都在0到100之间，列表长度大约为100万。设计算法在O(n)时间复杂度内将列表进行排序。
+- 这种情况排序速度: 计数排序>归并排序>快排  
+- 因为数据范围小，重复的多，容易出现一边特别少，logn失效
+
+```py
+# key: 创建一个列表，用来统计每个数出现的次数
+import random
+import time
+
+def calc_time(func):
+    def wrapper(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'{func.__name__} running time: {t2-t1} s')
+        return result
+    return wrapper
+
+@calc_time
+def count_sort(data, low, high):
+    count_list=[0 for _ in range(high-low)]
+    for d in data:
+        count_list[d-low]+=1
+    
+    i=0
+    for j, count in enumerate(count_list):
+        for _ in range(count):
+            data[i]=j+low
+            i+=1
+
+@calc_time
+def sys_sort(data):
+    data.sort()
+
+# 10~99
+data1=random.choices(range(0, 101), k=1000000)
+data2=data1.copy()
+count_sort(data1, 0, 101)
+sys_sort(data2)
+```
