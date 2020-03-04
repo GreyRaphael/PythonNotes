@@ -366,7 +366,7 @@ insertion_sort_2(data2)
 > 好写的排序算法里最快的, 快的排序算法里最好写的
 - 排序不稳定, 因为有多个相同的元素的时候，会出现左右移动的情况
 - 最优时间复杂度O(nlogn), 每一层是n, 共logn层,所以时间复杂度为O(nlogn), 正好mid_value是中间值的情况
-- 最劣时间复杂度O(n^2), 正好是顺序导致无法整理分区，每一层为n, 共n层
+- 最劣时间复杂度O(n^2), 正好是顺序导致无法整理分区, logn无法发生作用，每一层为n, 共n层,
 
 快排思路：
 > <img src='res/quicksort01.png' width=400>
@@ -701,26 +701,12 @@ print(data1, data2)
 | Timsort        | nlogn   | n     | nlogn | n       | Yes     |
 | Introsort      | nlogn   | nlogn | nlogn | logn    | No      |
 
-
-常用排序速度比较:
-quick-sort>merge-sort>heap-sort
-
 快速排序、归并排序、堆排序的时间复杂度都是O(nlogn)j; 但是一般运行时间quick-sort < merge-sort < heap-sort, 因为快排的常数项比其他两个小
 - 快速排序：极端情况下排序效率低, O(n^2)
 - 归并排序：需要额外的内存开销
 - 堆排序：在快的排序算法中相对较慢
 
-如果list本身是逆序，那么quick-sort就是最坏情况，logn无法发生作用，时间复杂度为O(n2)
-
-因为quick-sort的时候需要用递归，而递归需要stack, 最好的情况递归深度为logn,最坏的情况需要n;
-
-merger-sort时候需要子序列，而子序列和原序列一样大，所以是n;
-
-quick-sort最平衡,所以要掌握; python默认sort也是quick-sort;
-
 ## Tree
-
-排序二叉树用的就是二分查找的方法
 
 树的顺序存储比较少，而链式存储比较常见;
 
