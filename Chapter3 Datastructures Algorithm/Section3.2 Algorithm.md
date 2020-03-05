@@ -945,3 +945,29 @@ data2=data1.copy()
 count_sort(data1, 0, 101)
 sys_sort(data2)
 ```
+
+example: 现在有n个数（n>10000），设计算法，按大小顺序得到前10大的数
+
+method1: 插入排序修改
+- 构造一个新列表来容纳top 10(增加一个冗余位置)
+- 从待排序列表中抽出每一个数，看看是否能够插入新列表
+- 所以时间复杂度为O(10n), 也就是O(n)
+
+```py
+import random
+
+def topk(data, k):
+    ltmp = [0 for _ in range(k+1)]  # 给j+1留下一个冗余位置
+
+    for val in data:  # 抽一个数
+        j = k-1  # j 从 k-1开始一直往左移动
+        while j >= 0 and val > ltmp[j]:
+            ltmp[j+1] = ltmp[j]
+            j -= 1
+        ltmp[j+1] = val  # 将抽到的数插入ltmp合适的位置
+    return ltmp[:k]
+
+data1 = list(range(1000))
+random.shuffle(data1)
+print(topk(data1, 10))
+```
