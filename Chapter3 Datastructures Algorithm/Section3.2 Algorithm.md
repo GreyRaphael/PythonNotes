@@ -504,7 +504,7 @@ def sift(data_set, low, high):
             j = 2 * i + 1  # 新孩子
         else:
             break
-    data_set[i] = tmp  # 最高领导放到父亲位置
+    data_set[i] = tmp  # 将堆顶换到这个位置
 
 @calc_time
 def heap_sort(data_set):
@@ -1076,3 +1076,96 @@ print(topk2(data1, 10, reverse=False))
 print(topk2(data1, 10, reverse=True))
 ```
 
+method2: 堆排序修改
+- 初始10个数构造一个堆: 最大的k个数是小根堆，最小的k个数是大根堆
+- 后面的数逐个与根节点比较: 并进行调整
+- 所以时间复杂度为O(log(10)*n)也就是O(n)
+
+```py
+# 找出最大的10个数
+import random
+
+def sift(data, low, high):
+    i = low
+    j = 2 * i + 1
+    tmp = data[i]
+    while j <= high:
+        if j < high and data[j] > data[j + 1]:
+            j += 1
+        if tmp > data[j]:
+            data[i] = data[j]
+            i = j
+            j = 2 * i + 1
+        else:
+            break
+    data[i] = tmp
+
+
+def topk(data, k):
+    heap = data[:k]
+    # 构造size=k的小根堆
+    for i in range(k//2-1, -1, -1):
+        sift(heap, i, k-1)
+    # print(heap)
+
+    # 遍历data剩下的数据
+    for j in range(k, len(data)):
+        if data[j] > heap[0]:
+            heap[0] = data[j]
+            sift(heap, 0, k-1)
+    print(heap)
+    # 从堆里面出数
+    for i in range(k-1, -1, -1):
+        heap[0], heap[i] = heap[i], heap[0]
+        sift(heap, 0, i-1)
+    return heap
+
+data1 = list(range(100))
+random.shuffle(data1)
+print(topk(data1, 10))
+```
+
+```py
+# 找出最小的10个数: 上面基础上修改3个符号
+import random
+
+
+def sift(data, low, high):
+    i = low
+    j = 2 * i + 1
+    tmp = data[i]
+    while j <= high:
+        if j < high and data[j] < data[j + 1]:
+            j += 1
+        if tmp < data[j]:
+            data[i] = data[j]
+            i = j
+            j = 2 * i + 1
+        else:
+            break
+    data[i] = tmp
+
+
+def topk(data, k):
+    heap = data[:k]
+    # 构造size=k的大根堆
+    for i in range(k//2-1, -1, -1):
+        sift(heap, i, k-1)
+    # print(heap)
+
+    # 遍历data剩下的数据
+    for j in range(k, len(data)):
+        if data[j] < heap[0]:
+            heap[0] = data[j]
+            sift(heap, 0, k-1)
+    print(heap)
+    # 从堆里面出数
+    for i in range(k-1, -1, -1):
+        heap[0], heap[i] = heap[i], heap[0]
+        sift(heap, 0, i-1)
+    return heap
+
+data1 = list(range(100))
+random.shuffle(data1)
+print(topk(data1, 10))
+```
