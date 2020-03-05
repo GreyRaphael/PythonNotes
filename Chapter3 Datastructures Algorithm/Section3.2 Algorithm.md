@@ -1169,3 +1169,66 @@ data1 = list(range(100))
 random.shuffle(data1)
 print(topk(data1, 10))
 ```
+
+优先队列(本质是heap)：一些元素的集合，POP操作每次执行都会从优先队列中弹出最大（或最小）的元素
+
+example: python内置的`heapq`可以实现优先队列
+
+```py
+import heapq
+import random
+
+data1 = list(range(30))
+random.shuffle(data1)
+
+# heapq实现top k
+min10 = heapq.nsmallest(10, data1)
+max10 = heapq.nlargest(10, data1)
+print(min10, max10)
+
+print('-'*30)
+data2 = data1.copy()
+print(data2)
+heapq.heapify(data2) # 小根堆
+print(data2)
+
+print('-'*30)
+heap=[]
+for i in data1:
+    heapq.heappush(heap, i)
+print(heap)
+
+print('-'*30)
+for i in range(len(heap)):
+    # 每次pop最小
+    print(heapq.heappop(heap), end=',')
+print(heap) # []
+```
+
+example: heapq实现堆排序
+
+```py
+import heapq
+import random
+
+def heap_sort(data, reverse=False):
+    heap = []
+    for i in data:
+        if reverse:
+            # True: 逆序
+            heapq.heappush(heap, -i)
+        else:
+            # 正序
+            heapq.heappush(heap, i)
+    return [-heapq.heappop(heap) if reverse else heapq.heappop(heap) for _ in range(len(data))]
+
+data1 = list(range(30))
+random.shuffle(data1)
+print(data1)
+
+data2 = heap_sort(data1)
+# 通过相反数实现逆序
+data3 = heap_sort(data1, reverse=True)
+print(data2)
+print(data3)
+```
