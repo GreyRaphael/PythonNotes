@@ -954,6 +954,7 @@ method1: 插入排序修改
 - 所以时间复杂度为O(10n), 也就是O(n)
 
 ```py
+# 找出列表中最大的k个数
 import random
 
 def topk(data, k):
@@ -971,3 +972,107 @@ data1 = list(range(1000))
 random.shuffle(data1)
 print(topk(data1, 10))
 ```
+
+```py
+# 兼容能够找出最大的或者最小的k个数: easy understand
+import random
+
+def topk(data, k, reverse=False):
+    max_num, min_num = max(data), min(data)
+    # k+1是为了给j+1留下一个冗余位置
+    ltmp = [min_num if reverse else max_num for _ in range(k+1)]
+
+    for val in data:  # 抽一个数
+        j = k-1  # j 从 k-1开始一直往左移动
+        while j >= 0:
+            if reverse:
+                # True: 找出最大的k个
+                if val < ltmp[j]:
+                    break
+            else:
+                # False: 找出最小的k个
+                if val > ltmp[j]:
+                    break
+            ltmp[j+1] = ltmp[j]
+            j -= 1
+        ltmp[j+1] = val  # 将抽到的数插入ltmp合适的位置
+    return ltmp[:k]
+
+
+data1 = list(range(1000))
+random.shuffle(data1)
+print(topk(data1, 10, reverse=False))
+print(topk(data1, 10, reverse=True))
+```
+
+```py
+import random
+
+
+def topk(data, k, reverse=False):
+    top = data[:k+1]
+    # 随便用一个排序使得top有序，方便后续插入
+    top.sort(reverse=reverse)
+    # print(top)
+
+    for i in range(k+1, len(data)):
+        j = k-1
+        while j >= 0:
+            if reverse:
+                # True: 找出最大的k个数
+                if data[i] < top[j]:
+                    break
+            else:
+                # False 找出最小的k个数
+                if data[i] > top[j]:
+                    break
+            top[j+1] = top[j]
+            j -= 1
+        top[j+1] = data[i]
+
+    return top[:-1]
+
+
+def insert(li, i, reverse=False):
+    tmp = li[i]
+    j = i-1
+    while j >= 0:
+        if reverse:
+            # True: 找出最大的k个数
+            if tmp < li[j]:
+                break
+        else:
+            # False 找出最小的k个数
+            if tmp > li[j]:
+                break
+        li[j+1] = li[j]
+        j -= 1
+    li[j+1] = tmp
+
+
+def insert_sort(data, reverse=False):
+    for i in range(1, len(data)):
+        insert(data, i, reverse=reverse)
+
+
+def topk2(data, k, reverse=False):
+    top = data[:k+1]
+    insert_sort(top, reverse=reverse) # 采用插入排序
+    # print(top)
+
+    for i in range(k+1, len(data)):
+        top[k] = data[i]
+        insert(top, k, reverse=reverse)
+    return top[:-1]
+
+
+data1 = list(range(1000))
+random.shuffle(data1)
+
+print(topk(data1, 10, reverse=False))
+print(topk(data1, 10, reverse=True))
+
+print(topk2(data1, 10, reverse=False))
+print(topk2(data1, 10, reverse=True))
+```
+
