@@ -1232,3 +1232,75 @@ data3 = heap_sort(data1, reverse=True)
 print(data2)
 print(data3)
 ```
+
+example: 给定一个升序列表和一个整数，返回该整数在列表中的下标范围。
+> 例如：列表[1,2,3,3,3,4,4,5]，若查找3，则返回(2,4)；若查找1，则返回(0,0)
+
+```py
+# 在binary_search基础上修改
+def bin_search(data_set, val):
+    """非递归实现"""
+    n = len(data_set)
+    low = 0
+    high = n-1
+
+    while low <= high:
+        mid = (low+high)//2
+        if data_set[mid] == val:
+            left = right = mid
+            while left >= 0 and data_set[left] == val:
+                left -= 1
+            while right < n and data_set[right] == val:
+                right += 1
+            return (left+1, right-1)
+        elif val < data_set[mid]:
+            high = mid-1
+        else:
+            low = mid+1
+    return -1
+
+data = [1, 2, 3, 3, 3, 4, 4, 5]
+print(bin_search(data, 1)) # (0,0)
+print(bin_search(data, 3)) # (2, 4)
+print(bin_search(data, 6)) # -1
+```
+
+example: 给定一个列表和一个整数，设计算法找到两个数的下标，使得两个数之和为给定的整数。保证肯定仅有一个结果。[Ref in leetcode](https://leetcode.com/problems/two-sum/?tab=Description)
+> 例如，列表[1,2,5,4]与目标整数3，1+2=3，结果为(0, 1)
+
+```py
+# 搜索全部
+def func1(data, target):
+    n = len(data)
+    for i in range(n):
+        for j in range(i+1, n):
+            if data[i]+data[j] == target:
+                return (i, j)
+    return -1
+
+
+def binary_search(data_set, val, low, high):
+    while low <= high:
+        mid = (low+high)//2
+        if data_set[mid] == val:
+            return mid
+        elif data_set[mid] < val:
+            low = mid+1
+        else:
+            high = mid-1
+
+# 剩下的部分采用二分查找
+def func2(data, target):
+    tmp = data.copy()
+    tmp.sort()
+    for i, val in enumerate(tmp):
+        b = binary_search(tmp, target-val, i+1, len(tmp)-1)
+        if b:
+            return (data.index(val), data.index(tmp[b]))
+
+
+data = [1, 2, 5, 4]
+target = 7
+print(func1(data, target))
+print(func2(data, target))
+```
