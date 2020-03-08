@@ -693,7 +693,8 @@ def check_bracket(s):
 print(check_bracket('(hello)[world]{{[]}}')) # True
 ```
 
-example: 迷宫问题，给一个二维列表，表示迷宫（0表示通道，1表示围墙）。给出算法，求一条走出迷宫的路径。
+example: 迷宫问题，stack实现，即深度搜索
+给一个二维列表，表示迷宫（0表示通道，1表示围墙）。给出算法，求一条走出迷宫的路径。
 - 在一个迷宫节点(x,y)上，可以进行四个方向的探查：maze[x-1][y], maze[x+1][y], maze[x][y-1], maze[x][y+1]
 - 思路：从一个节点开始，任意找下一个能走的点，当找不到能走的点时，退回上一个点寻找是否有其他方向的点。
 - 方法：创建一个空栈，首先将入口位置进栈。当栈不空时循环：获取栈顶元素，寻找下一个可走的相邻方块，如果找不到可走的相邻方块，说明当前位置是死胡同，进行回溯（就是讲当前位置出栈，看前面的点是否还有别的出路）
@@ -712,10 +713,10 @@ maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-directions = [lambda x, y: (x + 1, y), # go right
-              lambda x, y: (x - 1, y), # go left
-              lambda x, y: (x, y - 1), # go up
-              lambda x, y: (x, y + 1)] # go down
+directions = [lambda x, y: (x + 1, y), # go downn
+              lambda x, y: (x - 1, y), # go up
+              lambda x, y: (x, y - 1), # go left
+              lambda x, y: (x, y + 1)] # go right
 
 def find_path(x1, y1, x2, y2):
     # (x1, y1)起点; (x2, y2)终点
@@ -793,6 +794,70 @@ if __name__ == '__main__':
 is_empty=True
 is_empty=False, size=6
 0,1,2,3,4,5,
+```
+
+example: 迷宫问题队列实现，即广度搜索
+> ![](res/maze_queue.png)
+- 思路：从一个节点开始，寻找所有下面能继续走的点。继续寻找，直到找到出口。
+- 方法：创建一个空队列，将起点位置进队。在队列不为空时循环：出队一次。如果当前位置为出口，则结束算法；否则找出当前方块的4个相邻方块中可走的方块，全部进队。
+
+```py
+from collections import deque
+
+mg = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+]
+
+directions = [lambda x, y: (x + 1, y),  # go down
+              lambda x, y: (x - 1, y),  # go up
+              lambda x, y: (x, y - 1),  # go left
+              lambda x, y: (x, y + 1)]  # go right
+
+
+def print_path(path):
+    curNode = path[-1]
+    realpath = []
+    print('迷宫路径为：')
+    while curNode[2] != -1: # 没有回到起点
+        realpath.append(curNode[:2])
+        curNode = path[curNode[2]]
+    realpath.append(curNode[:2])  # 加入起点
+    realpath.reverse()
+    print(realpath)
+
+
+def find_path(x1, y1, x2, y2):
+    queue = deque()
+    path = []
+    queue.append((x1, y1, -1))  # 最后一个参数是为了记录每个节点的父亲所在层级
+    mg[x1][y1] = -1  # 标记起点走过
+    while len(queue) > 0:
+        curNode = queue.popleft()
+        path.append(curNode)
+        if curNode[0] == x2 and curNode[1] == y2:
+            # 到达终点
+            print(path)
+            print_path(path)  # 根据父节点，不断回溯
+            return True
+        for direction in directions: # 搜索pop出来节点的4个方向，这4个方向属于同一个层级
+            nextNode = direction(curNode[0], curNode[1])
+            if mg[nextNode[0]][nextNode[1]] == 0:  # 找到下一个方块
+                # print(path, (*nextNode, len(path) - 1))
+                queue.append((*nextNode, len(path) - 1))
+                mg[nextNode[0]][nextNode[1]] = -1  # 标记为已经走过
+    return False
+
+
+find_path(1, 1, 8, 8)
 ```
 
 ### 双端队列
