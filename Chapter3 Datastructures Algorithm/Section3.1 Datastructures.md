@@ -693,6 +693,57 @@ def check_bracket(s):
 print(check_bracket('(hello)[world]{{[]}}')) # True
 ```
 
+example: 迷宫问题，给一个二维列表，表示迷宫（0表示通道，1表示围墙）。给出算法，求一条走出迷宫的路径。
+- 在一个迷宫节点(x,y)上，可以进行四个方向的探查：maze[x-1][y], maze[x+1][y], maze[x][y-1], maze[x][y+1]
+- 思路：从一个节点开始，任意找下一个能走的点，当找不到能走的点时，退回上一个点寻找是否有其他方向的点。
+- 方法：创建一个空栈，首先将入口位置进栈。当栈不空时循环：获取栈顶元素，寻找下一个可走的相邻方块，如果找不到可走的相邻方块，说明当前位置是死胡同，进行回溯（就是讲当前位置出栈，看前面的点是否还有别的出路）
+
+```py
+maze = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+]
+
+directions = [lambda x, y: (x + 1, y), # go right
+              lambda x, y: (x - 1, y), # go left
+              lambda x, y: (x, y - 1), # go up
+              lambda x, y: (x, y + 1)] # go down
+
+def find_path(x1, y1, x2, y2):
+    # (x1, y1)起点; (x2, y2)终点
+    stack = []
+    stack.append((x1, y1))
+    while len(stack) > 0:
+        curNode = stack[-1] # 栈顶
+        if curNode[0] == x2 and curNode[1] == y2:
+            # 到达终点
+            for p in stack:
+                print(p)
+            return True
+        for direction in directions: # 按照right, left, up, down的规则运动
+            nextNode = direction(*curNode)
+            if maze[nextNode[0]][nextNode[1]] == 0:
+                # 找到了下一个
+                stack.append(nextNode)
+                maze[nextNode[0]][nextNode[1]] = -1  # 标记为已经走过，防止死循环
+                break
+        else:  # 四个方向都没找到
+            maze[curNode[0]][curNode[1]] = -1  # 死路一条,下次别走了
+            stack.pop()  # 回溯
+    print("没有路")
+    return False
+
+find_path(1, 1, 8, 8)
+```
+
 ## queue
 
 ### 单端队列
