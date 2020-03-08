@@ -1,18 +1,18 @@
 # Python Datastructures & Algorithm
 
-- [Python Datastructures & Algorithm](#python-datastructures-algorithm)
-    - [时间复杂度](#%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6)
-    - [顺序表](#%E9%A1%BA%E5%BA%8F%E8%A1%A8)
-    - [链表](#%E9%93%BE%E8%A1%A8)
-        - [单向链表](#%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8)
-        - [双向链表](#%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8)
-        - [单向循环链表(Single Cycle LinkList)](#%E5%8D%95%E5%90%91%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8single-cycle-linklist)
-        - [双向循环链表](#%E5%8F%8C%E5%90%91%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8)
-        - [summary](#summary)
-    - [stack](#stack)
-    - [queue](#queue)
-        - [单端队列](#%E5%8D%95%E7%AB%AF%E9%98%9F%E5%88%97)
-        - [双端队列](#%E5%8F%8C%E7%AB%AF%E9%98%9F%E5%88%97)
+- [Python Datastructures & Algorithm](#python-datastructures--algorithm)
+  - [时间复杂度](#%e6%97%b6%e9%97%b4%e5%a4%8d%e6%9d%82%e5%ba%a6)
+  - [顺序表](#%e9%a1%ba%e5%ba%8f%e8%a1%a8)
+  - [链表](#%e9%93%be%e8%a1%a8)
+    - [单向链表](#%e5%8d%95%e5%90%91%e9%93%be%e8%a1%a8)
+    - [双向链表](#%e5%8f%8c%e5%90%91%e9%93%be%e8%a1%a8)
+    - [单向循环链表(Single Cycle LinkList)](#%e5%8d%95%e5%90%91%e5%be%aa%e7%8e%af%e9%93%be%e8%a1%a8single-cycle-linklist)
+    - [双向循环链表](#%e5%8f%8c%e5%90%91%e5%be%aa%e7%8e%af%e9%93%be%e8%a1%a8)
+    - [summary](#summary)
+  - [stack](#stack)
+  - [queue](#queue)
+    - [单端队列](#%e5%8d%95%e7%ab%af%e9%98%9f%e5%88%97)
+    - [双端队列](#%e5%8f%8c%e7%ab%af%e9%98%9f%e5%88%97)
 
 ## 时间复杂度
 
@@ -646,6 +646,45 @@ is_empty=True
 5
 is_empty=False, size=6
 5,4,3,2,1,0,
+```
+
+example: 给一个字符串，其中包含小括号、中括号、大括号，求该字符串中的括号是否匹配
+
+|example| result|
+|----------|-----|
+| ( ) ( ) [ ] { } | 匹配  |
+| ( [ { ( ) } ] ) | 匹配  |
+| [ ] (      | 不匹配 |
+| [ ( ] )     | 不匹配 |
+
+```py
+def check_bracket(s):
+    stack = []
+    for char in s:
+        if char in {'(', '[', '{'}: # this is a set
+            stack.append(char)
+        elif char == ')':
+            if len(stack) > 0 and stack[-1] == '(':
+                stack.pop()
+            else:
+                return False
+        elif char == ']':
+            if len(stack) > 0 and stack[-1] == '[':
+                stack.pop()
+            else:
+                return False
+        elif char == '}':
+            if len(stack) > 0 and stack[-1] == '{':
+                stack.pop()
+            else:
+                return False
+    if len(stack) == 0:
+        return True
+    else:
+        return False
+
+
+print(check_bracket('(hello)[world]{{[]}}')) # True
 ```
 
 ## queue
