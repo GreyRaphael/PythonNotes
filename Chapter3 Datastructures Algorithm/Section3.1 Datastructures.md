@@ -1,6 +1,7 @@
 # Python Datastructures & Algorithm
 
 - [Python Datastructures & Algorithm](#python-datastructures--algorithm)
+  - [Introduction](#introduction)
   - [时间复杂度](#%e6%97%b6%e9%97%b4%e5%a4%8d%e6%9d%82%e5%ba%a6)
   - [顺序表](#%e9%a1%ba%e5%ba%8f%e8%a1%a8)
   - [链表](#%e9%93%be%e8%a1%a8)
@@ -13,6 +14,13 @@
   - [queue](#queue)
     - [单端队列](#%e5%8d%95%e7%ab%af%e9%98%9f%e5%88%97)
     - [双端队列](#%e5%8f%8c%e7%ab%af%e9%98%9f%e5%88%97)
+  - [hash table](#hash-table)
+
+## Introduction
+
+数据结构就是设计数据以何种方式组织并存储在计算机中。
+> 比如：列表、集合与字典等都是一种数据结构。N.Wirth: “程序=数据结构+算法”
+
 
 ## 时间复杂度
 
@@ -138,8 +146,6 @@ contains(in)|$O(1)$
 ## 顺序表
 
 python中的顺序表将表头和数据区分离(list的id不变)，然后数据区部分还是外置的(不同类型都可以添加)
-
-
 
 ## 链表
 
@@ -791,3 +797,19 @@ is_empty=True
 is_empty=False, size=10
 44,33,22,11,0,1,2,3,4,5,
 ```
+
+## hash table
+
+哈希表查找:
+- 哈希表（Hash Table，又称为散列表），是一种线性表的存储结构。通过把每个对象的关键字k作为自变量，通过一个哈希函数h(k)，将k映射到下标h(k)处，并将该对象存储在这个位置。
+- 例如：数据集合{1,6,7,9}，假设存在哈希函数h(x)使得h(1) = 0, h(6) = 2, h(7) = 4, h(9) = 5，那么这个哈希表被存储为[1,None, 6, None, 7, 9]。
+- 当我们查找元素6所在的位置时，通过哈希函数h(x)获得该元素所在的下标（h(6) = 2），因此在2位置即可找到该元素。即O(1)复杂度
+
+哈希冲突：由于哈希表的下标范围是有限的，而元素关键字的值是接近无限的，因此可能会出现h(102) = 56， h(2003) = 56这种情况。此时，两个元素映射到同一个下标处，造成哈希冲突。
+
+[解决哈希冲突的四种方法](https://www.cnblogs.com/higerMan/p/11907117.html): 厉害的hash函数基本不冲突
+
+在Python中的字典：`A={'name': 'Alex', 'age':18, 'gender':' Man}`
+- 使用哈希表存储字典，通过哈希函数将字典的键映射为下标。假设h('name') = 3, h('age') = 1, h('gender') = 4，则哈希表存储为[None, 18, None, 'Alex', 'Man']
+- 在字典键值对数量不多的情况下，几乎不会发生哈希冲突，此时查找一个元素的时间复杂度为O(1)。
+- 能够被改变的变量(unhashable)不能作为dict的key, 因为dict的key要求hashable
