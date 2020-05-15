@@ -1327,6 +1327,21 @@ pageObj = pdfReader.getPage(0)
 pageObj.extractText()
 ```
 
+example: unlock secure pdf to editable pdf
+> `pip install pikepdf`
+
+```py
+import os
+import pikepdf
+
+for dir_name in os.listdir():
+    if os.path.isdir(dir_name):
+        os.makedirs(f'output/{dir_name}', exist_ok=True)
+        for file in os.listdir(dir_name):
+            pdf=pikepdf.open(f'{dir_name}/{file}', password='xxx')
+            pdf.save(f'output/{dir_name}/{file}')
+```
+
 ## sqlite3
 
 example1: create sqlite3 db & create table
