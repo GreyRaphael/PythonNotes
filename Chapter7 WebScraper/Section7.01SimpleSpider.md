@@ -1708,6 +1708,100 @@ if __name__ == "__main__":
     get_data('HF00004HLY')
 ```
 
+```py
+import random
+import hashlib
+import concurrent.futures
+import requests
+import pandas as pd
+import pymongo
+
+# 网站获取数据原理(通过Chrome的Network/Initiator分析):
+# Api/getToken得到token1
+# 基金id+token1 然后sha1 得到token2
+# index.php通过token2获取json
+
+CLIENT=pymongo.MongoClient('mongodb://grey:16601319416@localhost')
+COLLECTION=CLIENT.test.simu
+
+def get_data(fund_id):
+    # create request headers
+    random_version = random.randint(60, 77)
+    HEADERS = {
+        'Host': 'dc.simuwang.com',
+        'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:{random_version}.0) Gecko/20100101 Firefox/{random_version}.0',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Connection': 'keep-alive',
+        'Referer': f'https://dc.simuwang.com/product/{fund_id}.html',
+        'Cookie': 'sensorsdata2015jssdkcross=%7B%22distinct_id%22%3A%22871780%22%2C%22first_id%22%3A%22871780%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E7%9B%B4%E6%8E%A5%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC_%E7%9B%B4%E6%8E%A5%E6%89%93%E5%BC%80%22%2C%22%24latest_referrer%22%3A%22%22%7D%2C%22%24device_id%22%3A%22172948b6096ce-00d74bd61e93dc8-4c302c7d-2073600-172948b6097a5%22%7D; regsms=1591630062230; http_tK_cache=d2fd02c5ae884f289c4bd5278247875477b68a0f; cur_ck_time=1591630081; ck_request_key=1Jl%2FGceDXL3PZ3K2uR7jCxFryZNQEL8qbZsv2v8SCLY%3D; passport=871780%09u4659159408667%09VQVTX1dXAwNRDFZUVQZWUgYDVlEAVQleAwVXWFEBBFI%3D1633a4e79c; rz_rem_u_p=hs1wFyow8ldwoAIgYDcTpSd9rgAKgUmn2K6GLQiHTF4%3D%24oQsc1MaBWMtjxhKPVe2Fs2Xi7DVJ9Qca%2FCv2XRhzZ10%3D; certification=1; qualified_investor=1; evaluation_result=2; focus-certification-pop=-1; smppw_tz_auth=1; PHPSESSID=gkvohdh53eprf7fmjcm6ta3s82; rz_token_6658=8f3407b515c1122ba0e0628ace74df9b.1591781044; fyr_ssid_n5776=fyr_n5776_kb95ffmn',
+        'Cache-Control': 'max-age=0',
+    }
+    
+    # get token1
+    url1 = f'https://dc.simuwang.com/Api/getToken?id={fund_id}&sign=d69a0dcaa143fbb407471205ee22a006c7ac305b'
+    r1_j = requests.get(url1, headers=HEADERS).json()
+    token1 = r1_j['data']
+    
+    # calculate token2
+    s = hashlib.sha1()
+    s.update(f'{fund_id}{token1}'.encode())
+    token2 = s.hexdigest()
+    # request all data
+    url2=f'https://dc.simuwang.com/index.php?c=Chart&a=jzdb_fund&fund_id={fund_id}&muid=871780&index_type=0&rz_type=8&nav_flag=1&period=0&token={token2}&id={fund_id}&company_id={fund_id}&manager_id={fund_id}'
+    r2_j=requests.get(url2, headers=HEADERS).json()
+
+    # get date
+    date = r2_j['categories']
+    # get 沪深300
+    hs300 = r2_j['data'][1]
+    # get 融智-中性优选20指数
+    index20 = r2_j['data'][2]
+    # 累计增长率
+    data0 = r2_j['data'][0]
+    accu_growth_rate = [d['value'] for d in data0]
+    accu_netvalue = [round(1+ v, 3) for v in accu_growth_rate]
+    
+    # save data to mongodb
+    summary=dict(fund_id=fund_id, date=date, accu_netvalue=accu_netvalue, hs300=hs300, index20=index20, accu_growth_rate=accu_growth_rate)
+    COLLECTION.insert_one(summary)
+
+def get_funds(page):
+    HEADERS={
+    'Host':'dc.simuwang.com',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+    'Accept':'application/json, text/javascript, */*; q=0.01',
+    'Accept-Language':'en-US,en;q=0.5',
+    'X-Requested-With':'XMLHttpRequest',
+    'Connection':'keep-alive',
+    'Referer':'https://dc.simuwang.com/',
+    'Cookie':'xxx',
+    'Pragma':'no-cache',
+    }
+    url=f'https://dc.simuwang.com/ranking/get?page={page}&condition=raise_type%3A1%3Bfund_type%3A1%2C6%2C4%2C3%2C8%2C2%3Brate_year%3Aincep%3Bmaxdrawdown_year%3Aincep%3Brating_year%3A1%3Bsort_name%3Aprofit_col2%3Bsort_asc%3Adesc%3Bkeyword%3A&type=0&selected=0'
+    r_j=requests.get(url, headers=HEADERS).json()
+    data=r_j['data']
+    fund_id_list=[d['fund_id'] for d in data]
+    return fund_id_list
+    
+
+def get_all():
+    all_fund_list=[]
+    for i in range(1, 370):
+        for fund_id in get_funds(i):
+            all_fund_list.append(fund_id)
+        print(f'--->finish page-{i}')
+    print('get all fund_ids')
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+        return executor.map(get_data, all_fund_list)
+
+if __name__ == "__main__":
+    # get_data('HF00003LPV')
+    # fund_list=get_funds(1)
+    get_all()
+```
+
 ### selenium keys & click
 
 > 可用于点击登陆，自动注册，也可用于普通的点击`next`翻页
