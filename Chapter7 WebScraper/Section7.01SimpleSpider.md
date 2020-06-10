@@ -1472,6 +1472,84 @@ driver.save_screenshot('huxiu.png')
 driver.quit()
 ```
 
+example: selenium with proxy
+> 获取Network Panel中的所有文件并且提取文件
+
+```py
+import time
+import json
+import pandas as pd
+from selenium import webdriver
+from browsermobproxy import Server
+
+# create proxy server
+server = Server(r"D:\Browser\BrowserDriver\browsermob-proxy\bin\browsermob-proxy.bat")
+server.start()
+proxy = server.create_proxy()
+proxy.new_har('simuwang', options={'captureHeaders': False, 'captureContent': True})
+
+# config firefox
+opt = webdriver.FirefoxOptions()
+opt.set_preference('network.proxy.type', 1)
+# proxy all http & https requests
+opt.set_preference('network.proxy.http', '127.0.0.1')
+opt.set_preference('network.proxy.http_port', proxy.port)
+opt.set_preference('network.proxy.ssl', '127.0.0.1')
+opt.set_preference('network.proxy.ssl_port', proxy.port)
+
+driver = webdriver.Firefox(
+    firefox_binary="D:/Browser/Firefox/firefox.exe",
+    executable_path=r"D:\Browser\BrowserDriver\geckodriver.exe",
+    firefox_profile=r'D:\Browser\Firefox\Profile\Mozilla\Firefox\Profiles\04q5ed1u.default-release',
+    options=opt)
+
+# visit target site(因为设置了firefox_profile， 所以登录之后cookie能够保持)
+driver.get('https://dc.simuwang.com/product/HF00003LPV.html')
+time.sleep(5)
+driver.quit()
+
+# get all data in proxy server(json)
+result = proxy.har
+
+# filter to get target response
+response = None
+for entry in result['log']['entries']:
+    url = entry['request']['url']
+    if 'index.php?c=Chart&a=jzdb_fund' in url:
+        response = entry['response']['content']['text']
+
+response_json = json.loads(response)
+
+# get date
+date = response_json['categories']
+# get 沪深300
+hs300 = response_json['data'][1]
+# get 融智-中性优选20指数
+index20 = response_json['data'][2]
+# 累计增长率
+data0 = response_json['data'][0]
+accu_growth_rate = [d['value'] for d in data0]
+
+# summary to a DataFrame
+df = pd.DataFrame({
+    'Date': date,
+    'accu_growth_rate': accu_growth_rate,
+    'hs300': hs300,
+    'index20': index20
+})
+df['accu_netvalue'] = df.accu_growth_rate + 1.0
+df['accu_growth_rate'] = df.accu_growth_rate * 100.0
+df['hs300'] = df.hs300 * 100
+df['index20'] = df.index20 * 100
+
+# post processing
+df = df.round({'accu_netvalue': 4, 'accu_growth_rate': 1,'hs300': 2, 'index20': 2})
+df.set_index('Date', inplace=True)
+
+# save to file
+df.to_csv('firefox.csv')
+```
+
 ### selenium keys & click
 
 > 可用于点击登陆，自动注册，也可用于普通的点击`next`翻页
