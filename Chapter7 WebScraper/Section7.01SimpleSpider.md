@@ -1634,6 +1634,80 @@ df.set_index('Date', inplace=True)
 df.to_csv('final_result.csv')
 ```
 
+example: simuwang by cookie and decrytion
+
+```py
+import random
+import hashlib
+import requests
+import pandas as pd
+
+# 网站获取数据原理(通过Chrome的Network/Initiator分析):
+# Api/getToken得到token1
+# 基金id+token1 然后sha1 得到token2
+# index.php通过token2获取json
+
+def get_data(fund_id):
+    # create request headers
+    random_version = random.randint(60, 77)
+    HEADERS = {
+        'Host': 'dc.simuwang.com',
+        'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:{random_version}.0) Gecko/20100101 Firefox/{random_version}.0',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Connection': 'keep-alive',
+        'Referer': f'https://dc.simuwang.com/product/{fund_id}.html',
+        'Cookie': 'xxx',
+    }
+    
+    # get token1
+    url1 = f'https://dc.simuwang.com/Api/getToken?id={fund_id}&sign=d69a0dcaa143fbb407471205ee22a006c7ac305b'
+    r1_j = requests.get(url1, headers=HEADERS).json()
+    token1 = r1_j['data']
+    
+    # calculate token2
+    s = hashlib.sha1()
+    s.update(f'{fund_id}{token1}'.encode())
+    token2 = s.hexdigest()
+    # request all data
+    url2=f'https://dc.simuwang.com/index.php?c=Chart&a=jzdb_fund&fund_id={fund_id}&muid=871780&index_type=0&rz_type=8&nav_flag=1&period=0&token={token2}&id={fund_id}&company_id={fund_id}&manager_id={fund_id}'
+    r2_j=requests.get(url2, headers=HEADERS).json()
+
+    # get date
+    date = r2_j['categories']
+    # get 沪深300
+    hs300 = r2_j['data'][1]
+    # get 融智-中性优选20指数
+    index20 = r2_j['data'][2]
+    # 累计增长率
+    data0 = r2_j['data'][0]
+    accu_growth_rate = [d['value'] for d in data0]
+
+    # summary to a DataFrame
+    df = pd.DataFrame({
+        'Date': date,
+        'accu_growth_rate': accu_growth_rate,
+        'hs300': hs300,
+        'index20': index20
+    })
+    df['accu_netvalue'] = df.accu_growth_rate + 1.0
+    df['accu_growth_rate'] = df.accu_growth_rate * 100.0
+    df['hs300'] = df.hs300 * 100
+    df['index20'] = df.index20 * 100
+
+    # post processing
+    df = df.round({'accu_netvalue': 4, 'accu_growth_rate': 1,'hs300': 2, 'index20': 2})
+    df.set_index('Date', inplace=True)
+
+    # save to file
+    df.to_csv(f'{fund_id}.csv')
+
+
+if __name__ == "__main__":
+    get_data('HF00003LPV')
+    get_data('HF00004HLY')
+```
+
 ### selenium keys & click
 
 > 可用于点击登陆，自动注册，也可用于普通的点击`next`翻页
