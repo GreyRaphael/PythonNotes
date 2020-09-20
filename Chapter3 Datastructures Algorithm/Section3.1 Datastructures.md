@@ -2,18 +2,18 @@
 
 - [Python Datastructures & Algorithm](#python-datastructures--algorithm)
   - [Introduction](#introduction)
-  - [时间复杂度](#%e6%97%b6%e9%97%b4%e5%a4%8d%e6%9d%82%e5%ba%a6)
-  - [顺序表](#%e9%a1%ba%e5%ba%8f%e8%a1%a8)
-  - [链表](#%e9%93%be%e8%a1%a8)
-    - [单向链表](#%e5%8d%95%e5%90%91%e9%93%be%e8%a1%a8)
-    - [双向链表](#%e5%8f%8c%e5%90%91%e9%93%be%e8%a1%a8)
-    - [单向循环链表(Single Cycle LinkList)](#%e5%8d%95%e5%90%91%e5%be%aa%e7%8e%af%e9%93%be%e8%a1%a8single-cycle-linklist)
-    - [双向循环链表](#%e5%8f%8c%e5%90%91%e5%be%aa%e7%8e%af%e9%93%be%e8%a1%a8)
+  - [时间复杂度](#时间复杂度)
+  - [顺序表](#顺序表)
+  - [链表](#链表)
+    - [单向链表](#单向链表)
+    - [双向链表](#双向链表)
+    - [单向循环链表(Single Cycle LinkList)](#单向循环链表single-cycle-linklist)
+    - [双向循环链表](#双向循环链表)
     - [summary](#summary)
   - [stack](#stack)
   - [queue](#queue)
-    - [单端队列](#%e5%8d%95%e7%ab%af%e9%98%9f%e5%88%97)
-    - [双端队列](#%e5%8f%8c%e7%ab%af%e9%98%9f%e5%88%97)
+    - [单端队列](#单端队列)
+    - [双端队列](#双端队列)
   - [hash table](#hash-table)
 
 ## Introduction
@@ -21,6 +21,19 @@
 数据结构就是设计数据以何种方式组织并存储在计算机中。
 > 比如：列表、集合与字典等都是一种数据结构。N.Wirth: “程序=数据结构+算法”
 
+Abstract Data Type
+- Stack
+  - Vector
+- Queue
+  - Linked List
+  - Priority Queue
+    - Heap
+- Set
+  - Hash Set
+  - Tree Set
+- Map
+  - Hash Map
+  - Tree Map
 
 ## 时间复杂度
 
