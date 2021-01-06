@@ -17,6 +17,7 @@
     - [DFS](#dfs)
     - [tree summary](#tree-summary)
   - [Other Algorithm](#other-algorithm)
+  - [BigData Algorithm](#bigdata-algorithm)
 
 ## Time & Space Complecity
 
@@ -1304,3 +1305,14 @@ target = 7
 print(func1(data, target))
 print(func2(data, target))
 ```
+
+## BigData Algorithm
+
+problem1: 海量数据的topk问题
+- 如果能够加载如内存，就用quick-sort
+- 如果无法放入内存，采用heap-sort
+- 如果所有种类是可以枚举的，那么采用bitmap(状态压缩，桶排序的思想), e.g. 如何判断一个整数是否在40亿个不重复的unsigned int中(unsigned int总共2^32=42亿个),采用1个bit表示整数,那么需要2^32需要512MB就行，然后就可以判断了
+- Bloom Filter(状态压缩)检测存在还是不存在，只要哈希方程选的好，哈希碰撞小，就可以进行状态压缩，将不能装入内存的数据进而可以装入内存. e.g. A, B两个文件各存放50亿个url, 每个url占64Bytes, 内存限制是4G，找出A, B共同的url
+- 外排序，多台电脑对不同文件进行排序，将多个已经排好序的文件进行归并排序，多路归并复杂度是O(n)
+- 胜者树，败者树
+
