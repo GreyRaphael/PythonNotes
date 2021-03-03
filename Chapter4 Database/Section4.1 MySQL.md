@@ -11,26 +11,26 @@
       - [record operation](#record-operation)
     - [backup and recovery](#backup-and-recovery)
   - [query](#query)
-    - [聚合](#%e8%81%9a%e5%90%88)
-    - [分组](#%e5%88%86%e7%bb%84)
-    - [排序](#%e6%8e%92%e5%ba%8f)
-    - [分页](#%e5%88%86%e9%a1%b5)
+    - [聚合](#聚合)
+    - [分组](#分组)
+    - [排序](#排序)
+    - [分页](#分页)
     - [query summary](#query-summary)
   - [relationship](#relationship)
-    - [外键(foreign key)](#%e5%a4%96%e9%94%aeforeign-key)
-    - [外键的级联操作(作为了解，实际上没什么卵用)](#%e5%a4%96%e9%94%ae%e7%9a%84%e7%ba%a7%e8%81%94%e6%93%8d%e4%bd%9c%e4%bd%9c%e4%b8%ba%e4%ba%86%e8%a7%a3%e5%ae%9e%e9%99%85%e4%b8%8a%e6%b2%a1%e4%bb%80%e4%b9%88%e5%8d%b5%e7%94%a8)
-    - [外键summary](#%e5%a4%96%e9%94%aesummary)
+    - [外键(foreign key)](#外键foreign-key)
+    - [外键的级联操作(作为了解，实际上没什么卵用)](#外键的级联操作作为了解实际上没什么卵用)
+    - [外键summary](#外键summary)
   - [join](#join)
-  - [自关联查询](#%e8%87%aa%e5%85%b3%e8%81%94%e6%9f%a5%e8%af%a2)
+  - [自关联查询](#自关联查询)
   - [view](#view)
   - [Transaction](#transaction)
   - [Index](#index)
   - [final example](#final-example)
-  - [常用内置函数](#%e5%b8%b8%e7%94%a8%e5%86%85%e7%bd%ae%e5%87%bd%e6%95%b0)
-    - [字符串函数](#%e5%ad%97%e7%ac%a6%e4%b8%b2%e5%87%bd%e6%95%b0)
+  - [常用内置函数](#常用内置函数)
+    - [字符串函数](#字符串函数)
   - [MySQL with Python](#mysql-with-python)
-    - [封装](#%e5%b0%81%e8%a3%85)
-    - [python交互实例-用户登录](#python%e4%ba%a4%e4%ba%92%e5%ae%9e%e4%be%8b-%e7%94%a8%e6%88%b7%e7%99%bb%e5%bd%95)
+    - [封装](#封装)
+    - [python交互实例-用户登录](#python交互实例-用户登录)
   - [sqlalchemy](#sqlalchemy)
 
 数据库:
@@ -75,11 +75,11 @@ primary key只能有一个;unique可以有多个;
 ## MySQL on Ubuntu
 
 install mysql:
-1. install apt [repo](https://dev.mysql.com/downloads/repo/apt/)(`sudo dpkg -i mysql-apt-config_xxx_all.deb`)
-2. `sudo apt update`
-3. `sudo apt install mysql-server mysql-client`(按提示输入mysql的root密码)
-4. `systemctl enable mysql && systemctl start mysql`
-5. install [workbench](https://dev.mysql.com/downloads/workbench/)
+<!-- 1. install apt [repo](https://dev.mysql.com/downloads/repo/apt/)(`sudo dpkg -i mysql-apt-config_xxx_all.deb`) -->
+1. `sudo apt update`
+1. `sudo apt install mysql-server mysql-client`(按提示输入mysql的root密码)
+1. `systemctl enable mysql && systemctl start mysql`
+<!-- 1. install [workbench](https://dev.mysql.com/downloads/workbench/) -->
 
 如果安装过程中不提示输入密码: 
 
@@ -90,7 +90,8 @@ sudo vim /etc/mysql/debian.cnf
 mysql -u debian-sys-maint -p 
 
 # 添加root账号
-mysql> update mysql.user set authentication_string=password('xxxxxx') where user='root'and Host = 'localhost';
+# mysql> update mysql.user set authentication_string=password('xxxxxx') where user='root'and Host = 'localhost';
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
 # 修改plugin
 mysql> USE mysql;
 mysql> UPDATE user SET plugin='mysql_native_password' WHERE User='root';
@@ -122,8 +123,12 @@ mysql -u root -p
 # 远程登陆的时候用13810455459登陆，而不是mysql的root密码
 # 
 # grant all privileges on *.* to 'root'@'%' identified by '13810455459' with grant option;
-grant all privileges on *.* to 'grey'@'%' identified by '13810455459' with grant option;
+# grant all privileges on *.* to 'grey'@'%' identified by '13810455459' with grant option;
 # show grants for grey;
+
+CREATE USER 'root'@'%' IDENTIFIED BY 'new_password';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '16601319416' WITH GRANT OPTION;
+
 flush privileges;
 exit
 
