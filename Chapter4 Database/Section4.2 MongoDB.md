@@ -2,20 +2,20 @@
 
 - [Python with MongoDB](#python-with-mongodb)
   - [MongoDB intro](#mongodb-intro)
-  - [xubuntu安装mongoDB client&server](#xubuntu%e5%ae%89%e8%a3%85mongodb-clientserver)
-  - [mongoDB查询](#mongodb%e6%9f%a5%e8%af%a2)
-  - [MongoDB高级](#mongodb%e9%ab%98%e7%ba%a7)
-    - [aggregate, 聚合](#aggregate-%e8%81%9a%e5%90%88)
+  - [xubuntu安装mongoDB client&server](#xubuntu安装mongodb-clientserver)
+  - [mongoDB查询](#mongodb查询)
+  - [MongoDB高级](#mongodb高级)
+    - [aggregate, 聚合](#aggregate-聚合)
       - [`$group`](#group)
       - [`$match`](#match)
       - [`$project`](#project)
       - [`$sort`](#sort)
       - [`$limit`, `$skip`](#limit-skip)
       - [`$unwind`](#unwind)
-  - [索引](#%e7%b4%a2%e5%bc%95)
-  - [安全](#%e5%ae%89%e5%85%a8)
-  - [复制(副本集)](#%e5%a4%8d%e5%88%b6%e5%89%af%e6%9c%ac%e9%9b%86)
-  - [手动备份(mongodump) & 恢复(mongorestore)](#%e6%89%8b%e5%8a%a8%e5%a4%87%e4%bb%bdmongodump--%e6%81%a2%e5%a4%8dmongorestore)
+  - [索引](#索引)
+  - [安全](#安全)
+  - [复制(副本集)](#复制副本集)
+  - [手动备份(mongodump) & 恢复(mongorestore)](#手动备份mongodump--恢复mongorestore)
   - [MongDB with python](#mongdb-with-python)
     - [MongoClient](#mongoclient)
 
@@ -88,8 +88,14 @@ mongo -version
 # service mongodb start
 sudo systemctl start mongodb
 
+# 设置密码
+use admin
+db.createUser({user:'grey', pwd:'xxxxxx', roles:[{role:'root',db:'admin'}]})
+exit
+
 sudo vim /etc/mongodb.conf
 # 将bind改为0.0.0.0
+# 将auth改为true设置访问密码
 
 sudo systemctl restart mongodb
 sudo systemctl enable mongodb
