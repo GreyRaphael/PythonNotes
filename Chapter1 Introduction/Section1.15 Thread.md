@@ -6,16 +6,17 @@
     - [threading.Lock()](#threadinglock)
     - [threading.RLock()](#threadingrlock)
   - [semaphore](#semaphore)
-  - [凑几个然后执行](#%e5%87%91%e5%87%a0%e4%b8%aa%e7%84%b6%e5%90%8e%e6%89%a7%e8%a1%8c)
-  - [线程通信 Event](#%e7%ba%bf%e7%a8%8b%e9%80%9a%e4%bf%a1-event)
+  - [凑几个然后执行](#凑几个然后执行)
+  - [线程通信 Event](#线程通信-event)
   - [Condition](#condition)
-    - [线程调度](#%e7%ba%bf%e7%a8%8b%e8%b0%83%e5%ba%a6)
+    - [线程调度](#线程调度)
   - [Queue](#queue)
-  - [Productor & Customer](#productor--customer)
+  - [Productor \& Customer](#productor--customer)
   - [Thread Pool](#thread-pool)
-  - [定时线程](#%e5%ae%9a%e6%97%b6%e7%ba%bf%e7%a8%8b)
+  - [定时线程](#定时线程)
   - [`with`](#with)
-  - [前台进程&后台进程](#%e5%89%8d%e5%8f%b0%e8%bf%9b%e7%a8%8b%e5%90%8e%e5%8f%b0%e8%bf%9b%e7%a8%8b)
+  - [前台进程\&后台进程](#前台进程后台进程)
+
 
 ## Introduction
 
@@ -986,6 +987,60 @@ Thread-1 4
 Thread-2 0
 Thread-2 1
 Thread-2 2
+```
+
+```py
+import threading
+import time
+
+conn = threading.Condition()
+_sync_flag = None
+
+
+def func1():
+    for i in range(5):
+        print(f"func1-{i}")
+
+    global _sync_flag
+    with conn:
+        _sync_flag = False
+        if conn.wait_for(lambda: _sync_flag, 10):
+            print("location, True")
+            return True
+        else:
+            print("location, False")
+            return False
+
+
+def func2():
+    print("func2")
+    time.sleep(2)
+    global _sync_flag
+    with conn:
+        _sync_flag = True
+        conn.notify()
+        print("connected success!")
+
+
+if __name__ == "__main__":
+    t1 = threading.Thread(target=func1)
+    t2 = threading.Thread(target=func2)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+```
+
+```bash
+# output
+func1-0
+func1-1
+func2
+func1-2
+func1-3
+func1-4
+connected success!
+location, True
 ```
 
 当有一个thread获取condition的时候，就锁定；其他的都在等待；
