@@ -2,6 +2,8 @@
 
 # pywebview Communication between Javascript and Python
 
+[tutorial](https://blog.csdn.net/weixin_43958375/article/details/130026226)
+
 ```bash
 .
 ├── index.html
