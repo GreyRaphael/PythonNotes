@@ -8,6 +8,9 @@
 └── main.py
 ```
 
+distribute
+> `pyinstaller --noconsole --onefile --add-data "index.html;." --add-data "assets/index-Ezy1TWTS.js;assets" --add-data "assets/index-ukU7ic22.css;assets" main.py`
+
 ```py
 # main.py
 import webview
